@@ -6,8 +6,8 @@
 <meta name="theme-color" content="#F5EDE0">
 <title>Чистый день</title>
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="icons/icon-192.png">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" href="icons/icon-192.svg">
+<link rel="apple-touch-icon" href="icons/icon-192.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -236,48 +236,48 @@ body{
 .btn-primary{background:var(--accent); color:#fff; box-shadow:0 4px 14px rgba(200,150,62,0.35);}
 .btn-secondary{background:var(--card); color:var(--na-blue); border:2px solid var(--na-blue) !important; font-weight:700 !important;}
 
-/* ---------- dark (navy) theme ---------- */
-[data-theme="dark"]{
-  --bg-0:#0D1B2A; --bg-1:#122338; --card:#162A42; --card-2:#1B3250;
+/* ---------- blue theme ---------- */
+[data-theme="blue"]{
+  --bg-0:#0F1F3D; --bg-1:#152A50; --card:#1B3560; --card-2:#23427A;
   --line:rgba(100,180,255,0.12); --cream:#C8D8E8; --muted:#7A96B0;
   --accent:#D4A843; --accent-soft:#D4A84333; --na-blue:#5B9BD5;
 }
-[data-theme="dark"] body{background:linear-gradient(165deg, #0D1B2A 0%, #122338 40%, #162A42 100%);}
-[data-theme="dark"] #app{background:rgba(0,0,0,0.3); backdrop-filter:blur(2px);}
-[data-theme="dark"] .tabbar{background:rgba(22,42,66,0.94);}
-[data-theme="dark"] .jft-body{color:#B0C8D8;}
-[data-theme="dark"] .jft-quote{color:#B0C8D8;}
-[data-theme="dark"] .plan-input-wrap input{color:#C8D8E8;}
-[data-theme="dark"] .groups-error{color:#E88A7A;border-color:#E88A7A;}
-[data-theme="dark"] .groups-addr{color:#A0B8C8;}
-[data-theme="dark"] .service-row select,.service-row input{color:#C8D8E8;}
-[data-theme="dark"] .groups-item{background:var(--card);}
-[data-theme="dark"] .service-item .svc-group{color:#A0B8C8;}
-[data-theme="dark"] .service-item .svc-actions button{color:#A0B8C8;background:var(--card-2);border-color:var(--line);}
-[data-theme="dark"] .service-item .svc-actions button.reminder-on{background:#1B3A2A;border-color:#2E7D32;color:#81C784;}
-[data-theme="dark"] .plan-item{background:var(--card);}
-[data-theme="dark"] .btn-primary{color:#0D1B2A;}
-[data-theme="dark"] .donate-btn.sbp{color:#fff;}
-[data-theme="dark"] .donate-btn.card{color:#fff;}
-[data-theme="dark"] .tab svg{stroke:#6B8299;}
-[data-theme="dark"] .tab span{color:#6B8299;}
-[data-theme="dark"] .tab.active span{color:#7FA8D4;}
-[data-theme="dark"] .tab.active svg{stroke:var(--accent);}
-[data-theme="dark"] .chip-row{background:var(--card);}
-[data-theme="dark"] .jft-card{background:var(--card);}
-[data-theme="dark"] .groups-item{background:var(--card);}
-[data-theme="dark"] .stat-card{background:var(--card);}
-[data-theme="dark"] .service-item{background:var(--card);}
-[data-theme="dark"] .sos-item{background:var(--card);}
-[data-theme="dark"] .medal-inner{background:var(--card-2);}
-[data-theme="dark"] .popup{background:var(--card);}
-[data-theme="dark"] .modal{background:var(--card);}
-[data-theme="dark"] .settings-card{background:var(--card-2);}
-[data-theme="dark"] .theme-toggle{background:var(--card);}
-[data-theme="dark"] .plan-reminder{background:var(--card);}
-[data-theme="dark"] .plan-reminder input[type=time]{background:var(--card-2);color:#C8D8E8;}
-[data-theme="dark"] .legend-note{background:var(--card);}
-[data-theme="dark"] .jft-card{background:var(--card);}
+[data-theme="blue"] body{background:linear-gradient(165deg, #0F1F3D 0%, #152A50 40%, #1B3560 100%);}
+[data-theme="blue"] #app{background:rgba(0,0,0,0.3); backdrop-filter:blur(2px);}
+[data-theme="blue"] .tabbar{background:rgba(27,53,96,0.94);}
+[data-theme="blue"] .jft-body{color:#B0C8D8;}
+[data-theme="blue"] .jft-quote{color:#B0C8D8;}
+[data-theme="blue"] .plan-input-wrap input{color:#C8D8E8;}
+[data-theme="blue"] .groups-error{color:#E88A7A;border-color:#E88A7A;}
+[data-theme="blue"] .groups-addr{color:#A0B8C8;}
+[data-theme="blue"] .service-row select,.service-row input{color:#C8D8E8;}
+[data-theme="blue"] .groups-item{background:var(--card);}
+[data-theme="blue"] .service-item .svc-group{color:#A0B8C8;}
+[data-theme="blue"] .service-item .svc-actions button{color:#A0B8C8;background:var(--card-2);border-color:var(--line);}
+[data-theme="blue"] .service-item .svc-actions button.reminder-on{background:#1B3A2A;border-color:#2E7D32;color:#81C784;}
+[data-theme="blue"] .plan-item{background:var(--card);}
+[data-theme="blue"] .btn-primary{color:#0F1F3D;}
+[data-theme="blue"] .donate-btn.sbp{color:#fff;}
+[data-theme="blue"] .donate-btn.card{color:#fff;}
+[data-theme="blue"] .tab svg{stroke:#6B8299;}
+[data-theme="blue"] .tab span{color:#6B8299;}
+[data-theme="blue"] .tab.active span{color:#7FA8D4;}
+[data-theme="blue"] .tab.active svg{stroke:var(--accent);}
+[data-theme="blue"] .chip-row{background:var(--card);}
+[data-theme="blue"] .jft-card{background:var(--card);}
+[data-theme="blue"] .groups-item{background:var(--card);}
+[data-theme="blue"] .stat-card{background:var(--card);}
+[data-theme="blue"] .service-item{background:var(--card);}
+[data-theme="blue"] .sos-item{background:var(--card);}
+[data-theme="blue"] .medal-inner{background:var(--card-2);}
+[data-theme="blue"] .popup{background:var(--card);}
+[data-theme="blue"] .modal{background:var(--card);}
+[data-theme="blue"] .settings-card{background:var(--card-2);}
+[data-theme="blue"] .theme-toggle{background:var(--card);}
+[data-theme="blue"] .plan-reminder{background:var(--card);}
+[data-theme="blue"] .plan-reminder input[type=time]{background:var(--card-2);color:#C8D8E8;}
+[data-theme="blue"] .legend-note{background:var(--card);}
+[data-theme="blue"] .jft-card{background:var(--card);}
 
 /* ---------- theme toggle ---------- */
 .theme-toggle{display:flex;gap:6px;background:var(--card-2);border-radius:999px;padding:3px;border:1px solid var(--line);}
@@ -300,26 +300,33 @@ body{
 .donate-btn.sbp{background:#28954A;color:#fff;box-shadow:0 3px 10px rgba(40,149,74,0.3);}
 .donate-btn.card{background:var(--na-blue);color:#fff;box-shadow:0 3px 10px rgba(26,62,107,0.3);}
 
-/* ---------- donate banner (subtle bottom sheet) ---------- */
+/* ---------- donate banner (centered popup) ---------- */
 .donate-banner{
-  position:fixed; bottom:0; left:50%; transform:translateX(-50%) translateY(100%);
-  width:100%; max-width:480px; z-index:45;
-  background:var(--card); border-top:2px solid var(--accent);
-  padding:10px 14px calc(env(safe-area-inset-bottom,0px) + 10px);
-  box-shadow:0 -4px 20px rgba(0,0,0,0.1);
-  transition:transform .4s cubic-bezier(.22,1,.36,1);
-  display:flex; align-items:center; gap:10px;
+  position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.92);
+  width:calc(100% - 40px); max-width:360px; z-index:45;
+  background:var(--card); border:2px solid var(--accent); border-radius:var(--radius-lg);
+  padding:28px 22px 20px;
+  box-shadow:0 12px 48px rgba(0,0,0,0.25);
+  transition:transform .4s cubic-bezier(.22,1,.36,1), opacity .4s ease;
+  opacity:0; pointer-events:none;
+  display:flex; flex-direction:column; align-items:center; gap:12px;
+  text-align:center;
 }
-.donate-banner.active{transform:translateX(-50%) translateY(0);}
-.donate-banner .db-text{flex:1;font-size:12px;line-height:1.4;color:var(--cream);}
+.donate-banner.active{transform:translate(-50%,-50%) scale(1); opacity:1; pointer-events:auto;}
+.donate-banner .db-close{position:absolute;top:10px;right:12px;width:28px;height:28px;border:none;background:none;cursor:pointer;opacity:0.5;color:var(--muted);padding:0;display:flex;align-items:center;justify-content:center;}
+.donate-banner .db-close:hover{opacity:1;}
+.donate-banner .db-close svg{width:18px;height:18px;stroke:currentColor;stroke-width:2;}
+.donate-banner .db-icon{width:48px;height:48px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
+.donate-banner .db-icon svg{width:24px;height:24px;stroke:var(--accent);fill:none;stroke-width:2;}
+.donate-banner .db-title{font-family:var(--font-display);font-size:17px;font-weight:700;color:var(--cream);}
+.donate-banner .db-text{font-size:13px;line-height:1.5;color:var(--muted);}
 .donate-banner .db-text strong{color:var(--accent);}
-.donate-banner .db-actions{display:flex;gap:5px;flex-shrink:0;}
-.donate-banner .db-actions button{padding:5px 10px;border-radius:999px;border:none;font-size:10px;font-weight:800;cursor:pointer;transition:transform .15s,background .2s;white-space:nowrap;font-family:var(--font-body);}
-.donate-banner .db-actions button:active{transform:scale(0.94);}
-.donate-banner .db-actions .db-donate{background:var(--accent);color:#fff;}
+.donate-banner .db-actions{display:flex;gap:8px;width:100%;margin-top:4px;}
+.donate-banner .db-actions button{flex:1;padding:10px;border-radius:999px;border:none;font-size:13px;font-weight:800;cursor:pointer;transition:transform .15s;font-family:var(--font-body);}
+.donate-banner .db-actions button:active{transform:scale(0.95);}
+.donate-banner .db-actions .db-donate{background:var(--accent);color:#fff;box-shadow:0 3px 10px rgba(200,150,62,0.3);}
 .donate-banner .db-actions .db-later{background:var(--card-2);color:var(--muted);border:1px solid var(--line);}
-.donate-banner .db-actions .db-later:hover{color:var(--cream);}
-[data-theme="dark"] .donate-banner{background:var(--card);}
+[data-theme="blue"] .donate-banner{background:var(--card);}
 
 /* ---------- legal ---------- */
 .legal-content{font-size:13px;line-height:1.7;color:var(--cream);max-height:50vh;overflow-y:auto;padding-right:4px;}
@@ -341,9 +348,9 @@ body{
 .splash .splash-title{font-family:var(--font-display);font-size:28px;font-weight:800;color:var(--na-blue);letter-spacing:0.5px;}
 .splash .splash-title span{color:var(--accent);}
 .splash .splash-sub{font-size:12px;color:var(--muted);margin-top:4px;letter-spacing:1px;text-transform:uppercase;}
-[data-theme="dark"] .splash{background:linear-gradient(165deg,#0D1B2A,#122338);}
-[data-theme="dark"] .splash .splash-title{color:#7FA8D4;}
-[data-theme="dark"] .splash .splash-sub{color:#6B8299;}
+[data-theme="blue"] .splash{background:linear-gradient(165deg,#0F1F3D,#152A50);}
+[data-theme="blue"] .splash .splash-title{color:#7FA8D4;}
+[data-theme="blue"] .splash .splash-sub{color:#6B8299;}
 
 </style>
 </head>
@@ -352,9 +359,8 @@ body{
 
   <div class="splash" id="splash">
     <svg viewBox="0 0 96 96">
-      <defs><linearGradient id="sg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#C8963E"/><stop offset="100%" stop-color="#1A3E6B"/></linearGradient></defs>
-      <circle cx="48" cy="44" r="42" fill="#1A3E6B" stroke="url(#sg)" stroke-width="4"/>
-      <path d="M48,16L73,60L23,60Z" fill="url(#sg)" opacity="0.9"/>
+      <rect width="96" height="96" rx="20" fill="#FFFFFF"/>
+      <text x="48" y="48" text-anchor="middle" dominant-baseline="central" font-family="Georgia,'Times New Roman',serif" font-weight="900" font-size="68" fill="#1A3E6B">NA</text>
     </svg>
     <div class="splash-title">Чистый <span>день</span></div>
     <div class="splash-sub">счётчик трезвости</div>
@@ -529,13 +535,11 @@ body{
       </div>
     </div>
     <div class="tabbar-brand">
-      <svg viewBox="0 0 48 48" aria-label="DFDiZ">
-        <defs><linearGradient id="dfdz" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#C8963E"/><stop offset="100%" stop-color="#8B6FA8"/></linearGradient></defs>
-        <circle cx="24" cy="24" r="20" fill="none" stroke="url(#dfdz)" stroke-width="2.5" opacity="0.5"/>
-        <text x="24" y="24" text-anchor="middle" dominant-baseline="central" font-family="Manrope,sans-serif" font-weight="800" font-size="14" fill="url(#dfdz)">DF</text>
-        <text x="24" y="37" text-anchor="middle" dominant-baseline="central" font-family="Manrope,sans-serif" font-weight="800" font-size="7" fill="url(#dfdz)">DIZ</text>
+      <svg viewBox="0 0 48 48" aria-label="NA">
+        <rect width="48" height="48" rx="10" fill="#FFFFFF"/>
+        <text x="24" y="24" text-anchor="middle" dominant-baseline="central" font-family="Georgia,'Times New Roman',serif" font-weight="900" font-size="34" fill="#1A3E6B">NA</text>
       </svg>
-      <span>Студия <strong>DFDiZ</strong></span>
+      <span>Анонимные <strong>Наркоманы</strong></span>
     </div>
   </div>
 
@@ -564,8 +568,7 @@ body{
         <div class="settings-card">
           <div class="theme-toggle" id="themeToggle">
             <button class="theme-opt active" data-theme-value="light" onclick="setTheme('light')">Светлая</button>
-            <button class="theme-opt" data-theme-value="dark" onclick="setTheme('dark')">Тёмная</button>
-            <button class="theme-opt" data-theme-value="system" onclick="setTheme('system')">Системная</button>
+            <button class="theme-opt" data-theme-value="blue" onclick="setTheme('blue')">Синяя</button>
           </div>
         </div>
       </div>
@@ -626,12 +629,19 @@ body{
     </div>
   </div>
 
-  <!-- DONATE BANNER (subtle bottom sheet) -->
+  <!-- DONATE BANNER (centered popup) -->
   <div class="donate-banner" id="donateBanner">
-    <div class="db-text">Чистый день живёт твоей поддержкой — <strong>помоги проекту</strong></div>
+    <button class="db-close" onclick="dismissDonateBanner()" aria-label="Закрыть">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="db-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7.5-4.6-10-9.3C.4 8 2 4.5 5.4 4.1c2-.2 3.7 1 4.6 2.6.9-1.6 2.6-2.8 4.6-2.6C18 4.5 19.6 8 20 11.7 17.5 16.4 12 21 12 21Z"/></svg>
+    </div>
+    <div class="db-title">Поддержи проект</div>
+    <div class="db-text">«Чистый день» живёт твоей поддержкой. Если приложение помогает — <strong>помоги ему оставаться бесплатным</strong>.</div>
     <div class="db-actions">
+      <button class="db-later" onclick="dismissDonateBanner()">Не сейчас</button>
       <button class="db-donate" onclick="showDonateOptions()">Поддержать</button>
-      <button class="db-later" onclick="dismissDonateBanner()">Напомнить</button>
     </div>
   </div>
 
@@ -696,7 +706,7 @@ function renderHome(){
   if(!startStr){
     dayCountEl.textContent='0'; dayLabelEl.textContent='дней';
     nameEl.textContent='Нажми, чтобы начать отсчёт';
-    nameEl.onclick=function(){ storage.set('startDate', new Date().toISOString().slice(0,10)); renderHome(); closeDonatePopup(); };
+    nameEl.onclick=function(){ storage.set('startDate', new Date().toISOString().slice(0,10)); renderHome(); };
     setAccent('#C8963E');
     document.getElementById('progressFill').style.width='0%';
     document.getElementById('progressFromLabel').textContent='Медаль появится здесь';
@@ -1068,7 +1078,7 @@ function schedulePlanReminder(timeVal){
   let diff=target-now;
   if(diff<0) diff+=86400000;
   planTimerId = setTimeout(()=>{
-    new Notification('Чистый день', {body:'Пора проверить свой план на сегодня!', icon:'icons/icon-192.png'});
+    new Notification('Чистый день', {body:'Пора проверить свой план на сегодня!', icon:'icons/icon-192.svg'});
     schedulePlanReminder(timeVal);
   }, diff);
 }
@@ -1137,6 +1147,8 @@ function delService(i){
   const items=getServices();
   const item=items[i];
   clearSvcReminder(item.id);
+  item.reminder=false;
+  item.reminderTime='';
   items.splice(i,1);
   saveServices(items);
   renderService();
@@ -1178,7 +1190,7 @@ function scheduleSvcReminder(item){
   const tid=setTimeout(()=>{
     new Notification('Чистый день — Служение', {
       body: item.name + (item.group ? ' в '+item.group : ''),
-      icon:'icons/icon-192.png'
+      icon:'icons/icon-192.svg'
     });
     scheduleSvcReminder(item);
   }, diff);
@@ -1212,14 +1224,9 @@ function saveStartDate(){
 
 /* ------- THEME ------- */
 function applyTheme(theme){
-  if(theme==='system'){
-    const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
-  } else {
-    document.documentElement.setAttribute('data-theme', theme);
-  }
-  if(theme==='dark' || (theme==='system' && window.matchMedia('(prefers-color-scheme: dark)').matches)){
-    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0D1B2A');
+  document.documentElement.setAttribute('data-theme', theme);
+  if(theme==='blue'){
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0F1F3D');
   } else {
     document.querySelector('meta[name="theme-color"]').setAttribute('content', '#F5EDE0');
   }
@@ -1236,9 +1243,6 @@ function initTheme(){
   applyTheme(saved);
   document.querySelectorAll('.theme-opt').forEach(b=>{
     b.classList.toggle('active', b.dataset.themeValue===saved);
-  });
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', ()=>{
-    if((storage.get('theme')||'light')==='system') applyTheme('system');
   });
 }
 
@@ -1261,7 +1265,6 @@ function copySbp(){
   copyToClipboard('89801793263', 'Номер телефона для СБП');
 }
 function showDonateOptions(){
-  document.getElementById('donateBanner').classList.remove('active');
   dismissDonateBanner();
   openSettings();
 }
@@ -1329,14 +1332,17 @@ renderJft();
 checkSvcReminders();
 checkPlanReminder();
 
-const hasStart = storage.get('startDate');
-if(hasStart){
+/* ------- donate banner: 3rd launch, then weekly ------- */
+try {
+  const lc = parseInt(storage.get('launch_count')||'0') + 1;
+  storage.set('launch_count', String(lc));
+  const hasStart = storage.get('startDate');
   const last = storage.get('last_donate_prompt');
-  const show = (!last) || (Date.now() - parseInt(last) > 3*86400000 && Math.random() < 0.4);
-  if(show){
+  const weekAgo = Date.now() - 7*86400000;
+  if(hasStart && (lc===3 || (last && parseInt(last) < weekAgo))){
     setTimeout(()=>{ document.getElementById('donateBanner').classList.add('active'); }, 4000);
   }
-}
+} catch(e){}
 
 setInterval(renderHome, 60000);
 
