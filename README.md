@@ -21,7 +21,7 @@ PWA-счётчик трезвости с ежедневными размышле
 ### Быстрый старт
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/dfyv8410-crypto/chistiy-den.git
 cd zheton-dnya
 # Откройте index.html в браузере
 ```
