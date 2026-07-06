@@ -1070,6 +1070,12 @@ function setPlanReminder(){
   }
 }
 let planTimerId = null;
+function notify(body, icon){
+  try{
+    if(navigator.vibrate) navigator.vibrate(200);
+    new Notification('Чистый день', {body, icon:icon||'icons/icon-192.svg', requireInteraction:true});
+  } catch(e){}
+}
 function schedulePlanReminder(timeVal){
   if(!timeVal) return;
   const [h,m]=timeVal.split(':');
@@ -1078,7 +1084,8 @@ function schedulePlanReminder(timeVal){
   let diff=target-now;
   if(diff<0) diff+=86400000;
   planTimerId = setTimeout(()=>{
-    new Notification('Чистый день', {body:'Пора проверить свой план на сегодня!', icon:'icons/icon-192.svg'});
+    storage.set('plan_last_fired', new Date().toDateString());
+    notify('Пора проверить свой план на сегодня!');
     schedulePlanReminder(timeVal);
   }, diff);
 }
@@ -1087,7 +1094,15 @@ function clearPlanReminder(){
 }
 function checkPlanReminder(){
   const saved = storage.get('plan_reminder_time');
-  if(saved) schedulePlanReminder(saved);
+  if(!saved) return;
+  const [h,m]=saved.split(':');
+  const now=new Date();
+  const todayTarget=new Date(now.getFullYear(),now.getMonth(),now.getDate(),parseInt(h),parseInt(m),0);
+  if(todayTarget<now && storage.get('plan_last_fired')!==now.toDateString()){
+    notify('Пора проверить свой план на сегодня!');
+    storage.set('plan_last_fired', now.toDateString());
+  }
+  schedulePlanReminder(saved);
 }
 
 /* ------- SERVICE ------- */
@@ -1188,10 +1203,8 @@ function scheduleSvcReminder(item){
   }
   const diff=target-now;
   const tid=setTimeout(()=>{
-    new Notification('Чистый день — Служение', {
-      body: item.name + (item.group ? ' в '+item.group : ''),
-      icon:'icons/icon-192.svg'
-    });
+    storage.set('svc_fired_'+item.id, now.toDateString());
+    notify(item.name + (item.group ? ' в '+item.group : ''));
     scheduleSvcReminder(item);
   }, diff);
   svcTimers[item.id]=tid;
@@ -1199,12 +1212,23 @@ function scheduleSvcReminder(item){
 
 function clearSvcReminder(id){
   if(svcTimers[id]){ clearTimeout(svcTimers[id]); delete svcTimers[id]; }
+  storage.set('svc_fired_'+id, '');
 }
 
 function checkSvcReminders(){
   const items=getServices();
+  const now=new Date();
   items.forEach(item=>{
-    if(item.reminder && !svcTimers[item.id]) scheduleSvcReminder(item);
+    if(item.reminder && !svcTimers[item.id]){
+      const parts=item.reminderTime.split(':');
+      const h=parseInt(parts[0]), m=parseInt(parts[1]);
+      const todayTarget=new Date(now.getFullYear(),now.getMonth(),now.getDate(),h,m,0);
+      if(!isNaN(h)&&!isNaN(m) && todayTarget.getDay()===item.day && todayTarget<now && storage.get('svc_fired_'+item.id)!==now.toDateString()){
+        notify(item.name + (item.group ? ' в '+item.group : ''));
+        storage.set('svc_fired_'+item.id, now.toDateString());
+      }
+      scheduleSvcReminder(item);
+    }
   });
 }
 
