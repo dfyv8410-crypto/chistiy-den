@@ -1048,20 +1048,36 @@ function setPlanReminder(){
   const timeVal = timeInput.value;
   if(!timeVal) return;
   if(Notification.permission==='granted'){
-    const [h,m]=timeVal.split(':');
-    const now=new Date();
-    const target=new Date(now.getFullYear(),now.getMonth(),now.getDate(),parseInt(h),parseInt(m),0);
-    let diff=target-now;
-    if(diff<0) diff+=86400000;
-    setTimeout(()=>{
-      new Notification('Чистый день', {body:'Пора проверить свой план на сегодня!', icon:'icons/icon-192.png'});
-    }, diff);
+    clearPlanReminder();
+    storage.set('plan_reminder_time', timeVal);
+    schedulePlanReminder(timeVal);
     timeInput.value='';
+    alert('Напоминание установлено на ' + timeVal);
   } else if(Notification.permission==='denied'){
     alert('Разреши уведомления в настройках браузера, чтобы получать напоминания.');
   } else {
     Notification.requestPermission().then(p=>{ if(p==='granted') setPlanReminder(); });
   }
+}
+let planTimerId = null;
+function schedulePlanReminder(timeVal){
+  if(!timeVal) return;
+  const [h,m]=timeVal.split(':');
+  const now=new Date();
+  const target=new Date(now.getFullYear(),now.getMonth(),now.getDate(),parseInt(h),parseInt(m),0);
+  let diff=target-now;
+  if(diff<0) diff+=86400000;
+  planTimerId = setTimeout(()=>{
+    new Notification('Чистый день', {body:'Пора проверить свой план на сегодня!', icon:'icons/icon-192.png'});
+    schedulePlanReminder(timeVal);
+  }, diff);
+}
+function clearPlanReminder(){
+  if(planTimerId){ clearTimeout(planTimerId); planTimerId=null; }
+}
+function checkPlanReminder(){
+  const saved = storage.get('plan_reminder_time');
+  if(saved) schedulePlanReminder(saved);
 }
 
 /* ------- SERVICE ------- */
@@ -1138,6 +1154,7 @@ function toggleSvcReminder(i){
     if(Notification.permission==='default'){ Notification.requestPermission().then(p=>{ if(p==='granted') toggleSvcReminder(i); }); return; }
     const timeInput=document.getElementById('svcTime');
     const t=timeInput.value || item.time;
+    if(!t){ alert('Укажи время служения'); return; }
     item.reminder=true;
     item.reminderTime=t;
     scheduleSvcReminder(item);
@@ -1147,9 +1164,13 @@ function toggleSvcReminder(i){
 }
 
 function scheduleSvcReminder(item){
-  const [h,m]=item.reminderTime.split(':');
+  if(!item.reminderTime){ item.reminder=false; return; }
+  const parts=item.reminderTime.split(':');
+  if(parts.length<2){ item.reminder=false; return; }
+  const h=parseInt(parts[0]), m=parseInt(parts[1]);
+  if(isNaN(h)||isNaN(m)){ item.reminder=false; return; }
   const now=new Date();
-  let target=new Date(now.getFullYear(),now.getMonth(),now.getDate(),parseInt(h),parseInt(m),0);
+  let target=new Date(now.getFullYear(),now.getMonth(),now.getDate(),h,m,0);
   while(target.getDay()!==item.day || target<=now){
     target.setDate(target.getDate()+1);
   }
@@ -1306,6 +1327,7 @@ if('serviceWorker' in navigator){
 renderHome();
 renderJft();
 checkSvcReminders();
+checkPlanReminder();
 
 const hasStart = storage.get('startDate');
 if(hasStart){
