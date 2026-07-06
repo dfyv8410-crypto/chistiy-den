@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F5EDE0">
+<title>Чистый день</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-0:#F5EDE0;
+  --bg-1:#EDE3D3;
+  --card:#FFFFFF;
+  --card-2:#F7F0E5;
+  --line:rgba(60,40,20,0.12);
+  --cream:#3D2B1F;
+  --muted:#8B7355;
+  --accent:#C8963E;
+  --accent-soft:#C8963E22;
+  --na-blue:#1A3E6B;
+  --font-display:'Fraunces', Georgia, serif;
+  --font-body:'Manrope', -apple-system, sans-serif;
+  --radius-lg:24px;
+  --radius-md:16px;
+  --radius-sm:10px;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0; padding:0; height:100%; overscroll-behavior:none;}
+body{
+  display:flex; justify-content:center;
+  font-family:var(--font-body); color:var(--cream);
+  background:linear-gradient(165deg, #F5EDE0 0%, #EDE3D3 40%, #E8DCC8 100%);
+  min-height:100vh;
+}
+#app{width:100%; max-width:480px; min-height:100vh; display:flex; flex-direction:column; position:relative; background:rgba(255,255,255,0.5); backdrop-filter:blur(2px);}
+
+/* ---------- top bar ---------- */
+.topbar{padding:calc(env(safe-area-inset-top,0px) + 20px) 20px 8px; display:flex; align-items:center; justify-content:space-between;}
+.wordmark{font-family:var(--font-display); font-weight:800; font-size:20px; letter-spacing:0.3px; color:var(--na-blue);}
+.wordmark span{color:var(--accent);}
+.wordmark small{font-size:10px; font-weight:400; color:var(--muted); letter-spacing:1px; display:block; margin-top:-2px;}
+.icon-btn{width:38px; height:38px; border-radius:50%; border:1.5px solid var(--line); background:var(--card); display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.08); transition:transform .15s, box-shadow .15s;}
+.icon-btn:active{transform:scale(0.92); box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.icon-btn svg{width:18px; height:18px; stroke:var(--na-blue); stroke-width:2.2;}
+
+/* ---------- screens ---------- */
+.screen{display:none; flex:1; flex-direction:column; padding:4px 20px 100px; animation:fadein .3s ease; overflow-y:auto;}
+.screen.active{display:flex;}
+@keyframes fadein{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
+
+/* ---------- HOME ---------- */
+.medal-stage{display:flex; flex-direction:column; align-items:center; margin-top:10px; position:relative;}
+.medal-glow{
+  position:absolute; width:240px; height:240px; border-radius:50%;
+  background:radial-gradient(circle, var(--accent-soft), transparent 70%);
+  filter:blur(3px); top:-20px; z-index:0; transition:background .5s;
+}
+.medal{
+  width:200px; height:200px; border-radius:50%; position:relative; z-index:1;
+  display:flex; align-items:center; justify-content:center;
+  background:conic-gradient(from -90deg, var(--accent), #FFE4B5, var(--accent));
+  box-shadow:0 12px 40px rgba(200,150,62,0.3);
+  transition:background .5s;
+}
+.medal::before{content:''; position:absolute; inset:7px; border-radius:50%; border:2px dashed rgba(60,40,20,0.2);}
+.medal-inner{
+  width:152px; height:152px; border-radius:50%; background:var(--card);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  box-shadow:inset 0 3px 14px rgba(60,40,20,0.1);
+}
+.medal-inner .num{font-family:var(--font-display); font-size:48px; font-weight:700; line-height:1; color:var(--na-blue);}
+.medal-inner .label{font-size:11px; letter-spacing:1.4px; text-transform:uppercase; color:var(--muted); margin-top:5px;}
+.medal-name{
+  margin-top:16px; font-size:14px; font-weight:800; letter-spacing:0.3px; color:var(--accent);
+  background:var(--card); padding:8px 18px; border-radius:999px; border:2px solid var(--accent);
+  box-shadow:0 3px 12px rgba(200,150,62,0.2); transition:transform .15s; cursor:pointer;
+}
+
+.progress-wrap{margin-top:18px;}
+.progress-labels{display:flex; justify-content:space-between; font-size:11.5px; color:var(--muted); margin-bottom:6px;}
+.progress-track{height:8px; border-radius:999px; background:rgba(200,150,62,0.15); overflow:hidden;}
+.progress-fill{height:100%; border-radius:999px; background:linear-gradient(90deg, var(--accent), #E8B86D); transition:width .6s ease, background .5s;}
+
+.stats-row{display:flex; gap:8px; margin-top:16px;}
+.stat-card{flex:1; background:var(--card); border:1px solid var(--line); border-radius:var(--radius-md); padding:12px 8px; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.03);}
+.stat-card .v{font-family:var(--font-display); font-size:20px; font-weight:700; color:var(--na-blue);}
+.stat-card .l{font-size:10px; color:var(--muted); margin-top:2px; text-transform:uppercase; letter-spacing:0.5px;}
+
+.reset-link{margin-top:16px; text-align:center; font-size:13px; color:var(--na-blue); font-weight:700; cursor:pointer; background:var(--card); border:1.5px dashed var(--accent); border-radius:var(--radius-md); padding:10px; transition:transform .15s, background .2s;}
+.reset-link:active{transform:scale(0.97); background:var(--accent-soft);}
+
+/* ---------- JFT ---------- */
+.jft-card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius-lg); padding:20px 18px; margin-top:6px; box-shadow:0 2px 12px rgba(0,0,0,0.04);}
+.jft-date{font-size:11px; color:#6B5B45; letter-spacing:0.5px; text-transform:uppercase;}
+.jft-title{font-family:var(--font-display); font-size:21px; font-weight:700; margin:6px 0 3px; line-height:1.3; color:var(--na-blue);}
+.jft-ref{font-size:11.5px; color:#6B5B45; margin-bottom:12px;}
+.jft-quote{background:rgba(200,150,62,0.08); border-left:3px solid var(--accent); padding:10px 14px; margin:10px 0; font-style:italic; font-size:13.5px; line-height:1.5; border-radius:0 var(--radius-sm) var(--radius-sm) 0; color:#5A4A3A;}
+.jft-body{font-size:13.5px; line-height:1.75; color:#4A3828; margin:12px 0;}
+.jft-jft{margin-top:14px; padding-top:12px; border-top:1px solid var(--line); font-weight:700; font-size:13.5px; line-height:1.5; color:var(--accent);}
+
+/* ---------- PLAN ---------- */
+.plan-input-wrap{display:flex; gap:8px; margin-top:6px;}
+.plan-input-wrap input{flex:1; padding:10px 14px; border-radius:var(--radius-md); border:1px solid var(--line); font-size:14px; font-family:var(--font-body); background:var(--card); color:var(--cream); outline:none;}
+.plan-input-wrap input:focus{border-color:var(--accent);}
+.plan-input-wrap button{padding:10px 16px; border-radius:var(--radius-md); border:none; background:var(--accent); color:var(--cream); font-weight:800; font-size:13px; font-family:var(--font-body); cursor:pointer; white-space:nowrap; box-shadow:0 3px 10px rgba(200,150,62,0.3); transition:transform .15s, box-shadow .15s;}
+.plan-input-wrap button:active{transform:scale(0.96); box-shadow:0 1px 4px rgba(200,150,62,0.2);}
+.plan-list{margin-top:14px;}
+.plan-item{display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--line); border-radius:var(--radius-md); padding:10px 12px; margin-bottom:8px; box-shadow:0 1px 4px rgba(0,0,0,0.03);}
+.plan-item.done{opacity:0.55;}
+.plan-item.done .plan-text{text-decoration:line-through;}
+.plan-cb{width:20px; height:20px; border-radius:50%; border:2px solid var(--accent); display:flex; align-items:center; justify-content:center; cursor:pointer; flex:0 0 auto; background:transparent; transition:all .2s;}
+.plan-cb.done{background:var(--accent);}
+.plan-cb svg{width:12px; height:12px; stroke:#fff; display:none;}
+.plan-cb.done svg{display:block;}
+.plan-text{flex:1; font-size:14px; word-break:break-word;}
+.plan-del{width:24px; height:24px; border:none; background:none; cursor:pointer; opacity:0.4; color:var(--muted); flex:0 0 auto;}
+.plan-del:hover{opacity:0.8;}
+.plan-del svg{width:16px; height:16px; stroke:currentColor;}
+.plan-empty{text-align:center; color:var(--muted); font-size:13.5px; margin-top:30px; line-height:1.6;}
+.plan-reminder{display:flex; align-items:center; gap:8px; margin-top:14px; padding:12px 14px; background:var(--card); border:1px solid var(--line); border-radius:var(--radius-md); font-size:13px;}
+.plan-reminder input[type=time]{padding:6px 10px; border-radius:var(--radius-sm); border:1px solid var(--line); font-size:13px; font-family:var(--font-body); background:var(--card-2); color:var(--cream);}
+.plan-reminder button{padding:8px 16px; border-radius:var(--radius-sm); border:none; background:var(--accent); color:var(--cream); font-weight:800; font-size:12px; cursor:pointer; box-shadow:0 3px 10px rgba(200,150,62,0.3); transition:transform .15s, box-shadow .15s;}
+.plan-reminder button:active{transform:scale(0.96); box-shadow:0 1px 4px rgba(200,150,62,0.2);}
+
+/* ---------- MILESTONES ---------- */
+.screen-title{font-family:var(--font-display); font-size:24px; font-weight:700; margin:16px 0 3px; color:var(--na-blue);}
+.screen-sub{font-size:13px; color:var(--muted); margin-bottom:16px; line-height:1.5;}
+
+.chip-row{
+  display:flex; align-items:center; gap:12px; background:var(--card); border:1px solid var(--line);
+  border-radius:var(--radius-md); padding:12px 14px; margin-bottom:8px; position:relative; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,0.03);
+}
+.chip-row.locked{opacity:0.4;}
+.chip-dot{
+  width:40px; height:40px; border-radius:50%; flex:0 0 auto; position:relative;
+  box-shadow:0 4px 12px rgba(0,0,0,0.15);
+  display:flex; align-items:center; justify-content:center;
+}
+.chip-dot::after{content:''; position:absolute; inset:5px; border-radius:50%; border:1.5px dashed rgba(0,0,0,0.2);}
+.chip-row.locked .chip-dot{filter:grayscale(1); box-shadow:none;}
+.chip-text{flex:1;}
+.chip-text .name{font-weight:700; font-size:14px;}
+.chip-text .desc{font-size:12px; color:var(--muted); margin-top:1px;}
+.chip-check{width:20px; height:20px; flex:0 0 auto;}
+.chip-check svg{width:100%; height:100%; stroke:#3DDC84;}
+.chip-lock{width:14px; height:14px; flex:0 0 auto; opacity:0.5;}
+.chip-lock svg{width:100%; height:100%; stroke:var(--muted);}
+
+.legend-note{
+  margin-top:8px; background:var(--card); border:1px dashed var(--line); border-radius:var(--radius-md);
+  padding:12px; font-size:12px; color:var(--muted); line-height:1.6;
+}
+
+/* ---------- GROUPS ---------- */
+.groups-loading,.groups-error{padding:30px;text-align:center;color:#5A4A3A;font-size:14px;background:var(--card);border-radius:var(--radius-lg);border:1px solid var(--line);margin-top:6px;}
+.groups-error{color:#B8403A;border-color:#B8403A;}
+.groups-day-group{margin-bottom:14px;}
+.groups-day-label{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--na-blue);margin:12px 0 6px;padding-bottom:4px;border-bottom:2px solid var(--accent);}
+.groups-item{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,0.03);}
+.groups-item-row{display:flex;align-items:flex-start;gap:12px;}
+.groups-time{font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--accent);white-space:nowrap;min-width:52px;padding-top:1px;}
+.groups-info{flex:1;min-width:0;}
+.groups-name{font-size:14px;font-weight:700;color:var(--na-blue);}
+.groups-addr{font-size:12px;color:#5A4A3A;margin-top:2px;line-height:1.4;}
+.groups-types{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
+.groups-type-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(200,150,62,0.15);color:#7A5A20;border:1px solid rgba(200,150,62,0.5);letter-spacing:0.2px;}
+.groups-type-badge.online{background:#D7EAD7;color:#1B5E20;border-color:#1B5E20;}
+.groups-empty{padding:30px;text-align:center;color:#5A4A3A;font-size:14px;line-height:1.6;background:var(--card);border-radius:var(--radius-lg);border:1px dashed var(--line);margin-top:6px;}
+.groups-retry{display:inline-block;margin-top:10px;padding:8px 20px;border-radius:999px;background:var(--accent);color:var(--cream);font-weight:700;font-size:13px;border:none;cursor:pointer;}
+
+/* ---------- SOS ---------- */
+.sos-hero{background:linear-gradient(155deg, #D4816A, #B05B4F); border-radius:var(--radius-lg); padding:22px 18px; margin-top:10px;}
+.sos-hero h2{font-family:var(--font-display); font-size:20px; margin:0 0 6px; font-weight:700; color:#fff;}
+.sos-hero p{font-size:13.5px; line-height:1.5; margin:0; color:rgba(255,255,255,0.9);}
+.sos-list{margin-top:14px;}
+.sos-item{display:flex; align-items:center; justify-content:space-between; background:var(--card); border:1px solid var(--line); border-radius:var(--radius-md); padding:12px 14px; margin-bottom:8px;}
+.sos-item .t{font-size:13.5px; font-weight:700;}
+.sos-item .d{font-size:11.5px; color:var(--muted); margin-top:1px;}
+.sos-item a.call{background:#D4816A; color:#fff; border-radius:999px; padding:10px 16px; font-size:13px; font-weight:800; text-decoration:none; white-space:nowrap; box-shadow:0 3px 12px rgba(212,129,106,0.4); letter-spacing:0.3px; transition:transform .15s, box-shadow .15s;}
+.sos-item a.call:active{transform:scale(0.96); box-shadow:0 1px 4px rgba(212,129,106,0.2);}
+.disclaimer{margin-top:14px; font-size:11px; color:var(--muted); line-height:1.6;}
+
+/* ---------- SERVICE ---------- */
+.service-input-wrap{display:flex;flex-direction:column;gap:8px;margin-top:6px;}
+.service-row{display:flex;gap:8px;}
+.service-row select,.service-row input{flex:1;padding:9px 12px;border-radius:var(--radius-md);border:1px solid var(--line);font-size:13px;font-family:var(--font-body);background:var(--card);color:var(--cream);outline:none;}
+.service-row select:focus,.service-row input:focus{border-color:var(--accent);}
+.service-add-btn{padding:10px;border-radius:var(--radius-md);border:none;background:var(--accent);color:var(--cream);font-weight:800;font-size:13px;font-family:var(--font-body);cursor:pointer;box-shadow:0 3px 10px rgba(200,150,62,0.3);transition:transform .15s,box-shadow .15s;}
+.service-add-btn:active{transform:scale(0.97);}
+.service-list{margin-top:12px;}
+.service-item{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,0.03);}
+.service-item-top{display:flex;align-items:center;gap:10px;}
+.service-item .day-badge{font-size:10px;font-weight:800;padding:3px 8px;border-radius:999px;background:var(--na-blue);color:#fff;letter-spacing:0.3px;text-transform:uppercase;white-space:nowrap;}
+.service-item .svc-time{font-family:var(--font-display);font-size:17px;font-weight:800;color:var(--accent);white-space:nowrap;}
+.service-item .svc-info{flex:1;min-width:0;}
+.service-item .svc-name{font-size:14px;font-weight:700;color:var(--na-blue);}
+.service-item .svc-group{font-size:12px;color:#5A4A3A;margin-top:1px;}
+.service-item .svc-actions{display:flex;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--line);}
+.service-item .svc-actions button{padding:5px 12px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--card);color:#5A4A3A;font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;}
+.service-item .svc-actions button:active{transform:scale(0.95);}
+.service-item .svc-actions button.reminder-on{background:#E8F5E9;border-color:#2E7D32;color:#1B5E20;}
+.service-empty{text-align:center;color:#5A4A3A;font-size:13.5px;margin-top:30px;line-height:1.6;}
+
+/* ---------- bottom nav ---------- */
+.tabbar{
+  position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:480px;
+  background:rgba(255,255,255,0.94); backdrop-filter:blur(14px); border-top:1px solid var(--line);
+  padding:0 0 env(safe-area-inset-bottom,0px); z-index:20;
+}
+.tabbar-tabs{display:flex; padding:8px 6px 4px;}
+.tab{flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer; padding:4px 0; color:#6B5B45; transition:color .2s, transform .15s;}
+.tab:active{transform:scale(0.93);}
+.tab svg{width:22px; height:22px; stroke:#6B5B45; stroke-width:1.8;}
+.tab span{font-size:10px; font-weight:700; letter-spacing:0.2px; transition:color .2s; color:#6B5B45;}
+.tab.active{color:var(--na-blue);}
+.tab.active svg{stroke:var(--accent); stroke-width:2.4;}
+.tab.active span{color:var(--na-blue); font-weight:800;}
+.tabbar-brand{display:flex; align-items:center; justify-content:center; gap:5px; padding:4px 0 6px; border-top:1px solid var(--line); margin:0 12px;}
+.tabbar-brand svg{width:22px; height:22px;}
+.tabbar-brand span{font-size:9.5px; color:var(--muted); letter-spacing:0.5px;}
+.tabbar-brand strong{color:var(--na-blue); font-weight:800;}
+
+/* ---------- modal ---------- */
+.modal-backdrop{position:fixed; inset:0; background:rgba(30,20,10,0.45); display:none; align-items:flex-end; justify-content:center; z-index:50;}
+.modal-backdrop.active{display:flex;}
+.modal{width:100%; max-width:480px; background:var(--card); border:1px solid var(--line); border-radius:20px 20px 0 0; padding:24px 20px calc(env(safe-area-inset-bottom,0px) + 24px);}
+.modal h3{font-family:var(--font-display); font-size:18px; margin:0 0 12px; color:var(--na-blue);}
+.modal input[type=date]{width:100%; padding:10px 12px; border-radius:var(--radius-sm); border:1px solid var(--line); font-size:14px; font-family:var(--font-body); background:var(--card-2); color:var(--cream);}
+.modal .actions{display:flex; gap:8px; margin-top:16px;}
+.modal button{flex:1; padding:12px; border-radius:999px; border:none; font-weight:800; font-size:14px; font-family:var(--font-body); cursor:pointer; transition:transform .15s;}
+.modal button:active{transform:scale(0.97);}
+.btn-primary{background:var(--accent); color:#fff; box-shadow:0 4px 14px rgba(200,150,62,0.35);}
+.btn-secondary{background:var(--card); color:var(--na-blue); border:2px solid var(--na-blue) !important; font-weight:700 !important;}
+
+/* ---------- dark (navy) theme ---------- */
+[data-theme="dark"]{
+  --bg-0:#0D1B2A; --bg-1:#122338; --card:#162A42; --card-2:#1B3250;
+  --line:rgba(100,180,255,0.12); --cream:#C8D8E8; --muted:#7A96B0;
+  --accent:#D4A843; --accent-soft:#D4A84333; --na-blue:#5B9BD5;
+}
+[data-theme="dark"] body{background:linear-gradient(165deg, #0D1B2A 0%, #122338 40%, #162A42 100%);}
+[data-theme="dark"] #app{background:rgba(0,0,0,0.3); backdrop-filter:blur(2px);}
+[data-theme="dark"] .tabbar{background:rgba(22,42,66,0.94);}
+[data-theme="dark"] .jft-body{color:#B0C8D8;}
+[data-theme="dark"] .jft-quote{color:#B0C8D8;}
+[data-theme="dark"] .plan-input-wrap input{color:#C8D8E8;}
+[data-theme="dark"] .groups-error{color:#E88A7A;border-color:#E88A7A;}
+[data-theme="dark"] .groups-addr{color:#A0B8C8;}
+[data-theme="dark"] .service-row select,.service-row input{color:#C8D8E8;}
+[data-theme="dark"] .groups-item{background:var(--card);}
+[data-theme="dark"] .service-item .svc-group{color:#A0B8C8;}
+[data-theme="dark"] .service-item .svc-actions button{color:#A0B8C8;background:var(--card-2);border-color:var(--line);}
+[data-theme="dark"] .service-item .svc-actions button.reminder-on{background:#1B3A2A;border-color:#2E7D32;color:#81C784;}
+[data-theme="dark"] .plan-item{background:var(--card);}
+[data-theme="dark"] .btn-primary{color:#0D1B2A;}
+[data-theme="dark"] .donate-btn.sbp{color:#fff;}
+[data-theme="dark"] .donate-btn.card{color:#fff;}
+[data-theme="dark"] .tab svg{stroke:#6B8299;}
+[data-theme="dark"] .tab span{color:#6B8299;}
+[data-theme="dark"] .tab.active span{color:#7FA8D4;}
+[data-theme="dark"] .tab.active svg{stroke:var(--accent);}
+[data-theme="dark"] .chip-row{background:var(--card);}
+[data-theme="dark"] .jft-card{background:var(--card);}
+[data-theme="dark"] .groups-item{background:var(--card);}
+[data-theme="dark"] .stat-card{background:var(--card);}
+[data-theme="dark"] .service-item{background:var(--card);}
+[data-theme="dark"] .sos-item{background:var(--card);}
+[data-theme="dark"] .medal-inner{background:var(--card-2);}
+[data-theme="dark"] .popup{background:var(--card);}
+[data-theme="dark"] .modal{background:var(--card);}
+[data-theme="dark"] .settings-card{background:var(--card-2);}
+[data-theme="dark"] .theme-toggle{background:var(--card);}
+[data-theme="dark"] .plan-reminder{background:var(--card);}
+[data-theme="dark"] .plan-reminder input[type=time]{background:var(--card-2);color:#C8D8E8;}
+[data-theme="dark"] .legend-note{background:var(--card);}
+[data-theme="dark"] .jft-card{background:var(--card);}
+
+/* ---------- theme toggle ---------- */
+.theme-toggle{display:flex;gap:6px;background:var(--card-2);border-radius:999px;padding:3px;border:1px solid var(--line);}
+.theme-opt{padding:6px 14px;border-radius:999px;border:none;background:transparent;font-size:12px;font-weight:700;font-family:var(--font-body);color:var(--muted);cursor:pointer;transition:all .2s;}
+.theme-opt.active{background:var(--card);color:var(--na-blue);box-shadow:0 2px 6px rgba(0,0,0,0.1);}
+
+/* ---------- settings ---------- */
+.settings-section{margin-bottom:18px;}
+.settings-section h4{font-family:var(--font-display);font-size:16px;color:var(--na-blue);margin:0 0 8px;}
+.settings-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-md);padding:14px;box-shadow:0 1px 4px rgba(0,0,0,0.03);}
+.settings-card p{font-size:13px;color:var(--cream);line-height:1.6;margin:0 0 6px;}
+.settings-card p:last-child{margin-bottom:0;}
+.settings-card a{color:var(--accent);font-weight:700;text-decoration:none;}
+.settings-card .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;}
+.settings-card .val{font-size:14px;font-weight:600;color:var(--cream);}
+
+.donate-links{display:flex;flex-direction:column;gap:8px;margin-top:10px;}
+.donate-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:var(--radius-md);border:none;font-weight:800;font-size:14px;font-family:var(--font-body);cursor:pointer;transition:transform .15s;text-decoration:none;}
+.donate-btn:active{transform:scale(0.97);}
+.donate-btn.sbp{background:#28954A;color:#fff;box-shadow:0 3px 10px rgba(40,149,74,0.3);}
+.donate-btn.card{background:var(--na-blue);color:#fff;box-shadow:0 3px 10px rgba(26,62,107,0.3);}
+
+/* ---------- donate banner (subtle bottom sheet) ---------- */
+.donate-banner{
+  position:fixed; bottom:0; left:50%; transform:translateX(-50%) translateY(100%);
+  width:100%; max-width:480px; z-index:45;
+  background:var(--card); border-top:2px solid var(--accent);
+  padding:10px 14px calc(env(safe-area-inset-bottom,0px) + 10px);
+  box-shadow:0 -4px 20px rgba(0,0,0,0.1);
+  transition:transform .4s cubic-bezier(.22,1,.36,1);
+  display:flex; align-items:center; gap:10px;
+}
+.donate-banner.active{transform:translateX(-50%) translateY(0);}
+.donate-banner .db-text{flex:1;font-size:12px;line-height:1.4;color:var(--cream);}
+.donate-banner .db-text strong{color:var(--accent);}
+.donate-banner .db-actions{display:flex;gap:5px;flex-shrink:0;}
+.donate-banner .db-actions button{padding:5px 10px;border-radius:999px;border:none;font-size:10px;font-weight:800;cursor:pointer;transition:transform .15s,background .2s;white-space:nowrap;font-family:var(--font-body);}
+.donate-banner .db-actions button:active{transform:scale(0.94);}
+.donate-banner .db-actions .db-donate{background:var(--accent);color:#fff;}
+.donate-banner .db-actions .db-later{background:var(--card-2);color:var(--muted);border:1px solid var(--line);}
+.donate-banner .db-actions .db-later:hover{color:var(--cream);}
+[data-theme="dark"] .donate-banner{background:var(--card);}
+
+/* ---------- legal ---------- */
+.legal-content{font-size:13px;line-height:1.7;color:var(--cream);max-height:50vh;overflow-y:auto;padding-right:4px;}
+.legal-content h4{font-size:14px;color:var(--na-blue);margin:14px 0 6px;}
+.legal-content p{margin:0 0 8px;}
+.legal-content ul{margin:4px 0 8px;padding-left:18px;}
+.legal-content li{margin-bottom:4px;}
+.legal-back{display:inline-block;margin:12px 0 0;padding:8px 20px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--na-blue);font-weight:700;font-size:13px;cursor:pointer;transition:all .15s;}
+.legal-back:active{transform:scale(0.97);}
+
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div class="topbar">
+    <div class="wordmark">Чистый <span>день</span><small>счётчик трезвости</small></div>
+    <button class="icon-btn" onclick="openSettings()" aria-label="Настройки">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+    </button>
+  </div>
+
+  <!-- HOME -->
+  <div class="screen active" id="screen-home">
+    <div class="medal-stage">
+      <div class="medal-glow"></div>
+      <div class="medal">
+        <div class="medal-inner">
+          <div class="num" id="dayCount">0</div>
+          <div class="label" id="dayLabel">дней</div>
+        </div>
+      </div>
+      <div class="medal-name" id="medalName">Начни отсчёт</div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-labels"><span id="progressFromLabel">Текущая медаль</span><span id="progressToLabel">Следующая медаль</span></div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card"><div class="v" id="statWeeks">0</div><div class="l">Недель</div></div>
+      <div class="stat-card"><div class="v" id="statMonths">0</div><div class="l">Месяцев</div></div>
+      <div class="stat-card"><div class="v" id="statHours">0</div><div class="l">Часов</div></div>
+    </div>
+
+    <div class="reset-link" onclick="openSettings()">Изменить дату отсчёта</div>
+  </div>
+
+  <!-- JFT / Ежедневник -->
+  <div class="screen" id="screen-jft">
+    <div class="screen-title">Ежедневник</div>
+    <div class="screen-sub">«Только сегодня» — ежедневные размышления сообщества Анонимные Наркоманы</div>
+    <div class="jft-card" id="jftCard">
+      <div class="jft-date" id="jftDate"></div>
+      <div class="jft-title" id="jftTitle"></div>
+      <div class="jft-ref" id="jftRef"></div>
+      <div class="jft-quote" id="jftQuote"></div>
+      <div class="jft-body" id="jftBody"></div>
+      <div class="jft-jft" id="jftJft"></div>
+    </div>
+    <div class="legend-note">
+      Источник: <a href="https://na-russia.org/moskva" target="_blank" rel="noopener" style="color:var(--accent);font-weight:700;">na-russia.org</a> — ежедневные размышления «Только сегодня» сообщества Анонимные Наркоманы
+    </div>
+  </div>
+
+  <!-- ГРУППЫ -->
+  <div class="screen" id="screen-groups">
+    <div class="screen-title">Группы сегодня</div>
+    <div class="screen-sub" id="groupsDate">Загрузка расписания...</div>
+    <div id="groupsLoading" class="groups-loading">Загрузка...</div>
+    <div id="groupsError" class="groups-error" style="display:none"></div>
+    <div id="groupsList"></div>
+    <div class="legend-note">
+      Расписание собраний АН в Москве и Московской области. Данные предоставлены <a href="https://na-russia.org" target="_blank" rel="noopener" style="color:var(--accent);font-weight:700;">na-russia.org</a>
+    </div>
+  </div>
+
+  <!-- ПЛАН НА ДЕНЬ -->
+  <div class="screen" id="screen-plan">
+    <div class="screen-title">План на день</div>
+    <div class="screen-sub">Запиши, что хочешь сделать сегодня</div>
+    <div class="plan-input-wrap">
+      <input type="text" id="planInput" placeholder="Добавить дело..." autocomplete="off">
+      <button onclick="addPlanItem()">Добавить</button>
+    </div>
+    <div class="plan-list" id="planList"></div>
+    <div class="plan-reminder">
+      <span>Напоминание:</span>
+      <input type="time" id="planReminderTime">
+      <button onclick="setPlanReminder()">Установить</button>
+    </div>
+  </div>
+
+  <!-- MEDALS -->
+  <div class="screen" id="screen-medals">
+    <div class="screen-title">Медали</div>
+    <div class="screen-sub">Традиционная система цветных медалей сообществ АН/АА</div>
+    <div id="medalsList"></div>
+    <div class="legend-note">
+      Цвета и порядок медалей — общепринятая практика, распространённая во многих группах АН и АА, но не единый официальный стандарт. Важна не медаль, а то, что она значит лично для тебя.
+    </div>
+  </div>
+
+  <!-- SOS -->
+  <div class="screen" id="screen-sos">
+    <div class="sos-hero">
+      <h2>Если сейчас тяжело</h2>
+      <p>Это нормально — не справляться в одиночку. Можно просто набрать номер и ничего не объяснять заранее.</p>
+    </div>
+    <div class="sos-list">
+      <div class="sos-item">
+        <div><div class="t">АН — Единый номер</div><div class="d">Анонимные Наркоманы, круглосуточно, бесплатно по РФ</div></div>
+        <a class="call" href="tel:88001014212">8 800 101-42-12</a>
+      </div>
+      <div class="sos-item">
+        <div><div class="t">Единый телефон доверия</div><div class="d">Психологическая помощь, круглосуточно, бесплатно</div></div>
+        <a class="call" href="tel:88001004994">8 800 100-49-94</a>
+      </div>
+      <div class="sos-item">
+        <div><div class="t">Кризисная линия по России</div><div class="d">Бесплатно, круглосуточно</div></div>
+        <a class="call" href="tel:88003334434">8 800 333-44-34</a>
+      </div>
+      <div class="sos-item">
+        <div><div class="t">Экстренные службы</div><div class="d">Единый номер экстренных служб РФ</div></div>
+        <a class="call" href="tel:112">112</a>
+      </div>
+    </div>
+    <div class="disclaimer">
+      Это независимое некоммерческое приложение поддержки, созданное без участия сообщества «Анонимные Наркоманы» и не являющееся его официальным продуктом. Оно не заменяет терапию, работу с наставником или экстренную медицинскую помощь.
+    </div>
+  </div>
+
+  <!-- СЛУЖЕНИЕ -->
+  <div class="screen" id="screen-service">
+    <div class="screen-title">Служение</div>
+    <div class="screen-sub">Добавь свои служения в группах АН</div>
+    <div class="service-input-wrap">
+      <div class="service-row">
+        <select id="svcDay"><option value="0">Вс</option><option value="1">Пн</option><option value="2">Вт</option><option value="3">Ср</option><option value="4">Чт</option><option value="5">Пт</option><option value="6">Сб</option></select>
+        <input type="time" id="svcTime" value="19:00">
+      </div>
+      <div class="service-row">
+        <input type="text" id="svcName" placeholder="Название служения (напр. Секретарь)" autocomplete="off">
+        <input type="text" id="svcGroup" placeholder="Группа / место" autocomplete="off">
+      </div>
+      <button class="service-add-btn" onclick="addService()">+ Добавить служение</button>
+    </div>
+    <div class="service-list" id="serviceList"></div>
+  </div>
+
+  <!-- TABBAR + STUDIO -->
+  <div class="tabbar">
+    <div class="tabbar-tabs">
+      <div class="tab active" data-tab="home" onclick="showScreen('home')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>
+        <span>Главная</span>
+      </div>
+      <div class="tab" data-tab="jft" onclick="showScreen('jft')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+        <span>Ежедневник</span>
+      </div>
+      <div class="tab" data-tab="groups" onclick="showScreen('groups')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Группы</span>
+      </div>
+      <div class="tab" data-tab="plan" onclick="showScreen('plan')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        <span>План</span>
+      </div>
+      <div class="tab" data-tab="medals" onclick="showScreen('medals')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="5"/><path d="M8.5 12.5 6 21l6-3 6 3-2.5-8.5"/></svg>
+        <span>Медали</span>
+      </div>
+      <div class="tab" data-tab="sos" onclick="showScreen('sos')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7.5-4.6-10-9.3C.4 8 2 4.5 5.4 4.1c2-.2 3.7 1 4.6 2.6.9-1.6 2.6-2.8 4.6-2.6C18 4.5 19.6 8 20 11.7 17.5 16.4 12 21 12 21Z"/></svg>
+        <span>SOS</span>
+      </div>
+      <div class="tab" data-tab="service" onclick="showScreen('service')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        <span>Служение</span>
+      </div>
+    </div>
+    <div class="tabbar-brand">
+      <svg viewBox="0 0 48 48" aria-label="DFDiZ">
+        <defs><linearGradient id="dfdz" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#C8963E"/><stop offset="100%" stop-color="#8B6FA8"/></linearGradient></defs>
+        <circle cx="24" cy="24" r="20" fill="none" stroke="url(#dfdz)" stroke-width="2.5" opacity="0.5"/>
+        <text x="24" y="24" text-anchor="middle" dominant-baseline="central" font-family="Manrope,sans-serif" font-weight="800" font-size="14" fill="url(#dfdz)">DF</text>
+        <text x="24" y="37" text-anchor="middle" dominant-baseline="central" font-family="Manrope,sans-serif" font-weight="800" font-size="7" fill="url(#dfdz)">DIZ</text>
+      </svg>
+      <span>Студия <strong>DFDiZ</strong></span>
+    </div>
+  </div>
+
+  <!-- SETTINGS MODAL -->
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal" style="max-height:80vh;overflow-y:auto;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <h3 style="margin:0;">Настройки</h3>
+        <button class="icon-btn" onclick="closeSettings()" aria-label="Закрыть" style="width:32px;height:32px;border:none;box-shadow:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div class="settings-section">
+        <h4>Дата отсчёта</h4>
+        <div class="settings-card">
+          <input type="date" id="startDateInput" style="width:100%;padding:10px 12px;border-radius:var(--radius-sm);border:1px solid var(--line);font-size:14px;font-family:var(--font-body);background:var(--card-2);color:var(--cream);">
+          <div class="actions" style="margin-top:10px;">
+            <button class="btn-primary" onclick="saveStartDate()">Сохранить</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h4>Тема оформления</h4>
+        <div class="settings-card">
+          <div class="theme-toggle" id="themeToggle">
+            <button class="theme-opt active" data-theme-value="light" onclick="setTheme('light')">Светлая</button>
+            <button class="theme-opt" data-theme-value="dark" onclick="setTheme('dark')">Тёмная</button>
+            <button class="theme-opt" data-theme-value="system" onclick="setTheme('system')">Системная</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h4>О разработчике</h4>
+        <div class="settings-card">
+          <div class="label">Разработчик</div>
+          <div class="val">Ваня Х.</div>
+          <div style="height:8px"></div>
+          <div class="label">Телефон</div>
+          <div class="val"><a href="tel:89801793263">8 980 179-32-63</a></div>
+          <div style="height:8px"></div>
+          <div class="label">Макс</div>
+          <div class="val"><a href="tel:89259039777">8 925 903-97-77</a></div>
+          <div style="height:8px"></div>
+          <div class="label">Сообщество VK</div>
+          <div class="val"><a href="https://vk.ru/dfdiz1" target="_blank" rel="noopener">vk.ru/dfdiz1</a></div>
+          <div style="height:8px"></div>
+          <div class="label">Дизайн</div>
+          <div class="val">DFDIZ</div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h4>Поддержать проект</h4>
+        <div class="settings-card">
+          <p>Если приложение помогает тебе — поддержи его развитие. Любая сумма важна.</p>
+          <div class="donate-links">
+            <button class="donate-btn sbp" onclick="copySbp()">Перевод по СБП (тел. 8 980 179-32-63)</button>
+            <button class="donate-btn card" onclick="copyCard()">Скопировать номер карты</button>
+          </div>
+          <p style="font-size:11px;color:var(--muted);margin-top:8px;">СБП — перевод по номеру телефона в любом банке РФ. Карта — для переводов на карту.</p>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h4>Документы</h4>
+        <div class="settings-card">
+          <p style="margin-bottom:6px;"><a href="#" onclick="showLegal('agreement');return false;">Пользовательское соглашение</a></p>
+          <p style="margin-bottom:6px;"><a href="#" onclick="showLegal('privacy');return false;">Политика конфиденциальности</a></p>
+          <p><a href="#" onclick="showLegal('disclaimer');return false;">Отказ от ответственности</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEGAL MODAL -->
+  <div class="modal-backdrop" id="legalBackdrop">
+    <div class="modal">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <h3 style="margin:0;" id="legalTitle">Документ</h3>
+        <button class="icon-btn" onclick="closeLegal()" aria-label="Закрыть" style="width:32px;height:32px;border:none;box-shadow:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="legal-content" id="legalContent"></div>
+    </div>
+  </div>
+
+  <!-- DONATE BANNER (subtle bottom sheet) -->
+  <div class="donate-banner" id="donateBanner">
+    <div class="db-text">Чистый день живёт твоей поддержкой — <strong>помоги проекту</strong></div>
+    <div class="db-actions">
+      <button class="db-donate" onclick="showDonateOptions()">Поддержать</button>
+      <button class="db-later" onclick="dismissDonateBanner()">Напомнить</button>
+    </div>
+  </div>
+
+</div>
+
+<script src="jft_data.js"></script>
+<script>
+const memoryStore = {};
+const storage = {
+  get(key){ try{ const v = localStorage.getItem(key); return v===null?undefined:v; } catch(e){ return memoryStore[key]; } },
+  set(key,val){ try{ localStorage.setItem(key,val);}catch(e){ memoryStore[key]=val; } }
+};
+
+const MILESTONES = [
+  { days:0,    key:'white',  name:'Белая',     hex:'#F0EDE8', desc:'Первый день или готовность начать заново' },
+  { days:30,   key:'orange', name:'Оранжевая', hex:'#E8924A', desc:'30 дней' },
+  { days:60,   key:'green',  name:'Зелёная',   hex:'#5DB87A', desc:'60 дней' },
+  { days:90,   key:'red',    name:'Красная',   hex:'#D4605A', desc:'90 дней' },
+  { days:182,  key:'blue',   name:'Синяя',     hex:'#4A7FB5', desc:'6 месяцев' },
+  { days:274,  key:'yellow', name:'Жёлтая',    hex:'#D4A843', desc:'9 месяцев' },
+  { days:365,  key:'gold',   name:'Золотая',   hex:'#C8963E', desc:'1 год' },
+  { days:548,  key:'gray',   name:'Серая',     hex:'#A09888', desc:'18 месяцев' },
+  { days:730,  key:'black',  name:'Чёрная',    hex:'#4A4038', desc:'2 года' },
+  { days:1095, key:'purple', name:'Фиолетовая',hex:'#8B6FA8', desc:'3 года и далее — каждый год' },
+];
+
+function currentMilestoneIndex(days){
+  let idx = 0;
+  for(let i=0;i<MILESTONES.length;i++){ if(days>=MILESTONES[i].days) idx=i; }
+  return idx;
+}
+
+function showScreen(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===name));
+  if(name==='jft') renderJft();
+  if(name==='groups') renderGroups();
+  if(name==='plan') renderPlan();
+  if(name==='service') renderService();
+}
+
+function setAccent(hex){
+  document.documentElement.style.setProperty('--accent', hex);
+  document.documentElement.style.setProperty('--accent-soft', hex+'33');
+}
+
+function pluralDays(n){
+  const mod10=n%10, mod100=n%100;
+  if(mod10===1 && mod100!==11) return 'день';
+  if(mod10>=2 && mod10<=4 && (mod100<10||mod100>=20)) return 'дня';
+  return 'дней';
+}
+
+function renderHome(){
+  const startStr = storage.get('startDate');
+  const dayCountEl=document.getElementById('dayCount');
+  const dayLabelEl=document.getElementById('dayLabel');
+  const nameEl=document.getElementById('medalName');
+
+  let days=0, ms=0;
+  if(!startStr){
+    dayCountEl.textContent='0'; dayLabelEl.textContent='дней';
+    nameEl.textContent='Нажми, чтобы начать отсчёт';
+    nameEl.onclick=function(){ storage.set('startDate', new Date().toISOString().slice(0,10)); renderHome(); closeDonatePopup(); };
+    setAccent('#C8963E');
+    document.getElementById('progressFill').style.width='0%';
+    document.getElementById('progressFromLabel').textContent='Медаль появится здесь';
+    document.getElementById('progressToLabel').textContent='';
+    document.getElementById('statWeeks').textContent='0';
+    document.getElementById('statMonths').textContent='0';
+    document.getElementById('statHours').textContent='0';
+    renderMedals(-1);
+    return;
+  }
+
+  const start=new Date(startStr+'T00:00:00');
+  const now=new Date();
+  ms = now-start;
+  days = Math.max(0, Math.floor(ms/86400000));
+
+  dayCountEl.textContent=days;
+  dayLabelEl.textContent=pluralDays(days);
+
+  const idx = currentMilestoneIndex(days);
+  const cur = MILESTONES[idx];
+  const next = MILESTONES[idx+1];
+  nameEl.textContent = cur.name + ' медаль · ' + cur.desc;
+  nameEl.onclick=openSettings;
+  setAccent(cur.hex);
+
+  if(next){
+    const span = next.days - cur.days;
+    const done = Math.min(1, (days-cur.days)/span);
+    document.getElementById('progressFill').style.width = Math.round(done*100)+'%';
+    document.getElementById('progressFromLabel').textContent = cur.name;
+    document.getElementById('progressToLabel').textContent = (next.days-days)+' дн. до «'+next.name+'»';
+  } else {
+    document.getElementById('progressFill').style.width='100%';
+    document.getElementById('progressFromLabel').textContent = cur.name;
+    document.getElementById('progressToLabel').textContent = 'Каждый год — новая медаль';
+  }
+
+  document.getElementById('statWeeks').textContent = Math.floor(days/7);
+  document.getElementById('statMonths').textContent = Math.floor(days/30);
+  document.getElementById('statHours').textContent = Math.max(0, Math.floor(ms/3600000));
+
+  renderMedals(days);
+}
+
+function renderMedals(days){
+  const list=document.getElementById('medalsList');
+  list.innerHTML='';
+  MILESTONES.forEach(m=>{
+    const achieved = days>=m.days;
+    const row=document.createElement('div');
+    row.className='chip-row'+(achieved?'':' locked');
+    row.innerHTML = `
+      <div class="chip-dot" style="background:${m.hex}"></div>
+      <div class="chip-text">
+        <div class="name">${m.name}</div>
+        <div class="desc">${m.desc}</div>
+      </div>
+      ${achieved
+        ? `<div class="chip-check"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>`
+        : `<div class="chip-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>`
+      }
+    `;
+    list.appendChild(row);
+  });
+}
+
+/* ------- RUSSIAN MEDITATIONS (fallback) ------- */
+const RU_MEDIT = [
+  {t:'Выздоровление', q:'Выздоровление — это не то, что происходит с нами, а то, что мы делаем.', s:'Базовый текст, стр. 92', b:'Сегодня мы выбираем выздоровление. Каждый день без употребления — это победа. Мы учимся жить по-новому, опираясь на принципы сообщества и поддержку друг друга. Выздоровление — это не одиночный путь, мы идём по нему вместе, рука об руку.', j:'Я выбираю выздоровление сегодня и благодарю за каждый день чистоты.'},
+  {t:'Высшая Сила', q:'Мы признали, что мы бессильны перед зависимостью и что наша жизнь стала неуправляемой.', s:'Первый Шаг', b:'Для многих из нас признание своего бессилия стало началом пути. Мы не обязаны верить во что-то конкретное — достаточно признать, что есть Сила, более могущественная, чем мы сами.', j:'Я открыт для понимания своей Высшей Силы так, как я Её понимаю.'},
+  {t:'Ежедневная практика', q:'Живи сегодняшним днём и делай то, что нужно делать сегодня.', s:'Базовый текст', b:'Мы учимся жить одним днём. Вчера уже прошло, завтра ещё не наступило. Всё, что у нас есть — это сегодня. Простая ежедневная практика поддерживает наше выздоровление.', j:'Сегодня я делаю то, что помогает мне оставаться чистым.'},
+  {t:'Сообщество', q:'Вместе мы можем то, что поодиночке нам не под силу.', s:'Базовый текст', b:'Сообщество АН — это люди, которые понимают, через что мы проходим. На собраниях мы делимся своим опытом, силой и надеждой. Мы не одиноки в своей борьбе.', j:'Я благодарен за то, что я не одинок в своём выздоровлении.'},
+  {t:'Шаги', q:'Шаги — это не просто программа, это путь к свободе.', s:'Базовый текст', b:'Двенадцать Шагов — это основа нашего выздоровления. Каждый Шаг приближает нас к пониманию себя и своей зависимости. Мы работаем по Шагам с помощью спонсора и группы.', j:'Сегодня я делаю следующий шаг в своей программе выздоровления.'},
+  {t:'Служение', q:'Наиболее полное выражение благодарности — это служение.', s:'Базовый текст', b:'Служение помогает нам оставаться чистыми. Когда мы служим другим, мы получаем больше, чем отдаём. Каждое служение важно для жизни группы.', j:'Сегодня я ищу возможность послужить своему сообществу.'},
+  {t:'Духовный рост', q:'Духовный рост происходит не сразу, но он неизбежен, если мы продолжаем работать по программе.', s:'Базовый текст', b:'Мы не становимся духовно развитыми за один день. Это процесс, который требует времени и усилий. Постепенно мы начинаем замечать, как меняется наше восприятие жизни.', j:'Сегодня я расту духовно, делая маленькие шаги каждый день.'},
+  {t:'Спонсорство', q:'Наставник — это не тот, кто говорит нам, что делать, а тот, кто делится своим опытом.', s:'Базовый текст', b:'Наставник прошёл этот путь до нас. Мы выбираем наставника, который имеет то, что мы хотим обрести. С его помощью мы работаем по Шагам и учимся жить по-новому.', j:'Сегодня я ценю своего наставника и учусь на его опыте.'},
+  {t:'Традиции', q:'Традиции — это то, что сохраняет наше сообщество единым.', s:'Двенадцать Традиций', b:'Традиции помогают сохранять единство сообщества. Они не ограничивают нас, а защищают нашу свободу. Благодаря Традициям АН остаётся доступным для любого, кто ищет помощи.', j:'Сегодня я уважаю Традиции, которые сохраняют наше сообщество.'},
+  {t:'Надежда', q:'Надежда — это то, с чего начинается выздоровление.', s:'Базовый текст', b:'Когда мы только пришли в АН, у многих из нас не было надежды. Но мы увидели людей, которые живут полноценной жизнью без наркотиков. Их пример дал нам надежду.', j:'Я — живое доказательство того, что выздоровление возможно.'},
+  {t:'Честность', q:'Честность — это основа нашего выздоровления.', s:'Базовый текст, стр. 28', b:'Мы учимся быть честными с собой и с другими. Ложь — это часть нашей болезни. Выздоровление требует полной честности. Мы говорим правду, даже когда это трудно.', j:'Сегодня я выбираю честность во всех своих делах.'},
+  {t:'Ответственность', q:'Мы ответственны за своё выздоровление, но не за свою болезнь.', s:'Базовый текст', b:'Мы не выбирали нашу зависимость, но мы выбираем выздоровление. Мы берём на себя ответственность за свои поступки. Ответственность — это признак взросления в программе.', j:'Сегодня я беру на себя ответственность за свою жизнь.'},
+  {t:'Прощение', q:'Прощение — это отказ от надежды на лучшее прошлое.', s:'Популярная мудрость АН', b:'Многие из нас годами носили обиду и злость. Прощение — это освобождение себя от груза прошлого. Мы учимся прощать себя и других. Это делает нас свободными.', j:'Сегодня я отпускаю обиды и прощаю.'},
+  {t:'Смирение', q:'Смирение — это не унижение, а принятие реальности.', s:'Базовый текст', b:'Смирение помогает признать, что мы не контролируем всё вокруг. Мы учимся принимать свои ограничения и просить о помощи. Смирение открывает дверь к духовному росту.', j:'Сегодня я принимаю себя и свою Высшую Силу.'},
+  {t:'Благодарность', q:'Благодарность — это ключ к счастливой жизни в выздоровлении.', s:'Базовый текст', b:'Когда мы начинаем ценить то, что имеем, наша жизнь меняется. Мы благодарны за ещё один день чистоты, за друзей в сообществе, за возможность начать всё сначала.', j:'Сегодня я благодарен за всё, что имею в своей жизни.'},
+  {t:'Действие', q:'Вера без дел мертва. Выздоровление — это действие.', s:'Базовый текст', b:'Мало просто хотеть выздороветь — нужно действовать. Мы ходим на собрания, работаем по Шагам, помогаем другим. Каждое действие приближает нас к устойчивому выздоровлению.', j:'Сегодня я действую, а не просто мечтаю о переменах.'},
+  {t:'Дружба', q:'Друзья в АН понимают нас так, как не понимает никто другой.', s:'Базовый текст', b:'В сообществе мы находим настоящих друзей, которые знают, что такое зависимость. Мы поддерживаем друг друга в трудные моменты и разделяем радость успехов.', j:'Сегодня я ценю друзей, идущих со мной по пути выздоровления.'},
+  {t:'Изменение', q:'Перемены неизбежны, рост — это выбор.', s:'Популярная мудрость АН', b:'Выздоровление — это постоянные изменения. Мы меняем своё мышление, поведение, окружение. Без изменений нет роста. Мы доверяем процессу и знаем, что перемены ведут нас к лучшей жизни.', j:'Сегодня я открыт для перемен, которые приносят рост.'},
+  {t:'Равенство', q:'Мы все равны в АН. Никто не лучше и не хуже.', s:'Базовый текст', b:'В сообществе нет иерархии. Не важно, сколько у тебя дней чистоты и какое прошлое. Мы все — зависимые, которые хотят выздороветь. Мы уважаем друг друга.', j:'Сегодня я вижу в каждом равного мне человека.'},
+  {t:'Терпение', q:'Терпение — это способность сохранять спокойствие в процессе.', s:'Базовый текст', b:'Выздоровление не происходит по нашему расписанию. Мы учимся ждать и доверять процессу. Терпение помогает не срываться, когда что-то идёт не так.', j:'Сегодня я проявляю терпение к себе и другим.'},
+  {t:'Инвентаризация', q:'Инвентаризация — это инструмент для честного взгляда на себя.', s:'Базовый текст', b:'Мы честно смотрим на свои поступки, мысли и чувства. Мы признаём ошибки и стараемся их исправить. Инвентаризация помогает нам расти.', j:'Сегодня я честно смотрю на себя и свою жизнь.'},
+  {t:'Возмещение ущерба', q:'Исправить прошлое нельзя, но можно изменить будущее.', s:'Базовый текст', b:'Девятый Шаг даёт возможность исправить то, что мы когда-то разрушили. Мы возмещаем ущерб тем, кому причинили боль. Это освобождает от чувства вины и стыда.', j:'Сегодня я готов исправлять свои ошибки.'},
+  {t:'Медитация', q:'Медитация — это способ услышать голос своей Высшей Силы.', s:'Базовый текст', b:'Медитация помогает успокоить ум. Мы учимся сидеть в тишине, наблюдать за мыслями. Медитация — это время наедине с собой и своей Высшей Силой.', j:'Сегодня я уделяю время тишине и медитации.'},
+  {t:'Единство', q:'Единство — это то, что делает АН сильным сообществом.', s:'Базовый текст', b:'Мы едины в главном — в желании оставаться чистыми. Единство не означает единообразие. Мы уважаем различия и ценим разнообразие опыта в сообществе.', j:'Сегодня я вношу вклад в единство моего сообщества.'},
+  {t:'Свобода', q:'Настоящая свобода — это свобода от зависимости.', s:'Базовый текст', b:'Многие пришли в АН в поисках свободы. Свободы от наркотиков, от страха, от одиночества. В выздоровлении мы обретаем настоящую свободу выбирать, как жить.', j:'Сегодня я ценю свободу, которую даёт мне выздоровление.'},
+  {t:'Принятие', q:'Принятие — это не смирение, а понимание.', s:'Базовый текст', b:'Мы учимся принимать вещи, которые не можем изменить. Когда мы принимаем себя и других такими, какие мы есть, в нашей жизни появляется покой.', j:'Сегодня я принимаю то, что не могу изменить.'},
+  {t:'Любовь', q:'Любовь — это не чувство, а действие.', s:'Базовый текст', b:'В выздоровлении мы учимся любить по-новому. Мы проявляем любовь через заботу, поддержку, внимание. Любовь — это когда мы делаем что-то для других.', j:'Сегодня я проявляю любовь через свои поступки.'},
+  {t:'Целостность', q:'Целостность — это делать правильные вещи, даже когда никто не видит.', s:'Базовый текст', b:'Мы стремимся к согласию между словами и поступками. Когда мы живём в соответствии со своими принципами, мы чувствуем внутренний покой.', j:'Сегодня я живу в согласии со своими принципами.'},
+  {t:'Сострадание', q:'Сострадание — это способность чувствовать боль другого.', s:'Базовый текст', b:'Мы учимся быть чуткими к чужой боли. Мы не осуждаем, а стараемся понять. Сострадание помогает поддерживать друг друга в трудные моменты.', j:'Сегодня я проявляю сострадание к тем, кто страдает.'},
+  {t:'Радость', q:'Радость — это естественное состояние человека в выздоровлении.', s:'Базовый текст', b:'Выздоровление приносит радость. Мы улыбаемся, смеёмся, наслаждаемся жизнью без веществ. Радость — это дар, который мы получаем, оставаясь чистыми.', j:'Сегодня я позволяю себе радоваться жизни.'},
+  {t:'Вера', q:'Вера — это уверенность в невидимом.', s:'Базовый текст', b:'Мы верим в процесс выздоровления, в сообщество, в свою Высшую Силу. Вера даёт силы продолжать, даже когда трудно. С каждым днём наша вера укрепляется.', j:'Сегодня я доверяю своей Высшей Силе и процессу выздоровления.'},
+];
+
+/* ------- RUSSIAN MEDITATION FETCH ------- */
+async function fetchJftRussian(el, now){
+  const urls = [
+    'https://na-russia.org/meditations',
+    'https://corsproxy.io/?url=' + encodeURIComponent('https://na-russia.org/meditations'),
+    'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://na-russia.org/meditations'),
+    'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent('https://na-russia.org/meditations'),
+  ];
+  for(const url of urls){
+    try {
+      const ctrl = new AbortController();
+      const tid = setTimeout(()=>ctrl.abort(), 8000);
+      const resp = await fetch(url, { signal: ctrl.signal });
+      clearTimeout(tid);
+      if(!resp.ok) continue;
+      const html = await resp.text();
+      if(html.length < 500) continue;
+      const extract = (after, marker, tag) => {
+        const idx = html.indexOf(marker, after);
+        if(idx < 0) return '';
+        const start = html.indexOf('>', idx) + 1;
+        if(start < 1) return '';
+        const end = html.indexOf('</' + tag + '>', start);
+        if(end < 0) return '';
+        return html.substring(start, end).trim()
+          .replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/&quot;/g,'"')
+          .replace(/&mdash;/g,'—').replace(/&laquo;/g,'«').replace(/&raquo;/g,'»')
+          .replace(/<br\s*\/?>/g,'\n').replace(/<[^>]+>/g,'');
+      };
+      const title = extract(0, 'text-lg font-bold', 'div');
+      const dateRaw = extract(0, 'meditation-date', 'div');
+      const quote = extract(0, 'text-md italic', 'div');
+      const source = extract(0, 'wrap-break-word', 'div');
+      const bodyRaw = extract(0, 'text-md mt-8', 'div');
+      if(!title || !dateRaw || !bodyRaw){
+        const fallbackIdx = now.getDate() % RU_MEDIT.length;
+        const m = RU_MEDIT[fallbackIdx];
+        el('jftTitle').textContent = m.t;
+        el('jftDate').textContent = now.getDate() + ' ' + ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'][now.getMonth()] + ' ' + now.getFullYear();
+        el('jftRef').textContent = m.s;
+        el('jftQuote').textContent = '«' + m.q + '»';
+        el('jftBody').textContent = m.b;
+        el('jftJft').textContent = 'ТОЛЬКО СЕГОДНЯ: ' + m.j;
+        return true;
+      }
+      const jftParts = bodyRaw.split('ТОЛЬКО СЕГОДНЯ:');
+      const body = jftParts[0].trim();
+      const jftText = jftParts.length > 1 ? jftParts[1].trim() : '';
+      el('jftTitle').textContent = title;
+      el('jftDate').textContent = now.getDate() + ' ' + ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'][now.getMonth()] + ' ' + now.getFullYear() + ' — ' + dateRaw.charAt(0).toUpperCase() + dateRaw.slice(1);
+      el('jftRef').textContent = source;
+      el('jftQuote').textContent = quote;
+      el('jftQuote').style.display = 'block';
+      el('jftBody').textContent = body;
+      el('jftJft').textContent = 'ТОЛЬКО СЕГОДНЯ: ' + jftText;
+      return true;
+    } catch(e) {
+      continue;
+    }
+  }
+  return false;
+}
+
+/* ------- DAILY JOURNAL ------- */
+function renderJft(){
+  try {
+    const now = new Date();
+    const el = (id) => document.getElementById(id);
+    const months = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+    el('jftDate').textContent = now.getDate() + ' ' + months[now.getMonth()] + ' ' + now.getFullYear();
+    el('jftQuote').style.display = 'block';
+
+    fetchJftRussian(el, now).then(found => {
+      if(!found){
+        const idx = now.getDate() % RU_MEDIT.length;
+        const m = RU_MEDIT[idx];
+        el('jftTitle').textContent = m.t;
+        el('jftRef').textContent = m.s;
+        el('jftQuote').textContent = '«' + m.q + '»';
+        el('jftBody').textContent = m.b;
+        el('jftJft').textContent = 'ТОЛЬКО СЕГОДНЯ: ' + m.j;
+      }
+    });
+  } catch(e) {
+    console.log('renderJft error:', e);
+  }
+}
+
+/* ------- GROUPS ------- */
+const GROUPS_CACHE = { data: null, time: 0 };
+const GROUPS_CACHE_TTL = 600000; // 10 min
+const GROUPS_TYPE_NAMES = {"1":"Закрытое","2":"Спикерская","3":"Свободная тема","4":"Шаги","5":"Открытое","6":"Традиции","7":"Служения","8":"Семинар","9":"Рабочее","10":"Бочонки","11":"День лозунга","12":"Ежедневник","13":"Тематическое","14":"Миниспикерская","15":"При свечах","10001":"Закрытое","10009":"Жить чистыми","10010":"Вопрос-ответ","10011":"При свечах","10012":"Ящик Пандоры","10014":"Базовый текст","10015":"Спонсорство","10016":"Кн. Спонсорство","10017":"100 вопросов","10018":"Дух. принципы","10021":"Изуч. лит. АН","10022":"Своб. служения","10024":"Изучение IP","10025":"Почему я здесь?","10027":"Инв. 10 Шага","10029":"Это работает","10032":"По бочонкам","10034":"Рук. по Шагам","10036":"Раздел из Шагов","10037":"Служение","10039":"Медитация","10040":"Концепции","10041":"По кругу","10042":"О наболевшем","10044":"Высшая сила","10046":"Без света","10047":"Лит. вечер","10051":"Медитация","10052":"Благодарности","10055":"Итоги недели","10061":"Дух. принципы","10072":"Муж. спикерская","10083":"3 вопроса АН","10084":"10 шаг АН","10088":"До 30 дней","10091":"Путевод. принц.","10103":"Из аквариума","10108":"День служений","10109":"Медитация св.","10113":"Эстафета","10114":"Фанты","10116":"Спикерская","10119":"Заморочки","10120":"Укороченное","10121":"Телемост","10124":"Мешок Вызд.","10131":"Чтение ЭРКиП","10133":"Лото","10136":"Миниспикерская","10138":"Путеводитель","10139":"Палочки","10141":"Праздничное","10147":"Online","10148":"Живое","10149":"IP","10150":"Блокнот","10151":"Из мешка","10152":"Кн. традиций","10153":"Самоанализ","10154":"ЭРКИП","10155":"Шаги/Трад/ЭРК","10156":"Гибрид","10157":"Рандом","10158":"Чаепитие","10159":"Отношения","10160":"100 дней","10161":"Без телефона","10162":"С коммент.","10163":"По выкрику","10164":"Тренинг","10165":"Без правил","10166":"Тёмная","10167":"1,2,3 Шаги","10168":"3й Шаг","10169":"4-9 Шаги","10170":"10,11,12 Шаги","10171":"Женское","10172":"Дефекты","10173":"Ист. из БТ","10174":"Школа РС","10175":"Армянский","10176":"Своб. служение","10177":"Отчётное","10178":"Мужское","10179":"Без мата"};
+const GROUPS_DAYS = ['вс','пн','вт','ср','чт','пт','сб'];
+const GROUPS_MONTHS = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+
+function renderGroups(){
+  const now = new Date();
+  const dd = String(now.getDate()).padStart(2,'0');
+  const mm = String(now.getMonth()+1).padStart(2,'0');
+  document.getElementById('groupsDate').textContent = 'Сегодня, ' + parseInt(dd) + ' ' + GROUPS_MONTHS[now.getMonth()] + ' ' + now.getFullYear() + ' (' + GROUPS_DAYS[now.getDay()] + ')';
+  const list = document.getElementById('groupsList');
+  const loading = document.getElementById('groupsLoading');
+  const error = document.getElementById('groupsError');
+
+  if (GROUPS_CACHE.data && Date.now() - GROUPS_CACHE.time < GROUPS_CACHE_TTL) {
+    displayGroups(GROUPS_CACHE.data);
+    return;
+  }
+  loading.style.display = 'block';
+  list.innerHTML = '';
+  error.style.display = 'none';
+
+  fetch('https://na-russia.org/api/scheduled-meetings/merged/?page=1&limit=200&town=10036', {
+    headers: { 'Accept': 'application/json' }
+  })
+  .then(r => r.json())
+  .then(data => {
+    const meetings = data.results || [];
+    GROUPS_CACHE.data = meetings;
+    GROUPS_CACHE.time = Date.now();
+    loading.style.display = 'none';
+    displayGroups(meetings);
+  })
+  .catch(err => {
+    loading.style.display = 'none';
+    error.style.display = 'block';
+    error.innerHTML = 'Не удалось загрузить расписание.<br><button class="groups-retry" onclick="renderGroups()">Повторить</button>';
+  });
+}
+
+function displayGroups(meetings){
+  const list = document.getElementById('groupsList');
+  list.innerHTML = '';
+
+  if (!meetings || meetings.length === 0) {
+    list.innerHTML = '<div class="groups-empty">Сегодня собраний не найдено.<br>Попробуй зайти позже.</div>';
+    return;
+  }
+
+  const sorted = [...meetings].filter(m => m.time).sort((a, b) => a.time.localeCompare(b.time));
+  const parts = { morning: [], day: [], evening: [] };
+  sorted.forEach(m => {
+    const h = parseInt(m.time);
+    if (h < 12) parts.morning.push(m);
+    else if (h < 17) parts.day.push(m);
+    else parts.evening.push(m);
+  });
+
+  const sections = [
+    { key: 'morning', label: 'Утро', items: parts.morning },
+    { key: 'day', label: 'День', items: parts.day },
+    { key: 'evening', label: 'Вечер', items: parts.evening },
+  ];
+
+  sections.forEach(s => {
+    if (s.items.length === 0) return;
+    const group = document.createElement('div');
+    group.className = 'groups-day-group';
+    group.innerHTML = '<div class="groups-day-label">' + s.label + '</div>';
+    s.items.forEach(m => {
+      const timeStr = m.time ? m.time.slice(0, 5) : '';
+      const g = m.group || {};
+      const loc = g.location || {};
+      const addr = loc.address || '';
+      const isOnline = m.online;
+      const typeIds = m.types || [];
+      const typeNames = typeIds.map(id => GROUPS_TYPE_NAMES[id]).filter(Boolean);
+      const visibleTypes = typeNames.slice(0, 4);
+      const extra = typeNames.length > 4 ? '+' + (typeNames.length - 4) : '';
+
+      const item = document.createElement('div');
+      item.className = 'groups-item';
+      item.innerHTML = `
+        <div class="groups-item-row">
+          <div class="groups-time">${timeStr}</div>
+          <div class="groups-info">
+            <div class="groups-name">${escHtml(g.name || 'Без названия')}</div>
+            <div class="groups-addr">${escHtml(addr)}${isOnline ? ' · Online' : ''}</div>
+            <div class="groups-types">
+              ${isOnline ? '<span class="groups-type-badge online">Online</span>' : ''}
+              ${visibleTypes.map(t => '<span class="groups-type-badge">' + escHtml(t) + '</span>').join('')}
+              ${extra ? '<span class="groups-type-badge">' + extra + '</span>' : ''}
+            </div>
+          </div>
+        </div>`;
+      group.appendChild(item);
+    });
+    list.appendChild(group);
+  });
+}
+
+/* ------- PLAN ------- */
+function getPlanKey(){ return 'plan_' + new Date().toISOString().slice(0,10); }
+
+function renderPlan(){
+  const list=document.getElementById('planList');
+  const items = JSON.parse(storage.get(getPlanKey())||'[]');
+  if(items.length===0){
+    list.innerHTML = '<div class="plan-empty">Начни день с плана.<br>Добавь одно дело, которое хочешь сделать сегодня.</div>';
+    return;
+  }
+  list.innerHTML='';
+  items.forEach((item,i)=>{
+    const div=document.createElement('div');
+    div.className='plan-item'+(item.done?' done':'');
+    div.innerHTML=`
+      <div class="plan-cb${item.done?' done':''}" onclick="togglePlan(${i})">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="plan-text">${escHtml(item.text)}</div>
+      <button class="plan-del" onclick="delPlan(${i})">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>`;
+    list.appendChild(div);
+  });
+}
+
+function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function addPlanItem(){
+  const input=document.getElementById('planInput');
+  const text=input.value.trim();
+  if(!text) return;
+  const items = JSON.parse(storage.get(getPlanKey())||'[]');
+  items.push({text, done:false, time:Date.now()});
+  storage.set(getPlanKey(), JSON.stringify(items));
+  input.value='';
+  renderPlan();
+}
+
+function togglePlan(i){
+  const items = JSON.parse(storage.get(getPlanKey())||'[]');
+  items[i].done = !items[i].done;
+  storage.set(getPlanKey(), JSON.stringify(items));
+  renderPlan();
+}
+
+function delPlan(i){
+  const items = JSON.parse(storage.get(getPlanKey())||'[]');
+  items.splice(i,1);
+  storage.set(getPlanKey(), JSON.stringify(items));
+  renderPlan();
+}
+
+function setPlanReminder(){
+  const timeInput = document.getElementById('planReminderTime');
+  const timeVal = timeInput.value;
+  if(!timeVal) return;
+  if(Notification.permission==='granted'){
+    const [h,m]=timeVal.split(':');
+    const now=new Date();
+    const target=new Date(now.getFullYear(),now.getMonth(),now.getDate(),parseInt(h),parseInt(m),0);
+    let diff=target-now;
+    if(diff<0) diff+=86400000;
+    setTimeout(()=>{
+      new Notification('Чистый день', {body:'Пора проверить свой план на сегодня!', icon:'icons/icon-192.png'});
+    }, diff);
+    timeInput.value='';
+  } else if(Notification.permission==='denied'){
+    alert('Разреши уведомления в настройках браузера, чтобы получать напоминания.');
+  } else {
+    Notification.requestPermission().then(p=>{ if(p==='granted') setPlanReminder(); });
+  }
+}
+
+/* ------- SERVICE ------- */
+const SVC_DAYS = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+const SVC_FULL = ['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
+const svcTimers = {};
+
+function getServices(){ return JSON.parse(storage.get('service_list')||'[]'); }
+function saveServices(arr){ storage.set('service_list', JSON.stringify(arr)); }
+
+function renderService(){
+  const list=document.getElementById('serviceList');
+  const items=getServices();
+  if(items.length===0){
+    list.innerHTML='<div class="service-empty">У тебя пока нет служений.<br>Добавь служение, чтобы не забыть о нём.</div>';
+    return;
+  }
+  list.innerHTML='';
+  items.forEach((item,i)=>{
+    const div=document.createElement('div');
+    div.className='service-item';
+    const hasReminder = !!(item.reminder && svcTimers[item.id]);
+    div.innerHTML=`
+      <div class="service-item-top">
+        <span class="day-badge">${SVC_DAYS[item.day]}</span>
+        <span class="svc-time">${item.time}</span>
+        <div class="svc-info">
+          <div class="svc-name">${escHtml(item.name)}</div>
+          ${item.group ? '<div class="svc-group">' + escHtml(item.group) + '</div>' : ''}
+        </div>
+      </div>
+      <div class="svc-actions">
+        <button class="${hasReminder ? 'reminder-on' : ''}" onclick="toggleSvcReminder(${i})">${hasReminder ? '✓ '+item.reminderTime : 'Напом.'}</button>
+        <button onclick="delService(${i})">✕ Удалить</button>
+      </div>`;
+    list.appendChild(div);
+  });
+}
+
+function addService(){
+  const day=parseInt(document.getElementById('svcDay').value);
+  const time=document.getElementById('svcTime').value;
+  const name=document.getElementById('svcName').value.trim();
+  const group=document.getElementById('svcGroup').value.trim();
+  if(!name){ alert('Введите название служения'); return; }
+  if(!time){ alert('Выберите время'); return; }
+  const items=getServices();
+  const id=Date.now()+Math.random();
+  items.push({id, day, time, name, group, reminder:false, reminderTime:''});
+  saveServices(items);
+  document.getElementById('svcName').value='';
+  document.getElementById('svcGroup').value='';
+  renderService();
+}
+
+function delService(i){
+  const items=getServices();
+  const item=items[i];
+  clearSvcReminder(item.id);
+  items.splice(i,1);
+  saveServices(items);
+  renderService();
+}
+
+function toggleSvcReminder(i){
+  const items=getServices();
+  const item=items[i];
+  if(svcTimers[item.id]){
+    clearSvcReminder(item.id);
+    item.reminder=false;
+    item.reminderTime='';
+  } else {
+    if(Notification.permission==='denied'){ alert('Разреши уведомления в настройках браузера.'); return; }
+    if(Notification.permission==='default'){ Notification.requestPermission().then(p=>{ if(p==='granted') toggleSvcReminder(i); }); return; }
+    const timeInput=document.getElementById('svcTime');
+    const t=timeInput.value || item.time;
+    item.reminder=true;
+    item.reminderTime=t;
+    scheduleSvcReminder(item);
+  }
+  saveServices(items);
+  renderService();
+}
+
+function scheduleSvcReminder(item){
+  const [h,m]=item.reminderTime.split(':');
+  const now=new Date();
+  let target=new Date(now.getFullYear(),now.getMonth(),now.getDate(),parseInt(h),parseInt(m),0);
+  while(target.getDay()!==item.day || target<=now){
+    target.setDate(target.getDate()+1);
+  }
+  const diff=target-now;
+  const tid=setTimeout(()=>{
+    new Notification('Чистый день — Служение', {
+      body: item.name + (item.group ? ' в '+item.group : ''),
+      icon:'icons/icon-192.png'
+    });
+    scheduleSvcReminder(item);
+  }, diff);
+  svcTimers[item.id]=tid;
+}
+
+function clearSvcReminder(id){
+  if(svcTimers[id]){ clearTimeout(svcTimers[id]); delete svcTimers[id]; }
+}
+
+function checkSvcReminders(){
+  const items=getServices();
+  items.forEach(item=>{
+    if(item.reminder && !svcTimers[item.id]) scheduleSvcReminder(item);
+  });
+}
+
+/* ------- SETTINGS ------- */
+function openSettings(){
+  const startStr=storage.get('startDate');
+  document.getElementById('startDateInput').value = startStr || new Date().toISOString().slice(0,10);
+  document.getElementById('modalBackdrop').classList.add('active');
+}
+function closeSettings(){ document.getElementById('modalBackdrop').classList.remove('active'); }
+function saveStartDate(){
+  const v=document.getElementById('startDateInput').value;
+  if(v){ storage.set('startDate', v); }
+  closeSettings();
+  renderHome();
+}
+
+/* ------- THEME ------- */
+function applyTheme(theme){
+  if(theme==='system'){
+    const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  } else {
+    document.documentElement.setAttribute('data-theme', theme);
+  }
+  if(theme==='dark' || (theme==='system' && window.matchMedia('(prefers-color-scheme: dark)').matches)){
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0D1B2A');
+  } else {
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#F5EDE0');
+  }
+}
+function setTheme(theme){
+  storage.set('theme', theme);
+  applyTheme(theme);
+  document.querySelectorAll('.theme-opt').forEach(b=>{
+    b.classList.toggle('active', b.dataset.themeValue===theme);
+  });
+}
+function initTheme(){
+  const saved = storage.get('theme') || 'light';
+  applyTheme(saved);
+  document.querySelectorAll('.theme-opt').forEach(b=>{
+    b.classList.toggle('active', b.dataset.themeValue===saved);
+  });
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', ()=>{
+    if((storage.get('theme')||'light')==='system') applyTheme('system');
+  });
+}
+
+/* ------- DONATION ------- */
+function copyToClipboard(text, label){
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(()=>{
+      alert(label + ' скопирован: ' + text);
+    }).catch(()=>{
+      prompt('Скопируй вручную:', text);
+    });
+  } else {
+    prompt('Скопируй вручную:', text);
+  }
+}
+function copyCard(){
+  copyToClipboard('2204 3210 9870 7508', 'Номер карты');
+}
+function copySbp(){
+  copyToClipboard('89801793263', 'Номер телефона для СБП');
+}
+function showDonateOptions(){
+  document.getElementById('donateBanner').classList.remove('active');
+  dismissDonateBanner();
+  openSettings();
+}
+function dismissDonateBanner(){
+  document.getElementById('donateBanner').classList.remove('active');
+  storage.set('last_donate_prompt', Date.now().toString());
+}
+
+/* ------- LEGAL ------- */
+const LEGAL_DOCS = {
+  agreement: {
+    title: 'Пользовательское соглашение',
+    html: `<h4>1. Общие положения</h4>
+<p>Настоящее Пользовательское соглашение регулирует отношения между владельцем приложения «Чистый день» (далее — «Приложение») и пользователем.</p>
+<p>Используя Приложение, вы соглашаетесь с условиями настоящего соглашения. Если вы не согласны — прекратите использование Приложения.</p>
+<h4>2. Описание услуг</h4>
+<p>Приложение предоставляет инструменты для отслеживания дней трезвости, ежедневные размышления сообщества Анонимные Наркоманы, расписание групп и другие вспомогательные функции.</p>
+<h4>3. Ответственность</h4>
+<p>Приложение предоставляется «как есть». Владелец не несёт ответственности за любые последствия его использования.</p>
+<h4>4. Изменения</h4>
+<p>Владелец вправе изменять условия соглашения в одностороннем порядке. Продолжение использования Приложения после изменений означает ваше согласие с ними.</p>`
+  },
+  privacy: {
+    title: 'Политика конфиденциальности',
+    html: `<h4>1. Какие данные собираются</h4>
+<p>Приложение не собирает, не хранит и не передаёт персональные данные пользователей третьим лицам. Все данные (дата начала отсчёта, дела, служения) хранятся локально на устройстве пользователя.</p>
+<h4>2. Сторонние сервисы</h4>
+<p>Приложение может загружать медитации с na-russia.org и расписание групп с na-russia.org через общедоступные API. Эти запросы не содержат персональной информации.</p>
+<h4>3. Файлы cookie</h4>
+<p>Приложение не использует файлы cookie и не отслеживает действия пользователя.</p>
+<h4>4. Контакты</h4>
+<p>Если у вас есть вопросы о политике конфиденциальности: <a href="mailto:dfdiz@mail.ru">dfdiz@mail.ru</a></p>`
+  },
+  disclaimer: {
+    title: 'Отказ от ответственности',
+    html: `<h4>1. Медицинский отказ</h4>
+<p>Приложение «Чистый день» НЕ является медицинским или терапевтическим средством. Оно не заменяет профессиональную медицинскую помощь, психотерапию, консультации нарколога или работу с наставником по программе 12 шагов.</p>
+<h4>2. Связь с сообществом АН</h4>
+<p>Приложение является независимым некоммерческим проектом. Оно не аффилировано с сообществом «Анонимные Наркоманы» и не является официальным продуктом Всемирного обслуживания АН.</p>
+<h4>3. Точность информации</h4>
+<p>Расписание групп и медитации получены из публичных источников. Владелец не гарантирует их актуальность и не несёт ответственности за неточности.</p>
+<h4>4. Самостоятельное решение</h4>
+<p>Пользователь самостоятельно принимает решение об использовании Приложения и несёт ответственность за свою программу выздоровления.</p>`
+  }
+};
+function showLegal(doc){
+  document.getElementById('legalTitle').textContent = LEGAL_DOCS[doc].title;
+  document.getElementById('legalContent').innerHTML = LEGAL_DOCS[doc].html;
+  document.getElementById('legalBackdrop').classList.add('active');
+}
+function closeLegal(){ document.getElementById('legalBackdrop').classList.remove('active'); }
+
+document.getElementById('planInput').addEventListener('keydown', e=>{ if(e.key==='Enter') addPlanItem(); });
+document.getElementById('modalBackdrop').addEventListener('click', e=>{ if(e.target===e.currentTarget) closeSettings(); });
+document.getElementById('legalBackdrop').addEventListener('click', e=>{ if(e.target===e.currentTarget) closeLegal(); });
+
+initTheme();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
+}
+
+renderHome();
+renderJft();
+checkSvcReminders();
+
+const hasStart = storage.get('startDate');
+if(hasStart){
+  const last = storage.get('last_donate_prompt');
+  const show = (!last) || (Date.now() - parseInt(last) > 7*86400000);
+  if(show){
+    setTimeout(()=>{ document.getElementById('donateBanner').classList.add('active'); }, 4000);
+  }
+}
+
+setInterval(renderHome, 60000);
+</script>
+</body>
+</html>
