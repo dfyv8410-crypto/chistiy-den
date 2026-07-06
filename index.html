@@ -1285,7 +1285,7 @@ checkSvcReminders();
 const hasStart = storage.get('startDate');
 if(hasStart){
   const last = storage.get('last_donate_prompt');
-  const show = (!last) || (Date.now() - parseInt(last) > 7*86400000);
+  const show = (!last) || (Date.now() - parseInt(last) > 3*86400000 && Math.random() < 0.4);
   if(show){
     setTimeout(()=>{ document.getElementById('donateBanner').classList.add('active'); }, 4000);
   }
