@@ -329,11 +329,36 @@ body{
 .legal-content li{margin-bottom:4px;}
 .legal-back{display:inline-block;margin:12px 0 0;padding:8px 20px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--na-blue);font-weight:700;font-size:13px;cursor:pointer;transition:all .15s;}
 .legal-back:active{transform:scale(0.97);}
+/* ---------- splash screen ---------- */
+.splash{
+  position:fixed;inset:0;z-index:200;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:linear-gradient(165deg,#F5EDE0,#EDE3D3);
+  transition:opacity .5s ease,transform .5s ease;
+}
+.splash.hide{opacity:0;transform:scale(1.05);pointer-events:none;}
+.splash svg{width:96px;height:96px;margin-bottom:16px;}
+.splash .splash-title{font-family:var(--font-display);font-size:28px;font-weight:800;color:var(--na-blue);letter-spacing:0.5px;}
+.splash .splash-title span{color:var(--accent);}
+.splash .splash-sub{font-size:12px;color:var(--muted);margin-top:4px;letter-spacing:1px;text-transform:uppercase;}
+[data-theme="dark"] .splash{background:linear-gradient(165deg,#0D1B2A,#122338);}
+[data-theme="dark"] .splash .splash-title{color:#7FA8D4;}
+[data-theme="dark"] .splash .splash-sub{color:#6B8299;}
 
 </style>
 </head>
 <body>
 <div id="app">
+
+  <div class="splash" id="splash">
+    <svg viewBox="0 0 96 96">
+      <defs><linearGradient id="sg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#C8963E"/><stop offset="100%" stop-color="#1A3E6B"/></linearGradient></defs>
+      <circle cx="48" cy="44" r="42" fill="#1A3E6B" stroke="url(#sg)" stroke-width="4"/>
+      <path d="M48,16L73,60L23,60Z" fill="url(#sg)" opacity="0.9"/>
+    </svg>
+    <div class="splash-title">Чистый <span>день</span></div>
+    <div class="splash-sub">счётчик трезвости</div>
+  </div>
 
   <div class="topbar">
     <div class="wordmark">Чистый <span>день</span><small>счётчик трезвости</small></div>
@@ -1292,6 +1317,8 @@ if(hasStart){
 }
 
 setInterval(renderHome, 60000);
+
+setTimeout(()=>{ document.getElementById('splash').classList.add('hide'); }, 1500);
 </script>
 </body>
 </html>
