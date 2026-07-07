@@ -8,6 +8,11 @@
             android:layout_height="wrap_content" android:text="Счётчик трезвости"
             android:textSize="20dp" android:textColor="@color/na_blue"
             android:fontFamily="serif" android:textStyle="bold" />
+        <TextView android:id="@+id/settingsLink" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="Изменить дату отсчёта"
+            android:gravity="center" android:padding="12dp" android:layout_marginTop="16dp"
+            android:background="@drawable/card_dashed" android:textColor="@color/na_blue"
+            android:textStyle="bold" android:textSize="13dp"/>
         <!-- Medal circle -->
         <LinearLayout android:layout_width="match_parent"
             android:layout_height="wrap_content" android:gravity="center"
@@ -83,11 +88,5 @@
             android:textSize="13dp" android:textColor="@color/muted"
             android:lineSpacingExtra="4dp" android:gravity="center"
             android:letterSpacing="0.02"/>
-
-        <TextView android:id="@+id/settingsLink" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:text="Изменить дату отсчёта"
-            android:gravity="center" android:padding="12dp" android:layout_marginTop="16dp"
-            android:background="@drawable/card_dashed" android:textColor="@color/na_blue"
-            android:textStyle="bold" android:textSize="13dp"/>
     </LinearLayout>
 </ScrollView>

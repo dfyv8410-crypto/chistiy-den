@@ -4,15 +4,15 @@
     android:padding="16dp">
     <LinearLayout android:orientation="vertical" android:layout_width="match_parent"
         android:layout_height="wrap_content">
-        <View android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:background="#D4816A" android:padding="18dp">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:background="#D4816A" android:padding="18dp">
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:text="Если сейчас тяжело" android:textSize="20dp"
                 android:textColor="@color/white" android:fontFamily="serif" android:textStyle="bold"/>
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:text="Это нормально — не справляться в одиночку"
                 android:textSize="13.5dp" android:textColor="@color/white" android:alpha=".9"/>
-        </View>
+        </LinearLayout>
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:text="Экстренные номера" android:textSize="13dp"
             android:textColor="@color/na_blue" android:textStyle="bold"

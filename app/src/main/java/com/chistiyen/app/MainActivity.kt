@@ -77,7 +77,7 @@ class MainActivity : AppCompatActivity() {
         setupBottomNav()
         showScreen("home")
 
-        // Load data
+            // Load data
         lifecycleScope.launch {
             loadHome()
             loadPlan()
@@ -85,6 +85,7 @@ class MainActivity : AppCompatActivity() {
             loadLibrary()
             loadJft()
             loadSos()
+            loadMedals()
 
             // Restore alarms after boot
             restoreAlarms()
@@ -436,6 +437,28 @@ class MainActivity : AppCompatActivity() {
     private fun dialPhone(phone: String) {
         val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:${phone.filter { it.isDigit() || it == '+' }}"))
         startActivity(intent)
+    }
+
+    /* ===================== MEDALS ===================== */
+
+    private suspend fun loadMedals() {
+        val settings = db.userSettingsDao().get()
+        val days = if (settings?.startDate != null) calcDays(settings.startDate!!) else 0
+        withContext(Dispatchers.Main) {
+            val list = findViewById<LinearLayout>(R.id.medalsList)
+            list.removeAllViews()
+            milestones.forEach { m ->
+                val achieved = days >= m.days
+                val view = layoutInflater.inflate(R.layout.item_medal, list, false)
+                view.findViewById<TextView>(R.id.medalItemName).text = m.name
+                view.findViewById<TextView>(R.id.medalItemDays).text = "${m.days} дн."
+                view.findViewById<View>(R.id.medalItemDot).setBackgroundColor(
+                    android.graphics.Color.parseColor(m.color)
+                )
+                view.alpha = if (achieved) 1f else 0.35f
+                list.addView(view)
+            }
+        }
     }
 
     /* ===================== LIBRARY ===================== */
@@ -898,6 +921,8 @@ class MainActivity : AppCompatActivity() {
                     put("notify_vibrate", settings.notifyVibrate)
                     put("notify_sound", settings.notifySound)
                     put("plan_reminder_time", settings.planReminderTime ?: "")
+                    put("notify_sound_type", settings.notifySoundType)
+                    put("notify_vibrate_pattern", settings.notifyVibratePattern)
                 })
             }
 
@@ -956,12 +981,65 @@ class MainActivity : AppCompatActivity() {
                     theme = s.optString("theme", "light"),
                     notifyVibrate = s.optBoolean("notify_vibrate", true),
                     notifySound = s.optBoolean("notify_sound", true),
-                    planReminderTime = s.optString("plan_reminder_time", null)?.ifEmpty { null }
+                    planReminderTime = s.optString("plan_reminder_time", null)?.ifEmpty { null },
+                    notifySoundType = s.optString("notify_sound_type", "default"),
+                    notifyVibratePattern = s.optString("notify_vibrate_pattern", "default")
                 ))
             }
 
-            // Restore plans (clear first)
-            // Simplified: just log for now
+            // Restore plan items
+            json.optJSONArray("plan_items")?.let { arr ->
+                for (i in 0 until arr.length()) {
+                    val item = arr.getJSONObject(i)
+                    db.planItemDao().insert(PlanItem(
+                        text = item.optString("text"),
+                        done = item.optBoolean("done"),
+                        dateKey = item.optString("date_key", "")
+                    ))
+                }
+            }
+
+            // Restore service items
+            json.optJSONArray("service_items")?.let { arr ->
+                for (i in 0 until arr.length()) {
+                    val item = arr.getJSONObject(i)
+                    db.serviceItemDao().insert(ServiceItem(
+                        dayOfWeek = item.optInt("day"),
+                        time = item.optString("time"),
+                        name = item.optString("name"),
+                        groupName = item.optString("group", ""),
+                        reminderEnabled = item.optBoolean("reminder", false)
+                    ))
+                }
+            }
+
+            // Restore book entries
+            json.optJSONArray("book_entries")?.let { arr ->
+                for (i in 0 until arr.length()) {
+                    val item = arr.getJSONObject(i)
+                    db.bookEntryDao().insert(BookEntry(
+                        title = item.optString("title"),
+                        author = item.optString("author"),
+                        format = item.optString("format"),
+                        filePath = item.optString("file_path"),
+                        icon = item.optString("icon"),
+                        color = item.optString("color")
+                    ))
+                }
+            }
+
+            // Restore SOS contacts
+            json.optJSONArray("sos_contacts")?.let { arr ->
+                for (i in 0 until arr.length()) {
+                    val item = arr.getJSONObject(i)
+                    db.sosContactDao().insert(SosContact(
+                        name = item.optString("name"),
+                        phone = item.optString("phone"),
+                        type = item.optString("type", "Друг")
+                    ))
+                }
+            }
+
             withContext(Dispatchers.Main) {
                 Toast.makeText(this@MainActivity, "Восстановление завершено. Перезапустите приложение.", Toast.LENGTH_LONG).show()
             }
