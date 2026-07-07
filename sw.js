@@ -3,7 +3,7 @@ const ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './jft_data.js',
+
   './icons/icon-192.svg',
   './icons/icon-512.svg'
 ];
