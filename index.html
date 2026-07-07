@@ -257,12 +257,12 @@ body{
 /* ---------- theme toggle ---------- */
 .theme-toggle{display:flex;gap:6px;background:var(--card-2);border-radius:999px;padding:3px;border:1px solid var(--line);}
 .theme-opt{padding:6px 14px;border-radius:999px;border:none;background:transparent;font-size:12px;font-weight:700;font-family:var(--font-body);color:var(--muted);cursor:pointer;transition:all .2s;}
-.theme-opt.active{background:var(--card);color:var(--na-blue);box-shadow:0 2px 6px rgba(0,0,0,0.1);}
+.theme-opt.active{background:var(--card);color:var(--na-blue);}
 
 /* ---------- settings ---------- */
 .settings-section{margin-bottom:18px;}
 .settings-section h4{font-family:var(--font-display);font-size:16px;color:var(--na-blue);margin:0 0 8px;}
-.settings-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-md);padding:14px;box-shadow:0 1px 4px rgba(0,0,0,0.03);}
+.settings-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-md);padding:14px;}
 .settings-card p{font-size:13px;color:var(--cream);line-height:1.6;margin:0 0 6px;}
 .settings-card p:last-child{margin-bottom:0;}
 .settings-card a{color:var(--accent);font-weight:700;text-decoration:none;}
@@ -272,8 +272,8 @@ body{
 .donate-links{display:flex;flex-direction:column;gap:8px;margin-top:10px;}
 .donate-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:var(--radius-md);border:none;font-weight:800;font-size:14px;font-family:var(--font-body);cursor:pointer;transition:transform .15s;text-decoration:none;}
 .donate-btn:active{transform:scale(0.97);}
-.donate-btn.sbp{background:#28954A;color:#fff;box-shadow:0 3px 10px rgba(40,149,74,0.3);}
-.donate-btn.card{background:var(--na-blue);color:#fff;box-shadow:0 3px 10px rgba(26,62,107,0.3);}
+.donate-btn.sbp{background:#28954A;color:#fff;}
+.donate-btn.card{background:var(--na-blue);color:#fff;}
 
 /* ---------- donate banner (centered popup) ---------- */
 .donate-banner{
@@ -281,7 +281,8 @@ body{
   width:calc(100% - 40px); max-width:360px; z-index:45;
   background:var(--card); border:2px solid var(--accent); border-radius:var(--radius-lg);
   padding:28px 22px 20px;
-  box-shadow:0 12px 48px rgba(0,0,0,0.25);
+
+
   transition:transform .4s cubic-bezier(.22,1,.36,1), opacity .4s ease;
   opacity:0; pointer-events:none;
   display:flex; flex-direction:column; align-items:center; gap:12px;
@@ -299,7 +300,7 @@ body{
 .donate-banner .db-actions{display:flex;gap:8px;width:100%;margin-top:4px;}
 .donate-banner .db-actions button{flex:1;padding:10px;border-radius:999px;border:none;font-size:13px;font-weight:800;cursor:pointer;transition:transform .15s;font-family:var(--font-body);}
 .donate-banner .db-actions button:active{transform:scale(0.95);}
-.donate-banner .db-actions .db-donate{background:var(--accent);color:#fff;box-shadow:0 3px 10px rgba(200,150,62,0.3);}
+.donate-banner .db-actions .db-donate{background:var(--accent);color:#fff;}
 .donate-banner .db-actions .db-later{background:var(--card-2);color:var(--muted);border:1px solid var(--line);}
 [data-theme="blue"] .donate-banner{background:var(--card);}
 
@@ -315,7 +316,7 @@ body{
 .splash{
   position:fixed;inset:0;z-index:200;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  background:linear-gradient(165deg,#F5EDE0,#EDE3D3);
+  background:#F5EDE0;
   transition:opacity .5s ease,transform .5s ease;
 }
 .splash.hide{opacity:0;transform:scale(1.05);pointer-events:none;}
@@ -323,7 +324,7 @@ body{
 .splash .splash-title{font-family:var(--font-display);font-size:28px;font-weight:800;color:var(--na-blue);letter-spacing:0.5px;}
 .splash .splash-title span{color:var(--accent);}
 .splash .splash-sub{font-size:12px;color:var(--muted);margin-top:4px;letter-spacing:1px;text-transform:uppercase;}
-[data-theme="blue"] .splash{background:linear-gradient(165deg,#0F1F3D,#152A50);}
+[data-theme="blue"] .splash{background:#0F1F3D;}
 [data-theme="blue"] .splash .splash-title{color:#7FA8D4;}
 [data-theme="blue"] .splash .splash-sub{color:#6B8299;}
 
@@ -334,21 +335,16 @@ body{
 
   <div class="splash" id="splash">
     <svg viewBox="0 0 96 96">
-      <defs>
-        <filter id="ss" x="-10%" y="-10%" width="130%" height="130%">
-          <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#1A3E6B" flood-opacity="0.35"/>
-        </filter>
-      </defs>
       <rect width="96" height="96" rx="20" fill="#FFFFFF"/>
-      <circle cx="48" cy="48" r="39" fill="#1A3E6B" filter="url(#ss)"/>
+      <circle cx="48" cy="48" r="39" fill="#1A3E6B"/>
       <text x="48" y="49" text-anchor="middle" dominant-baseline="central" font-family="Georgia,'Times New Roman',serif" font-weight="900" font-size="58" fill="#FFFFFF">NA</text>
     </svg>
     <div class="splash-title">Чистый <span>день</span></div>
-    <div class="splash-sub">счётчик трезвости</div>
+    <div class="splash-sub">Один день за раз</div>
   </div>
 
   <div class="topbar">
-    <div class="wordmark">Чистый <span>день</span><small>счётчик трезвости</small></div>
+    <div class="wordmark">Чистый <span>день</span><small>Один день за раз</small></div>
     <button class="icon-btn" onclick="openSettings()" aria-label="Настройки">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
     </button>
@@ -394,7 +390,7 @@ body{
       <div class="jft-jft" id="jftJft"></div>
     </div>
     <div class="jft-actions" style="display:flex;gap:8px;margin-top:10px;">
-      <button onclick="renderJft()" style="flex:1;padding:10px;border-radius:var(--radius-md);border:none;background:var(--accent);color:var(--cream);font-weight:800;font-size:13px;cursor:pointer;box-shadow:0 3px 10px rgba(200,150,62,0.3);">Обновить</button>
+      <button id="jftRefreshBtn" onclick="renderJft()" style="flex:1;padding:10px;border-radius:var(--radius-md);border:none;background:var(--accent);color:var(--cream);font-weight:800;font-size:13px;cursor:pointer;">Обновить</button>
     </div>
     <div class="legend-note">
       Источник: <a href="https://na-russia.org/moskva" target="_blank" rel="noopener" style="color:var(--accent);font-weight:700;">na-russia.org</a> — ежедневные размышления «Только сегодня» сообщества Анонимные Наркоманы
@@ -403,8 +399,8 @@ body{
 
   <!-- ГРУППЫ -->
   <div class="screen" id="screen-groups">
-    <div class="screen-title">Группы сегодня</div>
-    <div class="screen-sub" id="groupsDate">Загрузка расписания...</div>
+    <div class="screen-title">Группы</div>
+    <div class="screen-sub" id="groupsDate">Загрузка...</div>
     <div id="groupsLoading" class="groups-loading">Загрузка...</div>
     <div id="groupsError" class="groups-error" style="display:none"></div>
     <div id="groupsList"></div>
@@ -974,7 +970,11 @@ function renderJft(){
     el('jftDate').textContent = now.getDate() + ' ' + months[now.getMonth()] + ' ' + now.getFullYear();
     el('jftQuote').style.display = 'block';
 
+    const btn = document.getElementById('jftRefreshBtn');
+    if(btn){ btn.textContent = 'Загрузка...'; btn.disabled = true; }
+
     fetchJftRussian(el, now).then(found => {
+      if(btn){ btn.textContent = 'Обновить'; btn.disabled = false; }
       if(!found){
         const idx = now.getDate() % RU_MEDIT.length;
         const m = RU_MEDIT[idx];
@@ -1001,7 +1001,7 @@ function renderGroups(){
   const now = new Date();
   const dd = String(now.getDate()).padStart(2,'0');
   const mm = String(now.getMonth()+1).padStart(2,'0');
-  document.getElementById('groupsDate').textContent = 'Сегодня, ' + parseInt(dd) + ' ' + GROUPS_MONTHS[now.getMonth()] + ' ' + now.getFullYear() + ' (' + GROUPS_DAYS[now.getDay()] + ')';
+  document.getElementById('groupsDate').textContent = 'Расписание собраний АН в Москве · ' + parseInt(dd) + ' ' + GROUPS_MONTHS[now.getMonth()] + ' ' + now.getFullYear();
   const list = document.getElementById('groupsList');
   const loading = document.getElementById('groupsLoading');
   const error = document.getElementById('groupsError');
@@ -1014,7 +1014,8 @@ function renderGroups(){
   list.innerHTML = '';
   error.style.display = 'none';
 
-  fetch('https://na-russia.org/api/scheduled-meetings/merged/?page=1&limit=200&town=10036', {
+  const params = new URLSearchParams({ page: '1', limit: '200', town: '10036' });
+  fetch('https://na-russia.org/api/scheduled-meetings/merged/?' + params, {
     headers: { 'Accept': 'application/json' }
   })
   .then(r => r.json())
@@ -1190,7 +1191,7 @@ function showToast(msg){
   if(!t){
     t = document.createElement('div');
     t.id = 'toast';
-    t.style.cssText = 'position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#1A3E6B;color:#fff;padding:14px 24px;border-radius:16px;font-size:14px;font-weight:600;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,0.3);max-width:90%;text-align:center;transition:opacity .3s;font-family:Manrope,sans-serif;';
+    t.style.cssText = 'position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#1A3E6B;color:#fff;padding:14px 24px;border-radius:16px;font-size:14px;font-weight:600;z-index:9999;border:1px solid rgba(255,255,255,0.15);max-width:90%;text-align:center;transition:opacity .3s;font-family:Manrope,sans-serif;';
     document.body.appendChild(t);
   }
   t.textContent = msg;
