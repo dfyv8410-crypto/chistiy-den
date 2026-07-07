@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:padding="16dp">
+    <LinearLayout android:orientation="vertical" android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Ежедневник" android:textSize="24dp" android:textColor="@color/na_blue"
+            android:fontFamily="serif" android:textStyle="bold"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="«Только сегодня» — ежедневные размышления"
+            android:textSize="13dp" android:textColor="@color/muted" android:layout_marginBottom="12dp"/>
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            app:cardCornerRadius="16dp" app:cardElevation="0dp"
+            android:backgroundTint="@color/card"
+            app:strokeColor="@color/line" app:strokeWidth="1dp">
+            <LinearLayout android:orientation="vertical"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:padding="16dp">
+                <TextView android:id="@+id/jftDate" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:textSize="11dp"
+                    android:textColor="@color/muted" android:textAllCaps="true"/>
+                <TextView android:id="@+id/jftTitle" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:textSize="21dp"
+                    android:textColor="@color/na_blue" android:textStyle="bold"
+                    android:fontFamily="serif" android:layout_marginTop="6dp"/>
+                <TextView android:id="@+id/jftRef" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:textSize="11.5dp"
+                    android:textColor="@color/muted"/>
+                <TextView android:id="@+id/jftQuote" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:textSize="13.5dp"
+                    android:textColor="@color/cream" android:lineSpacingExtra="4dp"
+                    android:background="@color/card2" android:padding="12dp"
+                    android:layout_marginVertical="10dp" android:typeface="normal"/>
+                <TextView android:id="@+id/jftBody" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:textSize="13.5dp"
+                    android:textColor="@color/cream" android:lineSpacingExtra="4dp"/>
+                <TextView android:id="@+id/jftJft" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:textSize="13.5dp"
+                    android:textColor="@color/accent" android:textStyle="bold"
+                    android:lineSpacingExtra="4dp" android:layout_marginTop="12dp"/>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+        <Button android:id="@+id/jftRefresh" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="Обновить"
+            android:backgroundTint="@color/accent" android:textColor="@color/cream"
+            android:textStyle="bold" android:layout_marginTop="10dp"
+            style="@style/Widget.ChistiyDen.Button"/>
+    </LinearLayout>
+</ScrollView>

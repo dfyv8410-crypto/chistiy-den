@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:padding="16dp">
+    <LinearLayout android:orientation="vertical" android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <View android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:background="#D4816A" android:padding="18dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Если сейчас тяжело" android:textSize="20dp"
+                android:textColor="@color/white" android:fontFamily="serif" android:textStyle="bold"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Это нормально — не справляться в одиночку"
+                android:textSize="13.5dp" android:textColor="@color/white" android:alpha=".9"/>
+        </View>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Экстренные номера" android:textSize="13dp"
+            android:textColor="@color/na_blue" android:textStyle="bold"
+            android:layout_marginTop="16dp"/>
+        <LinearLayout android:id="@+id/sosBuiltinList"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Мои контакты" android:textSize="13dp"
+            android:textColor="@color/na_blue" android:textStyle="bold"
+            android:layout_marginTop="16dp"/>
+        <LinearLayout android:id="@+id/sosContactsList"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical"/>
+        <LinearLayout android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:orientation="horizontal"
+            android:layout_marginTop="8dp">
+            <EditText android:id="@+id/sosName" android:layout_width="0dp"
+                android:layout_weight="1" android:layout_height="wrap_content"
+                android:hint="Имя" android:padding="8dp"
+                android:background="@drawable/input_border" android:textSize="13dp"/>
+            <EditText android:id="@+id/sosPhone" android:layout_width="0dp"
+                android:layout_weight="1" android:layout_height="wrap_content"
+                android:hint="Телефон" android:padding="8dp"
+                android:background="@drawable/input_border" android:textSize="13dp"
+                android:layout_marginHorizontal="4dp"/>
+            <Button android:id="@+id/sosAddBtn" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:text="+"
+                android:backgroundTint="@color/accent" android:textColor="@color/cream"
+                android:textStyle="bold" style="@style/Widget.ChistiyDen.Button"/>
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

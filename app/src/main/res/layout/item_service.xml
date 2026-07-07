@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:orientation="vertical" android:background="@drawable/card_border"
+    android:padding="12dp" android:layout_marginBottom="8dp">
+    <LinearLayout android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:orientation="horizontal"
+        android:gravity="center_vertical">
+        <TextView android:id="@+id/svcDayBadge" android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:textSize="10dp"
+            android:textColor="@color/white" android:background="#D4816A"
+            android:paddingHorizontal="8dp" android:paddingVertical="3dp"
+            android:textStyle="bold" android:textAllCaps="true"/>
+        <TextView android:id="@+id/svcTimeText" android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:textSize="17dp"
+            android:textColor="@color/accent" android:textStyle="bold"
+            android:fontFamily="serif" android:paddingHorizontal="10dp"/>
+        <LinearLayout android:layout_width="0dp" android:layout_weight="1"
+            android:layout_height="wrap_content" android:orientation="vertical">
+            <TextView android:id="@+id/svcNameText" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:textSize="14dp"
+                android:textColor="@color/na_blue" android:textStyle="bold"/>
+            <TextView android:id="@+id/svcGroupText" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:textSize="12dp"
+                android:textColor="@color/muted"/>
+        </LinearLayout>
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:orientation="horizontal"
+        android:layout_marginTop="8dp">
+        <Button android:id="@+id/svcReminderBtn" android:layout_width="0dp"
+            android:layout_weight="1" android:layout_height="wrap_content"
+            android:text="Напом." android:textSize="11dp" android:textStyle="bold"
+            android:backgroundTint="@color/card" android:textColor="@color/muted"
+            style="@style/Widget.ChistiyDen.Button"/>
+        <ImageButton android:id="@+id/svcDeleteBtn" android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:src="@drawable/ic_close"
+            android:background="@null" android:padding="8dp"
+            android:contentDescription="Удалить служение"/>
+    </LinearLayout>
+</LinearLayout>

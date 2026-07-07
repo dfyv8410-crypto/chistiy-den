@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Main palette (matches PWA) -->
+    <color name="bg">#F5EDE0</color>
+    <color name="card">#FFFFFF</color>
+    <color name="card2">#F0EBE3</color>
+    <color name="line">#D6CFC4</color>
+    <color name="cream">#3D2B1F</color>
+    <color name="muted">#8B7355</color>
+    <color name="accent">#C8963E</color>
+    <color name="na_blue">#1A3E6B</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+
+    <!-- Blue theme -->
+    <color name="blue_bg">#0F1F3D</color>
+    <color name="blue_card">#1B3560</color>
+
+    <!-- Accent states -->
+    <color name="accent_pressed">#A87A2E</color>
+    <color name="accent_disabled">#E8D5A8</color>
+    <color name="error_red">#B8403A</color>
+    <color name="success_green">#4CAF50</color>
+
+    <!-- Book reader themes -->
+    <color name="sepia_bg">#F5E6CA</color>
+    <color name="sepia_text">#5B4636</color>
+    <color name="dark_bg">#1A1A2E</color>
+    <color name="dark_text">#E0E0E0</color>
+</resources>

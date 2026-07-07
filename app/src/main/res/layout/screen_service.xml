@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:padding="16dp">
+    <LinearLayout android:orientation="vertical" android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Служение" android:textSize="24dp" android:textColor="@color/na_blue"
+            android:fontFamily="serif" android:textStyle="bold"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Добавь свои служения в группах АН"
+            android:textSize="13dp" android:textColor="@color/muted" android:layout_marginBottom="12dp"/>
+        <!-- Input form -->
+        <Spinner android:id="@+id/svcDay" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:entries="@array/days_of_week"/>
+        <EditText android:id="@+id/svcTime" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:hint="Время (HH:MM)"
+            android:padding="10dp" android:background="@drawable/input_border"
+            android:textSize="14dp" android:inputType="time"/>
+        <EditText android:id="@+id/svcName" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:hint="Название служения"
+            android:padding="10dp" android:background="@drawable/input_border"
+            android:textSize="14dp"/>
+        <EditText android:id="@+id/svcGroup" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:hint="Группа / место"
+            android:padding="10dp" android:background="@drawable/input_border"
+            android:textSize="14dp"/>
+        <Button android:id="@+id/svcAddBtn" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="+ Добавить служение"
+            android:backgroundTint="@color/accent" android:textColor="@color/cream"
+            android:textStyle="bold" android:layout_marginTop="8dp"
+            style="@style/Widget.ChistiyDen.Button"/>
+        <LinearLayout android:id="@+id/serviceList"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:layout_marginTop="12dp"/>
+    </LinearLayout>
+</ScrollView>

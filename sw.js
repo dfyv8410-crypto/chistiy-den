@@ -43,13 +43,21 @@ self.addEventListener('fetch', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
+  const url = event.notification.data?.url || './';
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       if (clientList.length > 0) {
         clientList[0].focus();
+        if (url !== './'){
+          clientList[0].navigate(url);
+        }
       } else {
-        clients.openWindow('./');
+        clients.openWindow(url);
       }
     })
   );
+});
+
+self.addEventListener('notificationclose', (event) => {
+  // notification was dismissed by user, nothing to do
 });

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Чистый день</string>
+    <string name="home">Главная</string>
+    <string name="jft">Ежедневник</string>
+    <string name="groups">Группы</string>
+    <string name="plan">План</string>
+    <string name="medals">Медали</string>
+    <string name="sos">SOS</string>
+    <string name="service">Служение</string>
+    <string name="library">Библиотека</string>
+    <string name="settings">Настройки</string>
+    <string name="days_clean">Дней чистоты</string>
+    <string name="add_task">Добавить дело</string>
+    <string name="save">Сохранить</string>
+    <string name="cancel">Отмена</string>
+    <string name="delete">Удалить</string>
+    <string name="my_contacts">Мои контакты</string>
+    <string name="add_contact">Добавить контакт</string>
+    <string name="notification_channel_reminders">Напоминания</string>
+    <string name="notification_channel_reminders_desc">Напоминания о плане и служениях</string>
+    <string name="notification_channel_alarms">Будильники</string>
+    <string name="notification_channel_alarms_desc">Точные уведомления по расписанию</string>
+    <string name="plan_reminder_title">Пора проверить свой план на сегодня!</string>
+    <string name="app_description">Счётчик трезвости с ежедневником NA, планом на день и системой медалей</string>
+</resources>

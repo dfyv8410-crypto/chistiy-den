@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:padding="16dp">
+    <LinearLayout android:orientation="vertical" android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <LinearLayout android:orientation="horizontal"
+            android:layout_width="match_parent" android:layout_height="wrap_content">
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:text="Настройки"
+                android:textSize="24dp" android:textColor="@color/na_blue"
+                android:fontFamily="serif" android:textStyle="bold"/>
+            <Button android:id="@+id/backBtn" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:text="Закрыть"
+                android:backgroundTint="@color/accent" android:textColor="@color/cream"
+                style="@style/Widget.ChistiyDen.Button"/>
+        </LinearLayout>
+
+        <!-- Date -->
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Дата отсчёта" android:textSize="16dp"
+            android:textColor="@color/na_blue" android:fontFamily="serif"
+            android:textStyle="bold" android:layout_marginTop="16dp"/>
+        <DatePicker android:id="@+id/startDatePicker"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:datePickerMode="spinner" android:background="@drawable/card_border"
+            android:padding="8dp"/>
+        <Button android:id="@+id/saveDateBtn" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="Сохранить"
+            android:backgroundTint="@color/accent" android:textColor="@color/cream"
+            android:textStyle="bold" android:layout_marginTop="8dp"
+            style="@style/Widget.ChistiyDen.Button"/>
+
+        <!-- Theme -->
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Тема оформления" android:textSize="16dp"
+            android:textColor="@color/na_blue" android:fontFamily="serif"
+            android:textStyle="bold" android:layout_marginTop="16dp"/>
+        <RadioGroup android:id="@+id/themeGroup"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:background="@drawable/card_border"
+            android:padding="4dp">
+            <RadioButton android:id="@+id/themeLight" android:text="Светлая"
+                android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="wrap_content" android:button="@null"
+                android:gravity="center" android:checked="true"/>
+            <RadioButton android:id="@+id/themeBlue" android:text="Синяя"
+                android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="wrap_content" android:button="@null"
+                android:gravity="center"/>
+        </RadioGroup>
+
+        <!-- Notifications -->
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Уведомления" android:textSize="16dp"
+            android:textColor="@color/na_blue" android:fontFamily="serif"
+            android:textStyle="bold" android:layout_marginTop="16dp"/>
+        <LinearLayout android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:orientation="vertical"
+            android:background="@drawable/card_border" android:padding="14dp">
+            <Switch android:id="@+id/notifyVibrate" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:text="Вибрация"
+                android:textColor="@color/cream" android:textSize="13dp" android:checked="true"/>
+            <Switch android:id="@+id/notifySound" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:text="Звук"
+                android:textColor="@color/cream" android:textSize="13dp" android:checked="true"/>
+            <TextView android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Напоминания работают через AlarmManager — даже после закрытия приложения и перезагрузки телефона"
+                android:textSize="11dp" android:textColor="@color/muted"
+                android:lineSpacingExtra="3dp" android:layout_marginTop="8dp"/>
+        </LinearLayout>
+
+        <!-- Developer -->
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="О разработчике" android:textSize="16dp"
+            android:textColor="@color/na_blue" android:fontFamily="serif"
+            android:textStyle="bold" android:layout_marginTop="16dp"/>
+        <LinearLayout android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:orientation="vertical"
+            android:background="@drawable/card_border" android:padding="14dp">
+            <TextView android:text="Разработчик" android:textSize="11dp"
+                android:textColor="@color/muted" android:textAllCaps="true"/>
+            <TextView android:text="Ваня Х." android:textSize="14dp"
+                android:textColor="@color/cream" android:textStyle="bold"/>
+            <TextView android:text="Телефон" android:textSize="11dp"
+                android:textColor="@color/muted" android:textAllCaps="true"
+                android:layout_marginTop="8dp"/>
+            <TextView android:id="@+id/devPhone" android:text="8 980 179-32-63"
+                android:textSize="14dp" android:textColor="@color/accent" android:textStyle="bold"/>
+            <TextView android:text="Макс" android:textSize="11dp"
+                android:textColor="@color/muted" android:textAllCaps="true"
+                android:layout_marginTop="8dp"/>
+            <TextView android:id="@+id/maxPhone" android:text="8 925 903-97-77"
+                android:textSize="14dp" android:textColor="@color/accent" android:textStyle="bold"/>
+        </LinearLayout>
+
+        <!-- Backup -->
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Резервное копирование" android:textSize="16dp"
+            android:textColor="@color/na_blue" android:fontFamily="serif"
+            android:textStyle="bold" android:layout_marginTop="16dp"/>
+        <LinearLayout android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:orientation="horizontal"
+            android:background="@drawable/card_border" android:padding="14dp">
+            <Button android:id="@+id/exportBtn" android:layout_width="0dp"
+                android:layout_weight="1" android:layout_height="wrap_content"
+                android:text="Экспорт" android:backgroundTint="@color/na_blue"
+                android:textColor="@color/white" android:textStyle="bold"
+                android:layout_marginEnd="4dp" style="@style/Widget.ChistiyDen.Button"/>
+            <Button android:id="@+id/importBtn" android:layout_width="0dp"
+                android:layout_weight="1" android:layout_height="wrap_content"
+                android:text="Импорт" android:backgroundTint="@color/accent"
+                android:textColor="@color/cream" android:textStyle="bold"
+                android:layout_marginStart="4dp" style="@style/Widget.ChistiyDen.Button"/>
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

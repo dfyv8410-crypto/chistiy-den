@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/nav_home" android:title="Главная" android:icon="@drawable/ic_home" />
+    <item android:id="@+id/nav_jft" android:title="Ежедневник" android:icon="@drawable/ic_book" />
+    <item android:id="@+id/nav_groups" android:title="Группы" android:icon="@drawable/ic_users" />
+    <item android:id="@+id/nav_plan" android:title="План" android:icon="@drawable/ic_check" />
+    <item android:id="@+id/nav_medals" android:title="Медали" android:icon="@drawable/ic_medal" />
+    <item android:id="@+id/nav_sos" android:title="SOS" android:icon="@drawable/ic_heart" />
+    <item android:id="@+id/nav_service" android:title="Служение" android:icon="@drawable/ic_service" />
+    <item android:id="@+id/nav_library" android:title="Библиотека" android:icon="@drawable/ic_library" />
+</menu>

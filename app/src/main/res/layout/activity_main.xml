@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg">
+
+    <!-- Content area -->
+    <FrameLayout
+        android:id="@+id/contentFrame"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottomNav"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent">
+
+        <!-- Home -->
+        <include layout="@layout/screen_home" android:id="@+id/screenHome" />
+
+        <!-- JFT -->
+        <include layout="@layout/screen_jft" android:id="@+id/screenJft" />
+
+        <!-- Groups -->
+        <include layout="@layout/screen_groups" android:id="@+id/screenGroups" />
+
+        <!-- Plan -->
+        <include layout="@layout/screen_plan" android:id="@+id/screenPlan" />
+
+        <!-- Medals -->
+        <include layout="@layout/screen_medals" android:id="@+id/screenMedals" />
+
+        <!-- SOS -->
+        <include layout="@layout/screen_sos" android:id="@+id/screenSos" />
+
+        <!-- Service -->
+        <include layout="@layout/screen_service" android:id="@+id/screenService" />
+
+        <!-- Library -->
+        <include layout="@layout/screen_library" android:id="@+id/screenLibrary" />
+
+        <!-- Settings -->
+        <include layout="@layout/screen_settings" android:id="@+id/screenSettings" />
+    </FrameLayout>
+
+    <!-- Bottom Navigation -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNav"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:background="@color/card"
+        app:itemIconTint="@color/line"
+        app:itemTextColor="@color/muted"
+        app:menu="@menu/bottom_nav_menu"
+        app:labelVisibilityMode="labeled" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

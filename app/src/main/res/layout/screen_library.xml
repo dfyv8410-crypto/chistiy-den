@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:padding="16dp">
+    <!-- Bookshelf panel -->
+    <LinearLayout android:id="@+id/libraryPanel"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:orientation="vertical">
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Библиотека" android:textSize="24dp"
+            android:textColor="@color/na_blue" android:fontFamily="serif"
+            android:textStyle="bold"/>
+        <Button android:id="@+id/importBookBtn" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="Загрузить книгу"
+            android:backgroundTint="@color/accent" android:textColor="@color/cream"
+            android:textStyle="bold" android:layout_marginVertical="10dp"
+            style="@style/Widget.ChistiyDen.Button"/>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/bookshelf"
+            android:layout_width="match_parent" android:layout_height="0dp"
+            android:layout_weight="1" />
+    </LinearLayout>
+    <!-- Reader panel (hidden by default) -->
+    <LinearLayout android:id="@+id/readerPanel"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:orientation="vertical" android:visibility="gone">
+        <LinearLayout android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:orientation="horizontal">
+            <Button android:id="@+id/readerBack" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:text="←"
+                android:backgroundTint="@color/card" android:textColor="@color/na_blue"
+                android:textStyle="bold" style="@style/Widget.ChistiyDen.Button"/>
+            <TextView android:id="@+id/readerTitle" android:layout_width="0dp"
+                android:layout_height="wrap_content" android:layout_weight="1"
+                android:textSize="16dp" android:textColor="@color/na_blue"
+                android:fontFamily="serif" android:textStyle="bold"
+                android:gravity="center" android:maxLines="1" android:ellipsize="end"/>
+        </LinearLayout>
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/readerContent" android:layout_width="match_parent"
+            android:layout_height="0dp" android:layout_weight="1">
+            <TextView android:id="@+id/readerText" android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:lineSpacingExtra="6dp" android:textSize="16dp"
+                android:padding="8dp"/>
+        </androidx.core.widget.NestedScrollView>
+        <LinearLayout android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:orientation="horizontal"
+            android:gravity="center" android:padding="8dp">
+            <Button android:id="@+id/prevChapter" android:layout_width="0dp"
+                android:layout_weight="1" android:layout_height="wrap_content"
+                android:text="← Пред." android:backgroundTint="@color/accent"
+                android:textColor="@color/cream" android:textSize="12dp"
+                style="@style/Widget.ChistiyDen.Button"/>
+            <TextView android:id="@+id/pageInfo" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:text="0 / 0"
+                android:textSize="13dp" android:textColor="@color/muted"
+                android:paddingHorizontal="12dp"/>
+            <Button android:id="@+id/nextChapter" android:layout_width="0dp"
+                android:layout_weight="1" android:layout_height="wrap_content"
+                android:text="След. →" android:backgroundTint="@color/accent"
+                android:textColor="@color/cream" android:textSize="12dp"
+                style="@style/Widget.ChistiyDen.Button"/>
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

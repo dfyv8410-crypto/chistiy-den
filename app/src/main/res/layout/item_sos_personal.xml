@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:orientation="horizontal" android:gravity="center_vertical"
+    android:background="@drawable/card_border" android:padding="10dp"
+    android:layout_marginBottom="6dp">
+    <TextView android:id="@+id/sosContactType" android:layout_width="wrap_content"
+        android:layout_height="wrap_content" android:textSize="9dp"
+        android:textColor="@color/white" android:background="@color/na_blue"
+        android:paddingHorizontal="6dp" android:paddingVertical="2dp"
+        android:textStyle="bold"/>
+    <LinearLayout android:layout_width="0dp" android:layout_weight="1"
+        android:layout_height="wrap_content" android:orientation="vertical"
+        android:paddingHorizontal="8dp">
+        <TextView android:id="@+id/sosContactName" android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:textSize="13dp"
+            android:textColor="@color/cream" android:textStyle="bold"/>
+        <TextView android:id="@+id/sosContactPhone" android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:textSize="11dp"
+            android:textColor="@color/muted"/>
+    </LinearLayout>
+    <Button android:id="@+id/sosCallBtn" android:layout_width="wrap_content"
+        android:layout_height="wrap_content" android:text="Звонок"
+        android:textSize="11dp" android:textStyle="bold"
+        android:backgroundTint="#D4816A" android:textColor="@color/white"
+        android:paddingHorizontal="10dp" style="@style/Widget.ChistiyDen.Button"/>
+    <ImageButton android:id="@+id/sosDeleteBtn" android:layout_width="28dp"
+        android:layout_height="28dp" android:src="@drawable/ic_close"
+        android:background="@null" android:contentDescription="Удалить"/>
+</LinearLayout>

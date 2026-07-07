@@ -386,13 +386,23 @@ body{
 .lib-theme-btn{padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:12px;font-weight:700;color:var(--cream);cursor:pointer;font-family:var(--font-body);}
 .lib-theme-btn:active{opacity:.7;}
 .lib-theme-btn.active{border-color:var(--accent);color:var(--accent);}
-.lib-bookmarks{display:none;margin-bottom:10px;}
-.lib-bookmarks.active{display:block;}
+.lib-bookmarks,.lib-notes{display:none;margin-bottom:10px;}
+.lib-bookmarks.active,.lib-notes.active{display:block;}
 .lib-bookmarks-header{font-weight:700;font-size:13px;color:var(--na-blue);margin-bottom:6px;}
 .lib-bm-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius-sm);margin-bottom:4px;font-size:12px;cursor:pointer;}
 .lib-bm-item:active{background:var(--card-2);}
 .lib-bm-item .bm-del{width:18px;height:18px;border:none;background:none;cursor:pointer;flex:0 0 auto;color:var(--muted);padding:0;display:flex;align-items:center;justify-content:center;}
 .lib-bm-item .bm-del svg{width:12px;height:12px;stroke:currentColor;}
+.lib-notes-header{display:flex;align-items:center;justify-content:space-between;font-weight:700;font-size:13px;color:var(--na-blue);margin-bottom:6px;}
+.lib-add-note-btn{padding:4px 10px;border-radius:999px;border:1px solid var(--accent);background:transparent;font-size:11px;font-weight:700;color:var(--accent);cursor:pointer;}
+.lib-note-item{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-sm);padding:8px 10px;margin-bottom:4px;font-size:12px;}
+.lib-note-item .note-text{margin-bottom:4px;line-height:1.5;}
+.lib-note-item .note-actions{display:flex;gap:6px;justify-content:flex-end;}
+.lib-note-item .note-actions button{padding:2px 8px;border-radius:4px;border:1px solid var(--line);background:var(--card);font-size:10px;font-weight:700;color:var(--muted);cursor:pointer;}
+.lib-note-item .note-actions button:active{opacity:.7;}
+.lib-note-edit{width:100%;padding:6px 8px;border-radius:6px;border:1px solid var(--line);font-size:12px;font-family:var(--font-body);background:var(--card-2);color:var(--cream);resize:vertical;min-height:40px;margin-bottom:4px;outline:none;}
+.lib-note-edit:focus{border-color:var(--accent);}
+.lib-note-chapter-select{width:100%;padding:6px 8px;border-radius:6px;border:1px solid var(--line);font-size:11px;font-family:var(--font-body);background:var(--card-2);color:var(--cream);margin-bottom:4px;outline:none;}
 .lib-empty{padding:40px 20px;text-align:center;color:var(--muted);font-size:14px;line-height:1.6;}
 .lib-book-panel{display:block;}
 .lib-book-panel.hide{display:none;}
@@ -631,9 +641,16 @@ body{
       <div class="lib-header">
         <h2>Библиотека</h2>
         <div class="lib-controls">
-          <input type="file" id="libFileInput" accept=".fb2,.txt,.html,.epub,.pdf,.doc,.docx,.rtf" style="display:none" onchange="importBook(event)">
+          <input type="file" id="libFileInput" accept=".fb2,.txt,.html,.epub,.pdf,.doc,.docx,.rtf,.zip" style="display:none" onchange="importBook(event)">
           <button onclick="document.getElementById('libFileInput').click()" aria-label="Загрузить книгу" title="Загрузить книгу">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </button>
+          <button onclick="exportData()" aria-label="Резервная копия" title="Скачать резервную копию">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </button>
+          <input type="file" id="libImportInput" accept=".json" style="display:none" onchange="importData(event)">
+          <button onclick="document.getElementById('libImportInput').click()" aria-label="Восстановить" title="Восстановить из резервной копии">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 12a9 9 0 1 1-9-9"/><polyline points="21 3 21 9 15 9"/></svg>
           </button>
         </div>
       </div>
@@ -651,6 +668,9 @@ body{
           </button>
           <button id="libBmBtn" onclick="toggleBookmarks()" aria-label="Закладки">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+          </button>
+          <button onclick="toggleNotes()" aria-label="Заметки" title="Заметки">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
           </button>
           <button id="libSearchBtn" onclick="toggleSearch()" aria-label="Поиск">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -692,6 +712,14 @@ body{
       <div class="lib-bookmarks" id="libBookmarks">
         <div class="lib-bookmarks-header">Мои закладки</div>
         <div id="libBmList"></div>
+      </div>
+      <!-- notes -->
+      <div class="lib-notes" id="libNotes">
+        <div class="lib-notes-header">
+          <span>Мои заметки</span>
+          <button class="lib-add-note-btn" onclick="addNote()">+ Добавить заметку</button>
+        </div>
+        <div id="libNotesList"></div>
       </div>
       <!-- progress bar -->
       <div class="lib-progress-bar" id="libProgressBar"><div class="fill" id="libProgressFill" style="width:0%"></div></div>
@@ -800,6 +828,15 @@ body{
         <div class="settings-card">
           <p style="font-size:13px;margin:0 0 6px;" id="notifyStatus">Статус: проверка...</p>
           <button onclick="requestNotifyPerm()" style="padding:8px 16px;border-radius:var(--radius-sm);border:none;background:var(--accent);color:var(--cream);font-weight:700;font-size:13px;cursor:pointer;">Запросить разрешение</button>
+          <div style="margin-top:10px;display:flex;gap:12px;align-items:center;">
+            <label style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:4px;cursor:pointer;">
+              <input type="checkbox" id="notifyVibrate" checked onchange="saveNotifySettings()" style="accent-color:var(--accent);"> Вибрация
+            </label>
+            <label style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:4px;cursor:pointer;">
+              <input type="checkbox" id="notifySound" checked onchange="saveNotifySettings()" style="accent-color:var(--accent);"> Звук
+            </label>
+          </div>
+          <p style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;">На Android уведомления работают только когда приложение открыто (или свёрнуто в фоне). Для напоминаний после перезагрузки телефона требуется нативная версия приложения.</p>
         </div>
       </div>
 
@@ -1441,16 +1478,32 @@ function requestNotifyPerm(){
     }).catch(e => console.error('Ошибка запроса уведомлений:', e));
   }
 }
-function notify(body, icon){
+function saveNotifySettings(){
+  storage.set('notify_vibrate', document.getElementById('notifyVibrate').checked ? '1' : '0');
+  storage.set('notify_sound', document.getElementById('notifySound').checked ? '1' : '0');
+}
+function loadNotifySettings(){
+  const vib = storage.get('notify_vibrate');
+  const snd = storage.get('notify_sound');
+  const vibEl = document.getElementById('notifyVibrate');
+  const sndEl = document.getElementById('notifySound');
+  if(vibEl) vibEl.checked = vib !== '0';
+  if(sndEl) sndEl.checked = snd !== '0';
+}
+function notify(body, icon, silent){
   const ico = icon || 'icons/icon-192.svg';
   if(notifyPerm === 'granted'){
-    if(navigator.vibrate) { try { navigator.vibrate(200); } catch(e) { console.warn('Vibrate不支持:', e.message); } }
+    const useVibrate = storage.get('notify_vibrate') !== '0';
+    const useSound = silent !== true && storage.get('notify_sound') !== '0';
+    if(useVibrate && navigator.vibrate) { try { navigator.vibrate(200); } catch(e) {} }
     try {
-      new Notification('Чистый день', {body, icon:ico, requireInteraction:true});
+      new Notification('Чистый день', {
+        body, icon:ico, requireInteraction:true,
+        silent: !useSound
+      });
       return;
     } catch(e) { console.error('Notification error:', e); }
   }
-  // fallback: in-app toast
   showToast(body);
 }
 function showToast(msg){
@@ -1839,22 +1892,58 @@ const LIB_BOOK = {
   ]
 };
 let libState = {};
+const DEFAULT_BOOK_SETTINGS = { fontSize:16, lineHeight:1.7, theme:'light', scrollPos:0, chapter:null, bookmarks:[], notes:[] };
+function getBookSettingsKey(idx){ return 'lib_bs_'+idx; }
+function loadBookSettings(idx){
+  try{ const v = storage.get(getBookSettingsKey(idx)); if(v) return {...DEFAULT_BOOK_SETTINGS, ...JSON.parse(v)}; }catch(e){}
+  return {...DEFAULT_BOOK_SETTINGS};
+}
+function saveBookSettings(idx, s){ storage.set(getBookSettingsKey(idx), JSON.stringify(s)); }
+function removeBookSettings(idx){ storage.remove(getBookSettingsKey(idx)); }
 async function initLibState(){
   const saved = await idbGet('lib_state');
   if(saved){
     try{ libState = JSON.parse(saved); }catch(e){ libState = {}; }
   }
-  if(!libState.fontSize) libState.fontSize = 16;
-  if(!libState.lineHeight) libState.lineHeight = 1.7;
-  if(!libState.theme) libState.theme = 'light';
-  if(libState.chapter === undefined) libState.chapter = LIB_BOOK.chapters[0]?.id;
-  if(!libState.bookmarks) libState.bookmarks = [];
   if(libState.currentBook === undefined) libState.currentBook = 0;
+  // migration: old lib_state had global settings, move to per-book
+  if(libState.fontSize || libState.lineHeight || libState.theme){
+    const bs = loadBookSettings(libState.currentBook);
+    if(!bs.fontSize){ // only migrate if per-book doesn't exist yet
+      bs.fontSize = libState.fontSize || DEFAULT_BOOK_SETTINGS.fontSize;
+      bs.lineHeight = libState.lineHeight || DEFAULT_BOOK_SETTINGS.lineHeight;
+      bs.theme = libState.theme || DEFAULT_BOOK_SETTINGS.theme;
+      bs.chapter = libState.chapter || null;
+      bs.bookmarks = libState.bookmarks || [];
+      saveBookSettings(libState.currentBook, bs);
+    }
+    // prune to just currentBook
+    await idbSet('lib_state', JSON.stringify({ currentBook: libState.currentBook }));
+  }
+  // load per-book settings for current book
+  const bs = loadBookSettings(libState.currentBook);
+  libState.fontSize = bs.fontSize;
+  libState.lineHeight = bs.lineHeight;
+  libState.theme = bs.theme;
+  libState.scrollPos = bs.scrollPos;
+  libState.chapter = bs.chapter || (getLibBooks()[0]?.chapters[0]?.id);
+  libState.bookmarks = bs.bookmarks || [];
+  libState.notes = bs.notes || [];
 }
 async function saveLibState(){
-  await idbSet('lib_state', JSON.stringify(libState));
-  try{ localStorage.setItem('lib_state', JSON.stringify(libState)); }catch(e){}
-  memoryStore.lib_state = JSON.stringify(libState);
+  await idbSet('lib_state', JSON.stringify({ currentBook: libState.currentBook }));
+  try{ localStorage.setItem('lib_state', JSON.stringify({ currentBook: libState.currentBook })); }catch(e){}
+  memoryStore.lib_state = JSON.stringify({ currentBook: libState.currentBook });
+  // per-book
+  const bs = loadBookSettings(libState.currentBook);
+  bs.fontSize = libState.fontSize;
+  bs.lineHeight = libState.lineHeight;
+  bs.theme = libState.theme;
+  bs.scrollPos = libState.scrollPos;
+  bs.chapter = libState.chapter;
+  bs.bookmarks = libState.bookmarks;
+  bs.notes = libState.notes;
+  saveBookSettings(libState.currentBook, bs);
 }
 function idbGet(key){
   return new Promise(resolve => {
@@ -1918,7 +2007,15 @@ function openBook(idx){
   const books = getLibBooks();
   if(!books[idx]) return;
   libState.currentBook = idx;
-  libState.scrollPos = 0;
+  // load per-book settings
+  const bs = loadBookSettings(idx);
+  libState.fontSize = bs.fontSize;
+  libState.lineHeight = bs.lineHeight;
+  libState.theme = bs.theme;
+  libState.scrollPos = bs.scrollPos;
+  libState.chapter = bs.chapter || books[idx].chapters[0]?.id;
+  libState.bookmarks = bs.bookmarks || [];
+  libState.notes = bs.notes || [];
   document.getElementById('libBookPanel').classList.add('hide');
   document.getElementById('libReaderPanel').classList.add('active');
   document.getElementById('libReaderTitle').textContent = books[idx].title;
@@ -1940,14 +2037,22 @@ function closeReader(){
   saveLibState();
 }
 function deleteBook(idx){
-  if(idx <= 0) return; // нельзя удалить первую книгу
+  if(idx <= 0) return;
   const books = getLibBooks();
   if(!confirm('Удалить книгу "' + books[idx].title + '"?')) return;
-  // если удаляем текущую открытую книгу, переключаемся на первую
   if(libState.currentBook === idx) libState.currentBook = 0;
   const imported = JSON.parse(storage.get('lib_imported')||'[]');
-  imported.splice(idx - 1, 1); // idx 0 = LIB_BOOK, так что отнимаем 1
+  imported.splice(idx - 1, 1);
   storage.set('lib_imported', JSON.stringify(imported));
+  // re-index per-book settings: shift higher indices down
+  removeBookSettings(idx);
+  for(let j = idx + 1; ; j++){
+    const key = getBookSettingsKey(j);
+    const val = storage.get(key);
+    if(!val) break;
+    storage.set(getBookSettingsKey(j - 1), val);
+    storage.remove(key);
+  }
   renderBookshelf();
 }
 function getLibBooks(){
@@ -1957,6 +2062,62 @@ function getLibBooks(){
 function saveLibBooks(arr){
   const imported = arr.slice(1);
   storage.set('lib_imported', JSON.stringify(imported));
+}
+/* ------- BACKUP / RESTORE ------- */
+async function exportData(){
+  try {
+    const data = {};
+    // collect from IDB
+    if(_db){
+      const tx = _db.transaction('data','readonly');
+      const store = tx.objectStore('data');
+      const keys = await new Promise((res,rej)=>{ const r=store.getAllKeys(); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(); });
+      for(const k of keys){
+        const v = await new Promise((res)=>{ const r=store.get(k); r.onsuccess=()=>res(r.result); r.onerror=()=>res(undefined); });
+        if(v !== undefined) data[k] = v;
+      }
+    }
+    // also collect from localStorage
+    const lsKeys = Object.keys(localStorage);
+    for(const k of lsKeys){
+      if(data[k] === undefined) data[k] = localStorage.getItem(k);
+    }
+    const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'chistiy-den-backup-' + new Date().toISOString().slice(0,10) + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch(e){
+    alert('Ошибка при создании бэкапа: ' + e.message);
+  }
+}
+async function importData(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  event.target.value = '';
+  if(!confirm('Восстановление заменит все текущие данные. Продолжить?')) return;
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+    if(typeof data !== 'object' || !data) throw new Error('Неверный формат файла');
+    let count = 0;
+    for(const [key, val] of Object.entries(data)){
+      if(typeof val === 'string' || val instanceof String || typeof val === 'number' || typeof val === 'boolean'){
+        try{ localStorage.setItem(key, String(val)); }catch(e){}
+        memoryStore[key] = String(val);
+      }
+      await _idbSet(key, val).catch(()=>{});
+      try{ localStorage.setItem(key, typeof val === 'string' ? val : JSON.stringify(val)); }catch(e){}
+      memoryStore[key] = typeof val === 'string' ? val : JSON.stringify(val);
+      count++;
+    }
+    alert('Восстановлено ' + count + ' записей. Страница будет перезагружена.');
+    location.reload();
+  } catch(e){
+    alert('Ошибка восстановления: ' + e.message);
+  }
 }
 // --- format parsers ---
 async function loadJsZip(){
@@ -2107,7 +2268,23 @@ function importBook(event){
   reader.onload = async function(e){
     let result;
     try {
-      if(ext==='fb2') result = parseFB2Text(e.target.result);
+      // ZIP → detect FB2/EPUB inside
+      if(ext==='zip' || ext==='fb2.zip'){
+        await loadJsZip();
+        const zip = await JSZip.loadAsync(new Uint8Array(e.target.result));
+        let found = null;
+        zip.forEach((p, f) => {
+          if(!found && (p.endsWith('.fb2'))) found = p;
+        });
+        if(found){
+          const fb2Buf = await readZipFile(zip, found);
+          const fb2Text = new TextDecoder('utf-8').decode(fb2Buf);
+          result = parseFB2Text(fb2Text);
+          if(result) result.title = result.title || found.replace(/\.fb2$/i,'');
+        }
+        if(!result) throw new Error('В ZIP не найден FB2 файл');
+      }
+      else if(ext==='fb2') result = parseFB2Text(e.target.result);
       else if(ext==='txt') result = { chapters: parseTxtPages(e.target.result), title: name };
       else if(ext==='html' || ext==='htm'){
         const html = e.target.result;
@@ -2138,7 +2315,7 @@ function importBook(event){
     storage.set('lib_imported', JSON.stringify(imported));
     renderBookshelf();
   };
-  if(['epub','pdf','docx','doc'].includes(ext)){
+  if(['epub','pdf','docx','doc','zip','fb2.zip'].some(e => ext===e || ext.endsWith('.zip') ? ext===e : false) || ext==='zip'){
     reader.readAsArrayBuffer(file);
   } else {
     reader.readAsText(file, 'UTF-8');
@@ -2297,6 +2474,56 @@ function removeBookmark(i){
   saveLibState();
   renderBookmarks();
 }
+/* ------- NOTES ------- */
+function toggleNotes(){
+  const panel = document.getElementById('libNotes');
+  panel.classList.toggle('active');
+  if(panel.classList.contains('active')) renderNotes();
+}
+function renderNotes(){
+  const list = document.getElementById('libNotesList');
+  const books = getLibBooks();
+  const book = books[libState.currentBook || 0];
+  list.innerHTML = '';
+  if(!libState.notes || libState.notes.length === 0){
+    list.innerHTML = '<div style="color:var(--muted);font-size:13px;">Нет заметок к этой книге</div>';
+    return;
+  }
+  libState.notes.forEach((n, i) => {
+    const ch = book ? book.chapters.find(c => c.id === n.chapter) : null;
+    const div = document.createElement('div');
+    div.className = 'lib-note-item';
+    div.innerHTML = '<div class="note-text">' + escHtml(n.text) + '</div><div style="font-size:10px;color:var(--muted);margin-bottom:4px;">' + (ch ? ch.title : '') + '</div><div class="note-actions"><button onclick="editNote('+i+')">✎ Правка</button><button onclick="removeNote('+i+')">✕ Удалить</button></div>';
+    list.appendChild(div);
+  });
+}
+function addNote(){
+  const ch = libState.chapter;
+  const books = getLibBooks();
+  const book = books[libState.currentBook || 0];
+  const chTitle = book ? (book.chapters.find(c => c.id === ch)?.title || '') : '';
+  const text = prompt('Текст заметки (будет привязана к главе "' + chTitle + '"):');
+  if(!text || !text.trim()) return;
+  if(!libState.notes) libState.notes = [];
+  libState.notes.push({ chapter: ch, text: text.trim(), time: Date.now() });
+  saveLibState();
+  renderNotes();
+}
+function editNote(i){
+  if(!libState.notes || !libState.notes[i]) return;
+  const text = prompt('Изменить заметку:', libState.notes[i].text);
+  if(text !== null && text.trim()){
+    libState.notes[i].text = text.trim();
+    saveLibState();
+    renderNotes();
+  }
+}
+function removeNote(i){
+  if(!libState.notes || !libState.notes[i]) return;
+  libState.notes.splice(i, 1);
+  saveLibState();
+  renderNotes();
+}
 function toggleLibFullscreen(){
   const app = document.getElementById('app');
   app.classList.toggle('lib-fullscreen');
@@ -2340,6 +2567,7 @@ function openSettings(){
   if(Notification.permission==='granted') ns.textContent='✅ Уведомления разрешены';
   else if(Notification.permission==='denied') ns.textContent='⛔ Уведомления запрещены (измени в настройках браузера)';
   else ns.textContent='❓ Уведомления не запрашивались';
+  loadNotifySettings();
 }
 function closeSettings(){ document.getElementById('modalBackdrop').classList.remove('active'); }
 function saveStartDate(){
@@ -2450,6 +2678,7 @@ document.getElementById('legalBackdrop').addEventListener('click', e=>{ if(e.tar
 
 initTheme();
 requestNotifyPerm();
+loadNotifySettings();
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{ navigator.serviceWorker.register('sw.js').catch(e=>console.error('SW register error:', e)); });
