@@ -205,14 +205,30 @@ body{
 .service-item .svc-actions button.reminder-on{background:#E8F5E9;border-color:#2E7D32;color:#1B5E20;}
 .service-empty{text-align:center;color:#5A4A3A;font-size:13.5px;margin-top:30px;line-height:1.6;}
 
+/* ---------- NOTES ---------- */
+.notes-toolbar{display:flex;gap:8px;margin-top:6px;}
+.notes-toolbar input{flex:1;padding:10px 12px;border-radius:var(--radius-sm);border:1px solid var(--line);font-size:13px;font-family:var(--font-body);background:var(--card);color:var(--cream);outline:none;}
+.notes-search-info{font-size:11px;color:var(--muted);margin-top:6px;min-height:16px;}
+.notes-list{display:flex;flex-direction:column;gap:8px;margin-top:8px;padding-bottom:20px;}
+.note-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-md);padding:14px;cursor:pointer;transition:box-shadow .2s;position:relative;}
+.note-card:active{box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+.note-card .note-title{font-weight:700;font-size:14px;color:var(--na-blue);margin-bottom:4px;}
+.note-card .note-text{font-size:13px;color:var(--cream);line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;}
+.note-card .note-date{font-size:10px;color:var(--muted);margin-top:6px;}
+.note-card .note-del{position:absolute;top:8px;right:8px;width:26px;height:26px;border:none;background:none;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s,background .2s;color:#B8403A;}
+.note-card:hover .note-del{opacity:1;}
+.note-card .note-del:active{background:rgba(184,64,58,0.1);}
+.note-card .note-del svg{width:16px;height:16px;stroke:currentColor;stroke-width:2;}
+
 /* ---------- bottom nav ---------- */
 .tabbar{
   position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:480px;
   background:rgba(255,255,255,0.94); backdrop-filter:blur(14px); border-top:1px solid var(--line);
   padding:0 0 env(safe-area-inset-bottom,0px); z-index:20;
 }
-.tabbar-tabs{display:flex; padding:8px 6px 4px;}
-.tab{flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer; padding:4px 0; color:#6B5B45; transition:color .2s, transform .15s;}
+.tabbar-tabs{display:flex; padding:8px 6px 4px; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none;}
+.tabbar-tabs::-webkit-scrollbar{display:none;}
+.tab{flex:0 0 auto; min-width:48px; display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer; padding:4px 8px; color:#6B5B45; transition:color .2s, transform .15s;}
 .tab:active{transform:scale(0.93);}
 .tab svg{width:22px; height:22px; stroke:#6B5B45; stroke-width:1.8;}
 .tab span{font-size:10px; font-weight:700; letter-spacing:0.2px; transition:color .2s; color:#6B5B45;}
@@ -360,9 +376,9 @@ body{
   <div class="splash" id="splash">
     <svg viewBox="0 0 96 96">
       <rect width="96" height="96" rx="20" fill="#FFFFFF"/>
-      <g transform="translate(8,8) scale(5)">
-        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" fill="#1A3E6B"/>
-      </g>
+      <path d="M48,12 L79.2,30 L79.2,66 L48,84 L16.8,66 L16.8,30 Z" fill="#1A3E6B"/>
+      <circle cx="48" cy="48" r="25" fill="#FFFFFF"/>
+      <text x="48" y="49" text-anchor="middle" dominant-baseline="central" font-family="Georgia,'Times New Roman',serif" font-weight="900" font-size="26" fill="#1A3E6B">NA</text>
     </svg>
     <div class="splash-title">Чистый <span>день</span></div>
     <div class="splash-sub">счётчик трезвости</div>
@@ -413,6 +429,9 @@ body{
       <div class="jft-quote" id="jftQuote"></div>
       <div class="jft-body" id="jftBody"></div>
       <div class="jft-jft" id="jftJft"></div>
+    </div>
+    <div class="jft-actions" style="display:flex;gap:8px;margin-top:10px;">
+      <button onclick="renderJft()" style="flex:1;padding:10px;border-radius:var(--radius-md);border:none;background:var(--accent);color:var(--cream);font-weight:800;font-size:13px;cursor:pointer;box-shadow:0 3px 10px rgba(200,150,62,0.3);">Обновить</button>
     </div>
     <div class="legend-note">
       Источник: <a href="https://na-russia.org/moskva" target="_blank" rel="noopener" style="color:var(--accent);font-weight:700;">na-russia.org</a> — ежедневные размышления «Только сегодня» сообщества Анонимные Наркоманы
@@ -504,6 +523,18 @@ body{
     <div class="service-list" id="serviceList"></div>
   </div>
 
+  <!-- ЗАМЕТКИ -->
+  <div class="screen" id="screen-notes">
+    <div class="screen-title">Мои заметки</div>
+    <div class="screen-sub">Личные заметки — сохраняются офлайн</div>
+    <div class="notes-toolbar">
+      <input type="text" id="notesSearch" placeholder="Поиск заметок..." autocomplete="off" oninput="renderNotes()">
+      <button onclick="openNoteEditor()" style="background:var(--accent);color:var(--cream);border:none;border-radius:var(--radius-sm);padding:8px 16px;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;">+ Новая</button>
+    </div>
+    <div class="notes-search-info" id="notesSearchInfo"></div>
+    <div class="notes-list" id="notesList"></div>
+  </div>
+
   <!-- TABBAR + STUDIO -->
   <div class="tabbar">
     <div class="tabbar-tabs">
@@ -535,13 +566,17 @@ body{
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
         <span>Служение</span>
       </div>
+      <div class="tab" data-tab="notes" onclick="showScreen('notes')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+        <span>Заметки</span>
+      </div>
     </div>
     <div class="tabbar-brand">
-      <svg viewBox="0 0 48 48" aria-label="GitHub">
+      <svg viewBox="0 0 48 48" aria-label="NA">
         <rect width="48" height="48" rx="10" fill="#FFFFFF"/>
-        <g transform="translate(4,4) scale(2.5)">
-          <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" fill="#1A3E6B"/>
-        </g>
+        <path d="M24,6 L39.6,15 L39.6,33 L24,42 L8.4,33 L8.4,15 Z" fill="#1A3E6B"/>
+        <circle cx="24" cy="24" r="12" fill="#FFFFFF"/>
+        <text x="24" y="25" text-anchor="middle" dominant-baseline="central" font-family="Georgia,'Times New Roman',serif" font-weight="900" font-size="12" fill="#1A3E6B">NA</text>
       </svg>
       <span>Анонимные <strong>Наркоманы</strong></span>
     </div>
@@ -590,6 +625,14 @@ body{
       </div>
 
       <div class="settings-section">
+        <h4>Уведомления</h4>
+        <div class="settings-card">
+          <p style="font-size:13px;margin:0 0 6px;" id="notifyStatus">Статус: проверка...</p>
+          <button onclick="requestNotifyPerm()" style="padding:8px 16px;border-radius:var(--radius-sm);border:none;background:var(--accent);color:var(--cream);font-weight:700;font-size:13px;cursor:pointer;">Запросить разрешение</button>
+        </div>
+      </div>
+
+      <div class="settings-section">
         <h4>О разработчике</h4>
         <div class="settings-card">
           <div class="label">Разработчик</div>
@@ -633,6 +676,24 @@ body{
     </div>
   </div>
 
+  <!-- NOTES EDITOR MODAL -->
+  <div class="modal-backdrop" id="noteEditorBackdrop">
+    <div class="modal" style="max-height:80vh;overflow-y:auto;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <h3 style="margin:0;" id="noteEditorTitle">Новая заметка</h3>
+        <button class="icon-btn" onclick="closeNoteEditor()" aria-label="Закрыть" style="width:32px;height:32px;border:none;box-shadow:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <input type="text" id="noteEditorTitleInput" placeholder="Заголовок" style="width:100%;padding:10px 12px;border-radius:var(--radius-sm);border:1px solid var(--line);font-size:15px;font-weight:700;font-family:var(--font-body);background:var(--card);color:var(--cream);margin-bottom:10px;outline:none;">
+      <textarea id="noteEditorBody" placeholder="Текст заметки..." style="width:100%;min-height:160px;padding:10px 12px;border-radius:var(--radius-sm);border:1px solid var(--line);font-size:13px;line-height:1.6;font-family:var(--font-body);background:var(--card);color:var(--cream);resize:vertical;outline:none;"></textarea>
+      <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;">
+        <button onclick="closeNoteEditor()" style="padding:10px 20px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--card);color:var(--cream);font-weight:600;font-size:13px;cursor:pointer;">Отмена</button>
+        <button onclick="saveNote()" style="padding:10px 24px;border-radius:var(--radius-sm);border:none;background:var(--accent);color:var(--cream);font-weight:800;font-size:13px;cursor:pointer;box-shadow:0 3px 10px rgba(200,150,62,0.3);">Сохранить</button>
+      </div>
+    </div>
+  </div>
+
   <!-- DONATE BANNER (centered popup) -->
   <div class="donate-banner" id="donateBanner">
     <button class="db-close" onclick="dismissDonateBanner()" aria-label="Закрыть">
@@ -653,11 +714,100 @@ body{
 
 <script src="jft_data.js"></script>
 <script>
+/* ------- STORAGE: IndexedDB > localStorage > memoryStore ------- */
 const memoryStore = {};
+let _db = null;
+function openDB(){
+  return new Promise((resolve,reject)=>{
+    try {
+      const req = indexedDB.open('chistiy_den',1);
+      req.onupgradeneeded = e => {
+        const db = e.target.result;
+        if(!db.objectStoreNames.contains('data')) db.createObjectStore('data');
+      };
+      req.onsuccess = e => resolve(e.target.result);
+      req.onerror = e => reject(e.target.error);
+    } catch(e){ reject(e); }
+  });
+}
+async function _idbGet(key){
+  if(!_db) _db = await openDB();
+  return new Promise((resolve,reject)=>{
+    try {
+      const tx = _db.transaction('data','readonly');
+      const req = tx.objectStore('data').get(key);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = e => reject(e.target.error);
+    } catch(e){ reject(e); }
+  });
+}
+async function _idbSet(key,val){
+  if(!_db) _db = await openDB();
+  return new Promise((resolve,reject)=>{
+    try {
+      const tx = _db.transaction('data','readwrite');
+      tx.objectStore('data').put(val, key);
+      tx.oncomplete = () => resolve();
+      tx.onerror = e => reject(e.target.error);
+    } catch(e){ reject(e); }
+  });
+}
+async function _idbDel(key){
+  if(!_db) _db = await openDB();
+  return new Promise((resolve,reject)=>{
+    try {
+      const tx = _db.transaction('data','readwrite');
+      tx.objectStore('data').delete(key);
+      tx.oncomplete = () => resolve();
+      tx.onerror = e => reject(e.target.error);
+    } catch(e){ reject(e); }
+  });
+}
+async function _idbGetAllKeys(){
+  if(!_db) _db = await openDB();
+  return new Promise((resolve,reject)=>{
+    try {
+      const tx = _db.transaction('data','readonly');
+      const req = tx.objectStore('data').getAllKeys();
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = e => reject(e.target.error);
+    } catch(e){ reject(e); }
+  });
+}
 const storage = {
-  get(key){ try{ const v = localStorage.getItem(key); return v===null?undefined:v; } catch(e){ return memoryStore[key]; } },
-  set(key,val){ try{ localStorage.setItem(key,val);}catch(e){ memoryStore[key]=val; } }
+  get(key){
+    try{ const v = localStorage.getItem(key); return v===null?undefined:v; }
+    catch(e){ return memoryStore[key]; }
+  },
+  set(key,val){
+    try{ localStorage.setItem(key,val); }catch(e){ console.warn('localStorage set error:', e.message); }
+    memoryStore[key]=val;
+    _idbSet(key,val).catch(err => console.error('IDB set error:', err));
+  },
+  remove(key){
+    try{ localStorage.removeItem(key); }catch(e){ console.warn('localStorage remove error:', e.message); }
+    delete memoryStore[key];
+    _idbDel(key).catch(err => console.error('IDB del error:', err));
+  }
 };
+// migrate on startup
+(async()=>{
+  try {
+    _db = await openDB();
+    const lsKeys = Object.keys(localStorage);
+    for(const k of lsKeys){
+      const v = localStorage.getItem(k);
+      if(v !== null) await _idbSet(k, v).catch(()=>{});
+    }
+    const idbKeys = await _idbGetAllKeys().catch(()=>[]);
+    if(lsKeys.length === 0 && idbKeys.length > 0){
+      for(const k of idbKeys){
+        const v = await _idbGet(k).catch(()=>undefined);
+        if(v !== undefined) try{ localStorage.setItem(k, v); }catch(e){ console.warn('localStorage migrate error:', e.message); }
+      }
+    }
+  } catch(e){ console.warn('IndexedDB unavailable, using localStorage:', e.message); }
+})();
 
 const MILESTONES = [
   { days:0,    key:'white',  name:'Белая',     hex:'#F0EDE8', desc:'Первый день или готовность начать заново' },
@@ -671,6 +821,17 @@ const MILESTONES = [
   { days:730,  key:'black',  name:'Чёрная',    hex:'#4A4038', desc:'2 года' },
   { days:1095, key:'purple', name:'Фиолетовая',hex:'#8B6FA8', desc:'3 года и далее — каждый год' },
 ];
+
+/* ------- DAY COUNT (UTC-based, DST-proof) ------- */
+function calcDays(startStr){
+  if(!startStr) return 0;
+  const parts=startStr.trim().split('T')[0].split('-').map(Number);
+  if(parts.length<3||isNaN(parts[0])||isNaN(parts[1])||isNaN(parts[2])){ console.error('calcDays: invalid date', startStr); return 0; }
+  const startUTC=Date.UTC(parts[0],parts[1]-1,parts[2]);
+  const now=new Date();
+  const nowUTC=Date.UTC(now.getFullYear(),now.getMonth(),now.getDate());
+  return Math.max(0,Math.floor((nowUTC-startUTC)/86400000));
+}
 
 function currentMilestoneIndex(days){
   let idx = 0;
@@ -686,6 +847,7 @@ function showScreen(name){
   if(name==='groups') renderGroups();
   if(name==='plan') renderPlan();
   if(name==='service') renderService();
+  if(name==='notes') renderNotes();
 }
 
 function setAccent(hex){
@@ -706,7 +868,6 @@ function renderHome(){
   const dayLabelEl=document.getElementById('dayLabel');
   const nameEl=document.getElementById('medalName');
 
-  let days=0, ms=0;
   if(!startStr){
     dayCountEl.textContent='0'; dayLabelEl.textContent='дней';
     nameEl.textContent='Нажми, чтобы начать отсчёт';
@@ -722,10 +883,10 @@ function renderHome(){
     return;
   }
 
+  const days=calcDays(startStr);
   const start=new Date(startStr+'T00:00:00');
-  const now=new Date();
-  ms = now-start;
-  days = Math.max(0, Math.floor(ms/86400000));
+  const ms=Date.now()-start.getTime();
+  const hours=Math.max(0,Math.floor((Date.now()-Date.UTC(start.getFullYear(),start.getMonth(),start.getDate()))/3600000));
 
   dayCountEl.textContent=days;
   dayLabelEl.textContent=pluralDays(days);
@@ -751,7 +912,7 @@ function renderHome(){
 
   document.getElementById('statWeeks').textContent = Math.floor(days/7);
   document.getElementById('statMonths').textContent = Math.floor(days/30);
-  document.getElementById('statHours').textContent = Math.max(0, Math.floor(ms/3600000));
+  document.getElementById('statHours').textContent = hours;
 
   renderMedals(days);
 }
@@ -1073,13 +1234,44 @@ function setPlanReminder(){
     Notification.requestPermission().then(p=>{ if(p==='granted') setPlanReminder(); });
   }
 }
-let planTimerId = null;
-function notify(body, icon){
-  try{
-    if(navigator.vibrate) navigator.vibrate(200);
-    new Notification('Чистый день', {body, icon:icon||'icons/icon-192.svg', requireInteraction:true});
-  } catch(e){}
+/* ------- NOTIFICATIONS ------- */
+let notifyPerm = Notification.permission;
+function requestNotifyPerm(){
+  if(notifyPerm === 'default'){
+    Notification.requestPermission().then(p => {
+      notifyPerm = p;
+      if(p === 'granted') console.log('Уведомления разрешены');
+      else console.warn('Уведомления запрещены пользователем');
+    }).catch(e => console.error('Ошибка запроса уведомлений:', e));
+  }
 }
+function notify(body, icon){
+  const ico = icon || 'icons/icon-192.svg';
+  if(notifyPerm === 'granted'){
+    if(navigator.vibrate) { try { navigator.vibrate(200); } catch(e) { console.warn('Vibrate不支持:', e.message); } }
+    try {
+      new Notification('Чистый день', {body, icon:ico, requireInteraction:true});
+      return;
+    } catch(e) { console.error('Notification error:', e); }
+  }
+  // fallback: in-app toast
+  showToast(body);
+}
+function showToast(msg){
+  let t = document.getElementById('toast');
+  if(!t){
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.style.cssText = 'position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#1A3E6B;color:#fff;padding:14px 24px;border-radius:16px;font-size:14px;font-weight:600;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,0.3);max-width:90%;text-align:center;transition:opacity .3s;font-family:Manrope,sans-serif;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._hide);
+  t._hide = setTimeout(() => { t.style.opacity = '0'; }, 5000);
+}
+
+let planTimerId = null;
 function schedulePlanReminder(timeVal){
   if(!timeVal) return;
   const [h,m]=timeVal.split(':');
@@ -1197,15 +1389,16 @@ function toggleSvcReminder(i){
 function scheduleSvcReminder(item){
   if(!item.reminderTime){ item.reminder=false; return; }
   const parts=item.reminderTime.split(':');
-  if(parts.length<2){ item.reminder=false; return; }
+  if(parts.length<2){ console.warn('scheduleSvcReminder: invalid time', item.reminderTime); item.reminder=false; return; }
   const h=parseInt(parts[0]), m=parseInt(parts[1]);
-  if(isNaN(h)||isNaN(m)){ item.reminder=false; return; }
+  if(isNaN(h)||isNaN(m)){ console.warn('scheduleSvcReminder: NaN time', parts); item.reminder=false; return; }
   const now=new Date();
   let target=new Date(now.getFullYear(),now.getMonth(),now.getDate(),h,m,0);
   while(target.getDay()!==item.day || target<=now){
     target.setDate(target.getDate()+1);
   }
   const diff=target-now;
+  if(diff < 0 || diff > 86400000 * 14){ console.error('scheduleSvcReminder: abnormal diff', diff); return; }
   const tid=setTimeout(()=>{
     storage.set('svc_fired_'+item.id, now.toDateString());
     notify(item.name + (item.group ? ' в '+item.group : ''));
@@ -1236,11 +1429,87 @@ function checkSvcReminders(){
   });
 }
 
+/* ------- NOTES ------- */
+function getNotes(){ return JSON.parse(storage.get('notes_data')||'[]'); }
+function saveNotes(arr){ storage.set('notes_data', JSON.stringify(arr)); }
+let noteEditId = null;
+function renderNotes(){
+  const list=document.getElementById('notesList');
+  const search=document.getElementById('notesSearch').value.trim().toLowerCase();
+  let items=getNotes();
+  if(search) items=items.filter(n=>n.title.toLowerCase().includes(search)||n.body.toLowerCase().includes(search));
+  items.sort((a,b)=>b.updated-a.updated);
+  document.getElementById('notesSearchInfo').textContent = search ? `Найдено: ${items.length}` : '';
+  if(items.length===0){
+    list.innerHTML='<div class="service-empty">'+(search?'Ничего не найдено':'У тебя пока нет заметок.<br>Напиши первую.')+'</div>';
+    return;
+  }
+  list.innerHTML='';
+  items.forEach((n,i)=>{
+    const div=document.createElement('div');
+    div.className='note-card';
+    div.innerHTML=`
+      <div class="note-title">${escHtml(n.title||'Без заголовка')}</div>
+      <div class="note-text">${escHtml(n.body||'')}</div>
+      <div class="note-date">${new Date(n.updated).toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+      <button class="note-del" onclick="event.stopPropagation();delNote('${n.id}')" aria-label="Удалить">
+        <svg viewBox="0 0 24 24" fill="none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>`;
+    div.onclick=()=>openNoteEditor(n.id);
+    list.appendChild(div);
+  });
+}
+function openNoteEditor(id){
+  noteEditId = id||null;
+  document.getElementById('noteEditorTitle').textContent = id ? 'Редактировать заметку' : 'Новая заметка';
+  document.getElementById('noteEditorTitleInput').value = '';
+  document.getElementById('noteEditorBody').value = '';
+  if(id){
+    const items=getNotes();
+    const n=items.find(x=>x.id===id);
+    if(n){
+      document.getElementById('noteEditorTitleInput').value = n.title||'';
+      document.getElementById('noteEditorBody').value = n.body||'';
+    }
+  }
+  document.getElementById('noteEditorBackdrop').classList.add('active');
+  setTimeout(()=>document.getElementById('noteEditorTitleInput').focus(), 200);
+}
+function closeNoteEditor(){ document.getElementById('noteEditorBackdrop').classList.remove('active'); noteEditId=null; }
+function saveNote(){
+  const title=document.getElementById('noteEditorTitleInput').value.trim();
+  const body=document.getElementById('noteEditorBody').value.trim();
+  if(!title&&!body){ alert('Заметка пуста'); return; }
+  const items=getNotes();
+  const now=Date.now();
+  if(noteEditId){
+    const n=items.find(x=>x.id===noteEditId);
+    if(n){ n.title=title; n.body=body; n.updated=now; }
+  } else {
+    items.push({id:'n'+now+Math.random().toString(36).slice(2,8), title:title||'', body:body||'', created:now, updated:now});
+  }
+  saveNotes(items);
+  closeNoteEditor();
+  renderNotes();
+}
+function delNote(id){
+  if(!confirm('Удалить заметку?')) return;
+  let items=getNotes();
+  items=items.filter(n=>n.id!==id);
+  saveNotes(items);
+  renderNotes();
+}
+document.getElementById('noteEditorBackdrop').addEventListener('click', e=>{ if(e.target===e.currentTarget) closeNoteEditor(); });
+
 /* ------- SETTINGS ------- */
 function openSettings(){
   const startStr=storage.get('startDate');
   document.getElementById('startDateInput').value = startStr || new Date().toISOString().slice(0,10);
   document.getElementById('modalBackdrop').classList.add('active');
+  const ns=document.getElementById('notifyStatus');
+  if(Notification.permission==='granted') ns.textContent='✅ Уведомления разрешены';
+  else if(Notification.permission==='denied') ns.textContent='⛔ Уведомления запрещены (измени в настройках браузера)';
+  else ns.textContent='❓ Уведомления не запрашивались';
 }
 function closeSettings(){ document.getElementById('modalBackdrop').classList.remove('active'); }
 function saveStartDate(){
@@ -1350,9 +1619,10 @@ document.getElementById('modalBackdrop').addEventListener('click', e=>{ if(e.tar
 document.getElementById('legalBackdrop').addEventListener('click', e=>{ if(e.target===e.currentTarget) closeLegal(); });
 
 initTheme();
+requestNotifyPerm();
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load', ()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
+  window.addEventListener('load', ()=>{ navigator.serviceWorker.register('sw.js').catch(e=>console.error('SW register error:', e)); });
 }
 
 renderHome();
@@ -1370,11 +1640,14 @@ try {
   if(hasStart && (lc===3 || (last && parseInt(last) < weekAgo))){
     setTimeout(()=>{ document.getElementById('donateBanner').classList.add('active'); }, 4000);
   }
-} catch(e){}
+} catch(e){ console.warn('Donate banner error:', e); }
 
 setInterval(renderHome, 60000);
 
-setTimeout(()=>{ document.getElementById('splash').classList.add('hide'); }, 1500);
+setTimeout(()=>{ 
+  const s=document.getElementById('splash');
+  if(s) s.classList.add('hide');
+}, 1500);
 </script>
 </body>
 </html>
