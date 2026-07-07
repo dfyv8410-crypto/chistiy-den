@@ -18,4 +18,15 @@
         <item>Пт</item>
         <item>Сб</item>
     </string-array>
+    <string-array name="sound_types">
+        <item>standard</item>
+        <item>gentle</item>
+        <item>urgent</item>
+    </string-array>
+    <string-array name="vibrate_patterns">
+        <item>default</item>
+        <item>short</item>
+        <item>long</item>
+        <item>double</item>
+    </string-array>
 </resources>

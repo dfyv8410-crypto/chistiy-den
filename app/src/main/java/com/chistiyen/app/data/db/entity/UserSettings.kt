@@ -15,5 +15,7 @@ data class UserSettings(
     @ColumnInfo(name = "launch_count") var launchCount: Int = 0,
     @ColumnInfo(name = "last_donate_prompt") var lastDonatePrompt: Long = 0L,
     @ColumnInfo(name = "jft_cache") var jftCache: String? = null,
-    @ColumnInfo(name = "jft_cache_date") var jftCacheDate: String? = null
+    @ColumnInfo(name = "jft_cache_date") var jftCacheDate: String? = null,
+    @ColumnInfo(name = "notify_sound_type") var notifySoundType: String = "default",
+    @ColumnInfo(name = "notify_vibrate_pattern") var notifyVibratePattern: String = "default"
 )

@@ -10,6 +10,7 @@
     <string name="service">Служение</string>
     <string name="library">Библиотека</string>
     <string name="settings">Настройки</string>
+    <string name="prayer_text">Боже, дай мне разум и душевный покой принять то, что я не в силах изменить, мужество изменить то, что могу, и мудрость отличить одно от другого.</string>
     <string name="days_clean">Дней чистоты</string>
     <string name="add_task">Добавить дело</string>
     <string name="save">Сохранить</string>
@@ -23,4 +24,16 @@
     <string name="notification_channel_alarms_desc">Точные уведомления по расписанию</string>
     <string name="plan_reminder_title">Пора проверить свой план на сегодня!</string>
     <string name="app_description">Счётчик трезвости с ежедневником NA, планом на день и системой медалей</string>
+
+    <!-- Sound types -->
+    <string name="sound_default">Стандартный</string>
+    <string name="sound_gentle">Мягкий</string>
+    <string name="sound_standard">Обычный</string>
+    <string name="sound_urgent">Срочный</string>
+
+    <!-- Vibrate patterns -->
+    <string name="vibrate_default">Стандартная</string>
+    <string name="vibrate_short">Короткая</string>
+    <string name="vibrate_long">Длинная</string>
+    <string name="vibrate_double">Двойная</string>
 </resources>

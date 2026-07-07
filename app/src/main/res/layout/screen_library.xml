@@ -2,12 +2,13 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:orientation="vertical" android:padding="16dp">
+
     <!-- Bookshelf panel -->
     <LinearLayout android:id="@+id/libraryPanel"
         android:layout_width="match_parent" android:layout_height="match_parent"
         android:orientation="vertical">
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="Библиотека" android:textSize="24dp"
+            android:text="@string/library" android:textSize="24dp"
             android:textColor="@color/na_blue" android:fontFamily="serif"
             android:textStyle="bold"/>
         <Button android:id="@+id/importBookBtn" android:layout_width="match_parent"
@@ -20,35 +21,152 @@
             android:layout_width="match_parent" android:layout_height="0dp"
             android:layout_weight="1" />
     </LinearLayout>
-    <!-- Reader panel (hidden by default) -->
+
+    <!-- Reader panel -->
     <LinearLayout android:id="@+id/readerPanel"
         android:layout_width="match_parent" android:layout_height="match_parent"
-        android:orientation="vertical" android:visibility="gone">
-        <LinearLayout android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:orientation="horizontal">
-            <Button android:id="@+id/readerBack" android:layout_width="wrap_content"
-                android:layout_height="wrap_content" android:text="←"
-                android:backgroundTint="@color/card" android:textColor="@color/na_blue"
-                android:textStyle="bold" style="@style/Widget.ChistiyDen.Button"/>
-            <TextView android:id="@+id/readerTitle" android:layout_width="0dp"
-                android:layout_height="wrap_content" android:layout_weight="1"
-                android:textSize="16dp" android:textColor="@color/na_blue"
-                android:fontFamily="serif" android:textStyle="bold"
-                android:gravity="center" android:maxLines="1" android:ellipsize="end"/>
-        </LinearLayout>
-        <androidx.core.widget.NestedScrollView
-            android:id="@+id/readerContent" android:layout_width="match_parent"
-            android:layout_height="0dp" android:layout_weight="1">
-            <TextView android:id="@+id/readerText" android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:lineSpacingExtra="6dp" android:textSize="16dp"
-                android:padding="8dp"/>
-        </androidx.core.widget.NestedScrollView>
+        android:orientation="vertical" android:visibility="gone"
+        android:background="@color/white">
+
         <LinearLayout android:layout_width="match_parent"
             android:layout_height="wrap_content" android:orientation="horizontal"
-            android:gravity="center" android:padding="8dp">
+            android:background="@color/card" android:elevation="2dp"
+            android:padding="8dp">
+            <Button android:id="@+id/readerBack" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:text="←"
+                android:backgroundTint="@color/card2" android:textColor="@color/na_blue"
+                android:textStyle="bold" android:textSize="16dp"
+                style="@style/Widget.ChistiyDen.Button"/>
+            <TextView android:id="@+id/readerTitle" android:layout_width="0dp"
+                android:layout_height="wrap_content" android:layout_weight="1"
+                android:textSize="14dp" android:textColor="@color/na_blue"
+                android:fontFamily="serif" android:textStyle="bold"
+                android:gravity="center" android:maxLines="1" android:ellipsize="end"
+                android:paddingHorizontal="4dp"/>
+            <ImageButton android:id="@+id/readerBmBtn" android:layout_width="36dp"
+                android:layout_height="36dp" android:src="@drawable/ic_bookmark"
+                android:scaleType="center" android:background="@null"
+                android:contentDescription="Закладка"/>
+            <ImageButton android:id="@+id/readerNoteBtn" android:layout_width="36dp"
+                android:layout_height="36dp" android:src="@drawable/ic_note"
+                android:scaleType="center" android:background="@null"
+                android:contentDescription="Заметка"/>
+            <ImageButton android:id="@+id/readerSettingsBtn" android:layout_width="36dp"
+                android:layout_height="36dp" android:src="@drawable/ic_settings"
+                android:scaleType="center" android:background="@null"
+                android:contentDescription="Настройки"/>
+        </LinearLayout>
+
+        <!-- Bookmarks panel (toggle) -->
+        <LinearLayout android:id="@+id/readerBmPanel"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:visibility="gone"
+            android:background="@color/card2" android:padding="8dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Закладки" android:textSize="13dp" android:textColor="@color/na_blue"
+                android:textStyle="bold"/>
+            <LinearLayout android:id="@+id/bmList"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical"/>
+        </LinearLayout>
+
+        <!-- Notes panel (toggle) -->
+        <LinearLayout android:id="@+id/readerNotePanel"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:visibility="gone"
+            android:background="@color/card2" android:padding="8dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Заметки" android:textSize="13dp" android:textColor="@color/na_blue"
+                android:textStyle="bold"/>
+            <LinearLayout android:id="@+id/noteList"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical"/>
+            <EditText android:id="@+id/noteInput" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:hint="Текст заметки..."
+                android:background="@drawable/input_border" android:padding="8dp"
+                android:textSize="13dp" android:layout_marginTop="4dp"/>
+            <Button android:id="@+id/noteAddBtn" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:text="Добавить"
+                android:backgroundTint="@color/accent" android:textColor="@color/cream"
+                android:textSize="12dp" style="@style/Widget.ChistiyDen.Button"/>
+        </LinearLayout>
+
+        <!-- Settings panel (toggle) -->
+        <LinearLayout android:id="@+id/readerSettingsPanel"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:visibility="gone"
+            android:background="@color/card2" android:padding="8dp">
+            <LinearLayout android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:orientation="horizontal">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Размер:" android:textSize="12dp" android:textColor="@color/na_blue"
+                    android:gravity="center_vertical" android:layout_marginEnd="8dp"/>
+                <RadioGroup android:id="@+id/fontSizeGroup"
+                    android:layout_width="0dp" android:layout_weight="1"
+                    android:layout_height="wrap_content" android:orientation="horizontal">
+                    <RadioButton android:id="@+id/fontSmall" android:text="A"
+                        android:layout_width="0dp" android:layout_weight="1"
+                        android:layout_height="34dp" android:button="@null"
+                        android:gravity="center" android:textSize="12dp"/>
+                    <RadioButton android:id="@+id/fontMedium" android:text="A"
+                        android:layout_width="0dp" android:layout_weight="1"
+                        android:layout_height="34dp" android:button="@null"
+                        android:gravity="center" android:textSize="15dp" android:checked="true"/>
+                    <RadioButton android:id="@+id/fontLarge" android:text="A"
+                        android:layout_width="0dp" android:layout_weight="1"
+                        android:layout_height="34dp" android:button="@null"
+                        android:gravity="center" android:textSize="18dp"/>
+                </RadioGroup>
+            </LinearLayout>
+            <LinearLayout android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:orientation="horizontal"
+                android:layout_marginTop="4dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Тема:" android:textSize="12dp" android:textColor="@color/na_blue"
+                    android:gravity="center_vertical" android:layout_marginEnd="8dp"/>
+                <RadioGroup android:id="@+id/readerThemeGroup"
+                    android:layout_width="0dp" android:layout_weight="1"
+                    android:layout_height="wrap_content" android:orientation="horizontal">
+                    <RadioButton android:id="@+id/readerThemeLight" android:text="Светлая"
+                        android:layout_width="0dp" android:layout_weight="1"
+                        android:layout_height="34dp" android:button="@null"
+                        android:gravity="center" android:textSize="11dp" android:checked="true"/>
+                    <RadioButton android:id="@+id/readerThemeSepia" android:text="Сепия"
+                        android:layout_width="0dp" android:layout_weight="1"
+                        android:layout_height="34dp" android:button="@null"
+                        android:gravity="center" android:textSize="11dp"/>
+                    <RadioButton android:id="@+id/readerThemeDark" android:text="Тёмная"
+                        android:layout_width="0dp" android:layout_weight="1"
+                        android:layout_height="34dp" android:button="@null"
+                        android:gravity="center" android:textSize="11dp"/>
+                </RadioGroup>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Reader content -->
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/readerContent" android:layout_width="match_parent"
+            android:layout_height="0dp" android:layout_weight="1"
+            android:background="@color/white"
+            android:padding="12dp">
+            <TextView android:id="@+id/readerText" android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:lineSpacingExtra="6dp" android:textSize="16dp"/>
+        </androidx.core.widget.NestedScrollView>
+
+        <!-- Progress bar -->
+        <ProgressBar android:id="@+id/readerProgress"
+            android:layout_width="match_parent" android:layout_height="3dp"
+            android:progressDrawable="@drawable/progress_bar"
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:max="100" android:progress="0"/>
+
+        <LinearLayout android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:orientation="horizontal"
+            android:gravity="center" android:padding="8dp"
+            android:background="@color/card">
             <Button android:id="@+id/prevChapter" android:layout_width="0dp"
-                android:layout_weight="1" android:layout_height="wrap_content"
+                android:layout_weight="1" android:layout_height="40dp"
                 android:text="← Пред." android:backgroundTint="@color/accent"
                 android:textColor="@color/cream" android:textSize="12dp"
                 style="@style/Widget.ChistiyDen.Button"/>
@@ -57,7 +175,7 @@
                 android:textSize="13dp" android:textColor="@color/muted"
                 android:paddingHorizontal="12dp"/>
             <Button android:id="@+id/nextChapter" android:layout_width="0dp"
-                android:layout_weight="1" android:layout_height="wrap_content"
+                android:layout_weight="1" android:layout_height="40dp"
                 android:text="След. →" android:backgroundTint="@color/accent"
                 android:textColor="@color/cream" android:textSize="12dp"
                 style="@style/Widget.ChistiyDen.Button"/>

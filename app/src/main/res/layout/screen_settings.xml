@@ -7,7 +7,7 @@
         <LinearLayout android:orientation="horizontal"
             android:layout_width="match_parent" android:layout_height="wrap_content">
             <TextView android:layout_width="0dp" android:layout_height="wrap_content"
-                android:layout_weight="1" android:text="Настройки"
+                android:layout_weight="1" android:text="@string/settings"
                 android:textSize="24dp" android:textColor="@color/na_blue"
                 android:fontFamily="serif" android:textStyle="bold"/>
             <Button android:id="@+id/backBtn" android:layout_width="wrap_content"
@@ -26,7 +26,7 @@
             android:datePickerMode="spinner" android:background="@drawable/card_border"
             android:padding="8dp"/>
         <Button android:id="@+id/saveDateBtn" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:text="Сохранить"
+            android:layout_height="wrap_content" android:text="@string/save"
             android:backgroundTint="@color/accent" android:textColor="@color/cream"
             android:textStyle="bold" android:layout_marginTop="8dp"
             style="@style/Widget.ChistiyDen.Button"/>
@@ -64,6 +64,20 @@
             <Switch android:id="@+id/notifySound" android:layout_width="match_parent"
                 android:layout_height="wrap_content" android:text="Звук"
                 android:textColor="@color/cream" android:textSize="13dp" android:checked="true"/>
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Тип звука" android:textColor="@color/cream"
+                android:textSize="13dp" android:layout_marginTop="12dp"/>
+            <Spinner android:id="@+id/soundTypeSpinner"
+                android:layout_width="match_parent" android:layout_height="40dp"
+                android:background="@drawable/input_border" android:padding="8dp"
+                android:entries="@array/sound_types"/>
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Режим вибрации" android:textColor="@color/cream"
+                android:textSize="13dp" android:layout_marginTop="8dp"/>
+            <Spinner android:id="@+id/vibratePatternSpinner"
+                android:layout_width="match_parent" android:layout_height="40dp"
+                android:background="@drawable/input_border" android:padding="8dp"
+                android:entries="@array/vibrate_patterns"/>
             <TextView android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Напоминания работают через AlarmManager — даже после закрытия приложения и перезагрузки телефона"
@@ -88,10 +102,10 @@
                 android:layout_marginTop="8dp"/>
             <TextView android:id="@+id/devPhone" android:text="8 980 179-32-63"
                 android:textSize="14dp" android:textColor="@color/accent" android:textStyle="bold"/>
-            <TextView android:text="Макс" android:textSize="11dp"
+            <TextView android:text="Почта" android:textSize="11dp"
                 android:textColor="@color/muted" android:textAllCaps="true"
                 android:layout_marginTop="8dp"/>
-            <TextView android:id="@+id/maxPhone" android:text="8 925 903-97-77"
+            <TextView android:id="@+id/emailLink" android:text="dfyv8410@gmail.com"
                 android:textSize="14dp" android:textColor="@color/accent" android:textStyle="bold"/>
         </LinearLayout>
 

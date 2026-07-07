@@ -34,4 +34,10 @@ interface UserSettingsDao {
 
     @Query("UPDATE user_settings SET jft_cache = :html, jft_cache_date = :date WHERE id = 1")
     suspend fun updateJftCache(html: String?, date: String?)
+
+    @Query("UPDATE user_settings SET notify_sound_type = :type WHERE id = 1")
+    suspend fun updateSoundType(type: String)
+
+    @Query("UPDATE user_settings SET notify_vibrate_pattern = :pattern WHERE id = 1")
+    suspend fun updateVibratePattern(pattern: String)
 }

@@ -3,6 +3,7 @@ package com.chistiyen.app.service
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import com.chistiyen.app.data.db.AppDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -11,12 +12,13 @@ class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         when (intent.action) {
             "com.chistiyen.app.action.PLAN_REMINDER" -> {
-                NotificationHelper.showPlanReminder(context)
-                // Re-schedule for tomorrow
-                val dao = com.chistiyen.app.data.db.AppDatabase
-                    .getInstance(context).userSettingsDao()
+                val db = AppDatabase.getInstance(context)
                 CoroutineScope(Dispatchers.IO).launch {
-                    val settings = dao.get()
+                    val settings = db.userSettingsDao().get()
+                    val soundType = settings?.notifySoundType ?: "default"
+                    val vibratePattern = settings?.notifyVibratePattern ?: "default"
+                    NotificationHelper.showPlanReminder(context, soundType, vibratePattern)
+
                     if (settings?.planReminderTime != null) {
                         val parts = settings.planReminderTime.split(":")
                         if (parts.size == 2) {
@@ -38,7 +40,13 @@ class AlarmReceiver : BroadcastReceiver() {
             "com.chistiyen.app.action.SERVICE_REMINDER" -> {
                 val serviceName = intent.getStringExtra("service_name") ?: ""
                 val serviceGroup = intent.getStringExtra("service_group") ?: ""
-                NotificationHelper.showServiceReminder(context, serviceName, serviceGroup)
+                val db = AppDatabase.getInstance(context)
+                CoroutineScope(Dispatchers.IO).launch {
+                    val settings = db.userSettingsDao().get()
+                    val soundType = settings?.notifySoundType ?: "default"
+                    val vibratePattern = settings?.notifyVibratePattern ?: "default"
+                    NotificationHelper.showServiceReminder(context, serviceName, serviceGroup, soundType, vibratePattern)
+                }
             }
         }
     }

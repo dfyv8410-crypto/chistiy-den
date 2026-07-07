@@ -75,6 +75,15 @@
                     android:textColor="@color/muted" android:textAllCaps="true"/>
             </LinearLayout>
         </LinearLayout>
+        <TextView android:id="@+id/prayerText" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="20dp"
+            android:padding="14dp" android:background="@drawable/card_border"
+            android:text="@string/prayer_text"
+            android:fontFamily="serif" android:textStyle="italic"
+            android:textSize="13dp" android:textColor="@color/muted"
+            android:lineSpacingExtra="4dp" android:gravity="center"
+            android:letterSpacing="0.02"/>
+
         <TextView android:id="@+id/settingsLink" android:layout_width="match_parent"
             android:layout_height="wrap_content" android:text="Изменить дату отсчёта"
             android:gravity="center" android:padding="12dp" android:layout_marginTop="16dp"

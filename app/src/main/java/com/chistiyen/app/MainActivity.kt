@@ -24,6 +24,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import org.json.JSONTokener
+import org.jsoup.Jsoup
+import org.jsoup.parser.Parser
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
@@ -440,12 +442,9 @@ class MainActivity : AppCompatActivity() {
 
     private var currentBookId: Long = -1
     private var currentChapterIndex = 0
-    private var currentChapters: List<Pair<String, String>> = emptyList() // (id, title)
-
-    // Built-in book (Basic Text)
-    private val builtInBook = BookEntry(
-        id = -1, title = "Анонимные Наркоманы. Базовый текст"
-    ).apply { /* chapters loaded from assets */ }
+    private var currentChapters: List<Pair<String, String>> = emptyList()
+    private var currentFontSize = 16
+    private var currentReaderTheme = "light"
 
     private data class BookDisplay(
         val id: Long, val title: String, val author: String,
@@ -455,47 +454,79 @@ class MainActivity : AppCompatActivity() {
 
     private suspend fun loadLibrary() {
         val books = mutableListOf<BookDisplay>()
-
-        // Built-in basic text (asset)
         val basicChapters = loadBuiltInBook()
         if (basicChapters.isNotEmpty()) {
             books.add(BookDisplay(-1, "Анонимные Наркоманы. Базовый текст", "", basicChapters, "\uD83D\uDCD6", "#C8963E"))
         }
-
-        // Imported books
         val imported = db.bookEntryDao().getAll()
         imported.forEach { entry ->
             val chapters = loadBookChapters(entry)
             books.add(BookDisplay(entry.id, entry.title, entry.author, chapters, entry.icon, entry.color))
         }
-
         withContext(Dispatchers.Main) {
-            val recycler = findViewById<RecyclerView>(R.id.bookshelf)
-            recycler.layoutManager = LinearLayoutManager(this@MainActivity)
-            recycler.adapter = BookAdapter(books) { book ->
-                openBook(book)
+            findViewById<RecyclerView>(R.id.bookshelf).apply {
+                layoutManager = LinearLayoutManager(this@MainActivity)
+                adapter = BookAdapter(books) { openBook(it) }
             }
-
-            findViewById<Button>(R.id.importBookBtn).setOnClickListener {
-                importFileLauncher.launch("*/*")
-            }
-
-            findViewById<Button>(R.id.readerBack).setOnClickListener {
-                showBookshelf()
-            }
-
+            findViewById<Button>(R.id.importBookBtn).setOnClickListener { importFileLauncher.launch("*/*") }
+            findViewById<Button>(R.id.readerBack).setOnClickListener { showBookshelf() }
             findViewById<Button>(R.id.prevChapter).setOnClickListener {
-                if (currentChapterIndex > 0) {
-                    currentChapterIndex--
-                    showChapter()
-                }
+                if (currentChapterIndex > 0) { currentChapterIndex--; showChapter() }
             }
-
             findViewById<Button>(R.id.nextChapter).setOnClickListener {
-                if (currentChapterIndex < currentChapters.size - 1) {
-                    currentChapterIndex++
-                    showChapter()
+                if (currentChapterIndex < currentChapters.size - 1) { currentChapterIndex++; showChapter() }
+            }
+            findViewById<ImageButton>(R.id.readerBmBtn).setOnClickListener { toggleReaderPanel(R.id.readerBmPanel) }
+            findViewById<ImageButton>(R.id.readerNoteBtn).setOnClickListener { toggleReaderPanel(R.id.readerNotePanel) }
+            findViewById<ImageButton>(R.id.readerSettingsBtn).setOnClickListener { toggleReaderPanel(R.id.readerSettingsPanel) }
+            findViewById<Button>(R.id.noteAddBtn).setOnClickListener { addNote() }
+            findViewById<RadioGroup>(R.id.fontSizeGroup).setOnCheckedChangeListener { _, id ->
+                currentFontSize = when (id) {
+                    R.id.fontSmall -> 14
+                    R.id.fontLarge -> 20
+                    else -> 16
                 }
+                findViewById<TextView>(R.id.readerText).textSize = currentFontSize.toFloat()
+                lifecycleScope.launch { saveBookSettings() }
+            }
+            findViewById<RadioGroup>(R.id.readerThemeGroup).setOnCheckedChangeListener { _, id ->
+                currentReaderTheme = when (id) {
+                    R.id.readerThemeSepia -> "sepia"
+                    R.id.readerThemeDark -> "dark"
+                    else -> "light"
+                }
+                applyReaderTheme()
+                lifecycleScope.launch { saveBookSettings() }
+            }
+        }
+    }
+
+    private fun toggleReaderPanel(panelId: Int) {
+        val ids = listOf(R.id.readerBmPanel, R.id.readerNotePanel, R.id.readerSettingsPanel)
+        ids.forEach { id ->
+            findViewById<View>(id).visibility = if (id == panelId) {
+                if (findViewById<View>(id).visibility == View.VISIBLE) View.GONE else View.VISIBLE
+            } else View.GONE
+        }
+        if (panelId == R.id.readerBmPanel) renderBookmarks()
+        if (panelId == R.id.readerNotePanel) renderNotes()
+    }
+
+    private fun applyReaderTheme() {
+        val readerView = findViewById<View>(R.id.readerContent)
+        val textView = findViewById<TextView>(R.id.readerText)
+        when (currentReaderTheme) {
+            "sepia" -> {
+                readerView.setBackgroundColor(getColor(R.color.sepia_bg))
+                textView.setTextColor(getColor(R.color.sepia_text))
+            }
+            "dark" -> {
+                readerView.setBackgroundColor(getColor(R.color.dark_bg))
+                textView.setTextColor(getColor(R.color.dark_text))
+            }
+            else -> {
+                readerView.setBackgroundColor(getColor(R.color.white))
+                textView.setTextColor(getColor(R.color.cream))
             }
         }
     }
@@ -504,74 +535,140 @@ class MainActivity : AppCompatActivity() {
         currentBookId = book.id
         currentChapters = book.chapters.map { it.id to it.title }
         currentChapterIndex = 0
-
         findViewById<LinearLayout>(R.id.libraryPanel).visibility = View.GONE
         findViewById<LinearLayout>(R.id.readerPanel).visibility = View.VISIBLE
         findViewById<TextView>(R.id.readerTitle).text = book.title
-
-        // Load per-book settings
         lifecycleScope.launch {
             val settings = db.bookSettingsDao().getByBookId(book.id)
             if (settings != null) {
                 currentChapterIndex = settings.currentChapterIndex
+                currentFontSize = settings.fontSize
+                currentReaderTheme = settings.theme
+                when (currentFontSize) {
+                    14 -> findViewById<RadioButton>(R.id.fontSmall).isChecked = true
+                    20 -> findViewById<RadioButton>(R.id.fontLarge).isChecked = true
+                    else -> findViewById<RadioButton>(R.id.fontMedium).isChecked = true
+                }
+                when (currentReaderTheme) {
+                    "sepia" -> findViewById<RadioButton>(R.id.readerThemeSepia).isChecked = true
+                    "dark" -> findViewById<RadioButton>(R.id.readerThemeDark).isChecked = true
+                    else -> findViewById<RadioButton>(R.id.readerThemeLight).isChecked = true
+                }
+                applyReaderTheme()
             }
             showChapter()
         }
     }
 
     private fun showBookshelf() {
-        // Save position
-        lifecycleScope.launch {
-            if (currentBookId >= 0) {
-                db.bookSettingsDao().upsert(
-                    BookSettings(
-                        bookId = currentBookId,
-                        currentChapterIndex = currentChapterIndex,
-                        scrollPos = findViewById<NestedScrollView>(R.id.readerContent).scrollY
-                    )
-                )
-            }
+        lifecycleScope.launch { saveBookSettings() }
+        listOf(R.id.readerBmPanel, R.id.readerNotePanel, R.id.readerSettingsPanel).forEach {
+            findViewById<View>(it).visibility = View.GONE
         }
         findViewById<LinearLayout>(R.id.libraryPanel).visibility = View.VISIBLE
         findViewById<LinearLayout>(R.id.readerPanel).visibility = View.GONE
     }
 
+    private suspend fun saveBookSettings() {
+        if (currentBookId < 0) return
+        db.bookSettingsDao().upsert(BookSettings(
+            bookId = currentBookId,
+            fontSize = currentFontSize,
+            theme = currentReaderTheme,
+            currentChapterIndex = currentChapterIndex,
+            scrollPos = findViewById<NestedScrollView>(R.id.readerContent).scrollY
+        ))
+    }
+
     private fun showChapter() {
         val textView = findViewById<TextView>(R.id.readerText)
         val book = getCurrentBookDisplay() ?: return
-
         if (currentChapterIndex < 0 || currentChapterIndex >= book.chapters.size) return
         val ch = book.chapters[currentChapterIndex]
-
         val html = buildString {
             append("<h2>${ch.title}</h2>")
             ch.content.forEach { p -> append("<p>$p</p>") }
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            textView.text = android.text.Html.fromHtml(html, android.text.Html.FROM_HTML_MODE_COMPACT)
-        } else {
-            textView.text = android.text.Html.fromHtml(html)
+        textView.apply {
+            textSize = currentFontSize.toFloat()
+            text = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                android.text.Html.fromHtml(html, android.text.Html.FROM_HTML_MODE_COMPACT)
+            } else {
+                android.text.Html.fromHtml(html)
+            }
         }
         findViewById<TextView>(R.id.pageInfo).text = "${currentChapterIndex + 1} / ${book.chapters.size}"
+        findViewById<ProgressBar>(R.id.readerProgress).progress =
+            if (book.chapters.size > 1) ((currentChapterIndex.toFloat() / (book.chapters.size - 1)) * 100).toInt() else 0
+    }
 
-        // Restore scroll
+    private fun renderBookmarks() {
+        val list = findViewById<LinearLayout>(R.id.bmList)
+        list.removeAllViews()
         lifecycleScope.launch {
-            val settings = db.bookSettingsDao().getByBookId(book.id)
-            if (settings != null) {
-                findViewById<NestedScrollView>(R.id.readerContent).scrollY = settings.scrollPos
+            val bms = db.bookmarkDao().getByBookId(currentBookId)
+            if (bms.isEmpty()) {
+                list.addView(TextView(this@MainActivity).apply { text = "Нет закладок"; textSize = 12f; setTextColor(getColor(R.color.muted)) })
+                return@launch
+            }
+            bms.forEach { bm ->
+                val chapterTitle = currentChapters.find { it.first == bm.chapterId }?.second ?: bm.chapterId
+                val row = LinearLayout(this@MainActivity).apply { orientation = LinearLayout.HORIZONTAL; setPadding(0, 4, 0, 4) }
+                row.addView(TextView(this@MainActivity).apply { text = chapterTitle; layoutParams = LinearLayout.LayoutParams(0, -2, 1f); textSize = 13f })
+                row.addView(ImageButton(this@MainActivity).apply {
+                    setImageResource(android.R.drawable.ic_menu_delete)
+                    setBackgroundColor(0)
+                    setOnClickListener {
+                        lifecycleScope.launch { db.bookmarkDao().deleteById(bm.id); renderBookmarks() }
+                    }
+                    layoutParams = LinearLayout.LayoutParams(-2, -2)
+                })
+                list.addView(row)
             }
         }
     }
 
+    private fun renderNotes() {
+        val list = findViewById<LinearLayout>(R.id.noteList)
+        list.removeAllViews()
+        lifecycleScope.launch {
+            val notes = db.noteDao().getByBookId(currentBookId)
+            if (notes.isEmpty()) {
+                list.addView(TextView(this@MainActivity).apply { text = "Нет заметок"; textSize = 12f; setTextColor(getColor(R.color.muted)) })
+                return@launch
+            }
+            notes.forEach { note ->
+                val chapterTitle = currentChapters.find { it.first == note.chapterId }?.second ?: note.chapterId
+                val row = LinearLayout(this@MainActivity).apply { orientation = LinearLayout.HORIZONTAL; setPadding(0, 4, 0, 4) }
+                row.addView(TextView(this@MainActivity).apply {
+                    text = "[$chapterTitle] ${note.text}"; layoutParams = LinearLayout.LayoutParams(0, -2, 1f); textSize = 12f
+                })
+                row.addView(ImageButton(this@MainActivity).apply {
+                    setImageResource(android.R.drawable.ic_menu_delete)
+                    setBackgroundColor(0)
+                    setOnClickListener { lifecycleScope.launch { db.noteDao().deleteById(note.id); renderNotes() } }
+                    layoutParams = LinearLayout.LayoutParams(-2, -2)
+                })
+                list.addView(row)
+            }
+        }
+    }
+
+    private fun addNote() {
+        val text = findViewById<EditText>(R.id.noteInput).text.toString().trim()
+        if (text.isEmpty() || currentBookId < 0) return
+        lifecycleScope.launch {
+            db.noteDao().insert(Note(bookId = currentBookId, chapterId = currentChapters.getOrNull(currentChapterIndex)?.first ?: "", text = text))
+            findViewById<EditText>(R.id.noteInput).text.clear()
+            renderNotes()
+        }
+    }
+
     private suspend fun getCurrentBookDisplay(): BookDisplay? {
-        // Simplified: returns from current book list
         val books = mutableListOf<BookDisplay>()
         val basic = loadBuiltInBook()
-        if (basic.isNotEmpty())
-            books.add(BookDisplay(-1, "Базовый текст", "", basic, "", ""))
-
-        val imported = db.bookEntryDao().getAll()
-        imported.forEach { entry ->
+        if (basic.isNotEmpty()) books.add(BookDisplay(-1, "Базовый текст", "", basic, "", ""))
+        db.bookEntryDao().getAll().forEach { entry ->
             val chapters = loadBookChapters(entry)
             books.add(BookDisplay(entry.id, entry.title, entry.author, chapters, entry.icon, entry.color))
         }
@@ -579,13 +676,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadBuiltInBook(): List<ChapterData> {
-        // Try to load from assets/basic_text.fb2
         return try {
-            val text = applicationContext.assets.open("basic_text.fb2")
-                .bufferedReader().use { it.readText() }
+            val text = applicationContext.assets.open("basic_text.fb2").bufferedReader().use { it.readText() }
             parseFB2(text)?.chapters ?: emptyList()
         } catch (e: Exception) {
-            // Fallback: inline minimal chapters
             listOf(ChapterData("ch1", "Наш символ", listOf("Текст символа...")))
         }
     }
@@ -604,91 +698,45 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun parseFB2(text: String): BookDisplay? {
-        val title = Regex("<book-title>([^<]+)</book-title>", RegexOption.IGNORE_CASE)
-            .find(text)?.groupValues?.getOrNull(1) ?: ""
-        val body = Regex("<body>([\\s\\S]*?)</body>", RegexOption.IGNORE_CASE).find(text)
-            ?: return null
-        val sections = Regex("<section>([\\s\\S]*?)</section>", RegexOption.IGNORE_CASE)
-            .findAll(body.value).toList()
-        val chapters = sections.mapIndexed { i, sec ->
-            val secText = sec.value
-            val secTitle = Regex("<title>([\\s\\S]*?)</title>", RegexOption.IGNORE_CASE)
-                .find(secText)?.groupValues?.getOrNull(1)
-                ?.replace(Regex("<[^>]+>"), "")?.trim() ?: "Раздел ${i + 1}"
-            val pars = Regex("<p>([\\s\\S]*?)</p>", RegexOption.IGNORE_CASE)
-                .findAll(secText).map { it.groupValues[1] }
-                .map { it.replace(Regex("<[^>]+>"), "").trim() }
-                .filter { it.isNotEmpty() }
-                .toList()
-            ChapterData("fb2_$i", secTitle, pars)
-        }.filter { it.content.isNotEmpty() }
-
-        return if (chapters.isEmpty()) null else BookDisplay(-1, title, "", chapters, "", "")
+        return try {
+            val doc = Jsoup.parse(text, "", Parser.xmlParser())
+            val title = doc.select("book-title").first()?.text() ?: ""
+            val body = doc.select("body").first() ?: return null
+            val sections = body.select("section")
+            if (sections.isEmpty()) return null
+            val chapters = sections.mapIndexed { i, sec ->
+                ChapterData("fb2_$i",
+                    sec.select("title").first()?.text()?.trim() ?: "Раздел ${i + 1}",
+                    sec.select("p").map { it.text().trim() }.filter { it.isNotEmpty() }
+                )
+            }.filter { it.content.isNotEmpty() }
+            if (chapters.isEmpty()) null else BookDisplay(-1, title, "", chapters, "", "")
+        } catch (e: Exception) { null }
     }
 
     private fun parseTxt(text: String): List<ChapterData> {
         val lines = text.lines().filter { it.trim().isNotEmpty() }
         if (lines.isEmpty()) return emptyList()
-        val pageSize = 30
-        val pages = lines.chunked(pageSize).mapIndexed { i, chunk ->
+        return lines.chunked(30).mapIndexed { i, chunk ->
             ChapterData("p_$i", "Страница ${i + 1}", chunk.map { it.trim() })
         }
-        return pages
     }
 
     private fun importBook(uri: Uri) {
         lifecycleScope.launch {
             try {
                 val inputStream = contentResolver.openInputStream(uri) ?: return@launch
-                val bytes = inputStream.readBytes()
-                inputStream.close()
-
-                // Determine format from content or URI
+                val bytes = inputStream.readBytes(); inputStream.close()
                 val fileName = uri.lastPathSegment ?: "book"
                 val ext = fileName.substringAfterLast('.', "").toLowerCase()
-
-                // Copy to internal storage
-                val bookDir = File(filesDir, "books")
-                bookDir.mkdirs()
-                val destFile = File(bookDir, "${System.currentTimeMillis()}_$fileName")
-                destFile.writeBytes(bytes)
-
-                val chapters = when (ext) {
-                    "fb2" -> {
-                        val text = bytes.toString(Charsets.UTF_8)
-                        parseFB2(text)?.chapters
-                    }
-                    "txt" -> parseTxt(bytes.toString(Charsets.UTF_8))
-                    else -> {
-                        // Try parsing as FB2
-                        val text = bytes.toString(Charsets.UTF_8)
-                        parseFB2(text)?.chapters
-                    }
-                }
-
-                val iconMap = mapOf("fb2" to "\uD83D\uDCD8", "txt" to "\uD83D\uDCC4",
-                    "epub" to "\uD83D\uDCD5", "pdf" to "\uD83D\uDCCB", "docx" to "\uD83D\uDCDD")
-                val colorMap = mapOf("fb2" to "#3A7B4F", "txt" to "#5A6B7A",
-                    "epub" to "#8B3A8B", "pdf" to "#C0392B", "docx" to "#2C6FBB")
-
+                val bookDir = File(filesDir, "books"); bookDir.mkdirs()
+                val destFile = File(bookDir, "${System.currentTimeMillis()}_$fileName"); destFile.writeBytes(bytes)
                 val title = fileName.substringBeforeLast('.')
-                db.bookEntryDao().insert(BookEntry(
-                    title = title,
-                    author = "",
-                    format = ext,
-                    filePath = destFile.absolutePath,
-                    icon = iconMap[ext] ?: "\uD83D\uDCD6",
-                    color = colorMap[ext] ?: "#4A7FB5"
-                ))
-
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(this@MainActivity, "Книга импортирована: $title", Toast.LENGTH_SHORT).show()
-                }
+                db.bookEntryDao().insert(BookEntry(title = title, author = "", format = ext, filePath = destFile.absolutePath))
+                withContext(Dispatchers.Main) { Toast.makeText(this@MainActivity, "Импортировано: $title", Toast.LENGTH_SHORT).show() }
                 loadLibrary()
             } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(this@MainActivity, "Ошибка импорта: ${e.message}", Toast.LENGTH_SHORT).show()
-                }
+                withContext(Dispatchers.Main) { Toast.makeText(this@MainActivity, "Ошибка: ${e.message}", Toast.LENGTH_SHORT).show() }
             }
         }
     }
@@ -700,19 +748,15 @@ class MainActivity : AppCompatActivity() {
         private val onClick: (BookDisplay) -> Unit
     ) : RecyclerView.Adapter<BookAdapter.ViewHolder>() {
         class ViewHolder(view: View) : RecyclerView.ViewHolder(view)
-
         override fun onCreateViewHolder(parent: android.view.ViewGroup, viewType: Int): ViewHolder {
-            val view = layoutInflater.inflate(R.layout.item_book, parent, false)
-            return ViewHolder(view)
+            return ViewHolder(layoutInflater.inflate(R.layout.item_book, parent, false))
         }
-
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val book = books[position]
             holder.itemView.findViewById<TextView>(R.id.bookTitle).text = book.title
             holder.itemView.findViewById<TextView>(R.id.bookMeta).text = "${book.chapters.size} глав"
             holder.itemView.setOnClickListener { onClick(book) }
         }
-
         override fun getItemCount() = books.size
     }
 
@@ -722,50 +766,37 @@ class MainActivity : AppCompatActivity() {
         val settings = db.userSettingsDao().get() ?: UserSettings()
 
         withContext(Dispatchers.Main) {
-            // Theme
-            if (settings.theme == "blue") {
-                findViewById<RadioButton>(R.id.themeBlue).isChecked = true
-            } else {
-                findViewById<RadioButton>(R.id.themeLight).isChecked = true
-            }
+            if (settings.theme == "blue") findViewById<RadioButton>(R.id.themeBlue).isChecked = true
+            else findViewById<RadioButton>(R.id.themeLight).isChecked = true
 
-            // Notifications
             findViewById<Switch>(R.id.notifyVibrate).isChecked = settings.notifyVibrate
             findViewById<Switch>(R.id.notifySound).isChecked = settings.notifySound
 
-            // Date picker
+            val soundTypes = resources.getStringArray(R.array.sound_types)
+            val soundIdx = soundTypes.indexOf(settings.notifySoundType).coerceAtLeast(0)
+            findViewById<Spinner>(R.id.soundTypeSpinner).setSelection(soundIdx)
+
+            val vibratePatterns = resources.getStringArray(R.array.vibrate_patterns)
+            val vibIdx = vibratePatterns.indexOf(settings.notifyVibratePattern).coerceAtLeast(0)
+            findViewById<Spinner>(R.id.vibratePatternSpinner).setSelection(vibIdx)
+
             if (settings.startDate != null) {
                 val parts = settings.startDate.split("-")
-                if (parts.size == 3) {
-                    findViewById<DatePicker>(R.id.startDatePicker).updateDate(
-                        parts[0].toInt(), parts[1].toInt() - 1, parts[2].toInt()
-                    )
-                }
+                if (parts.size == 3) findViewById<DatePicker>(R.id.startDatePicker).updateDate(parts[0].toInt(), parts[1].toInt() - 1, parts[2].toInt())
             }
 
             findViewById<Button>(R.id.saveDateBtn).setOnClickListener {
                 val picker = findViewById<DatePicker>(R.id.startDatePicker)
-                val date = String.format(
-                    Locale.US, "%04d-%02d-%02d",
-                    picker.year, picker.month + 1, picker.dayOfMonth
-                )
                 lifecycleScope.launch {
-                    db.userSettingsDao().updateStartDate(date)
+                    db.userSettingsDao().updateStartDate(String.format(Locale.US, "%04d-%02d-%02d", picker.year, picker.month + 1, picker.dayOfMonth))
                     loadHome()
-                    Toast.makeText(this@MainActivity, "Дата сохранена", Toast.LENGTH_SHORT).show()
                 }
             }
 
-            // Theme switch
             findViewById<RadioGroup>(R.id.themeGroup).setOnCheckedChangeListener { _, checkedId ->
-                val theme = if (checkedId == R.id.themeBlue) "blue" else "light"
-                lifecycleScope.launch {
-                    db.userSettingsDao().updateTheme(theme)
-                    applyTheme(theme)
-                }
+                lifecycleScope.launch { db.userSettingsDao().updateTheme(if (checkedId == R.id.themeBlue) "blue" else "light") }
             }
 
-            // Notification settings
             findViewById<Switch>(R.id.notifyVibrate).setOnCheckedChangeListener { _, isChecked ->
                 lifecycleScope.launch { db.userSettingsDao().updateVibrate(isChecked) }
             }
@@ -773,25 +804,29 @@ class MainActivity : AppCompatActivity() {
                 lifecycleScope.launch { db.userSettingsDao().updateSound(isChecked) }
             }
 
-            // Dev phone
+            findViewById<Spinner>(R.id.soundTypeSpinner).onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(p: AdapterView<*>, v: View?, pos: Int, id: Long) {
+                    lifecycleScope.launch { db.userSettingsDao().updateSoundType(soundTypes[pos]) }
+                }
+                override fun onNothingSelected(p: AdapterView<*>) {}
+            }
+
+            findViewById<Spinner>(R.id.vibratePatternSpinner).onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(p: AdapterView<*>, v: View?, pos: Int, id: Long) {
+                    lifecycleScope.launch { db.userSettingsDao().updateVibratePattern(vibratePatterns[pos]) }
+                }
+                override fun onNothingSelected(p: AdapterView<*>) {}
+            }
+
             findViewById<TextView>(R.id.devPhone).setOnClickListener { dialPhone("89801793263") }
-            findViewById<TextView>(R.id.maxPhone).setOnClickListener { dialPhone("89259039777") }
-
-            // Backup
-            findViewById<Button>(R.id.exportBtn).setOnClickListener {
-                lifecycleScope.launch { exportBackup() }
-            }
-            findViewById<Button>(R.id.importBtn).setOnClickListener {
-                backupImportLauncher.launch("application/json")
+            findViewById<TextView>(R.id.emailLink).setOnClickListener {
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("mailto:dfyv8410@gmail.com")))
             }
 
+            findViewById<Button>(R.id.exportBtn).setOnClickListener { lifecycleScope.launch { exportBackup() } }
+            findViewById<Button>(R.id.importBtn).setOnClickListener { backupImportLauncher.launch("application/json") }
             findViewById<Button>(R.id.backBtn).setOnClickListener { showScreen("home") }
         }
-    }
-
-    private fun applyTheme(theme: String) {
-        // Simplified: just show toast. Full theme switching requires recreate.
-        Toast.makeText(this, "Тема: $theme (перезапустите для полного применения)", Toast.LENGTH_SHORT).show()
     }
 
     /* ===================== NOTIFICATIONS PERMISSION ===================== */

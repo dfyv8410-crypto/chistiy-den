@@ -77,6 +77,7 @@ body{
 .stat-card .l{font-size:10px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.5px;}
 .reset-link{margin-top:16px;text-align:center;font-size:13px;color:var(--na-blue);font-weight:700;cursor:pointer;background:var(--card);border:1.5px dashed var(--accent);border-radius:var(--radius-md);padding:10px;transition:transform .15s,background .2s;}
 .reset-link:active{transform:scale(0.97);background:var(--card-2);}
+.prayer-text{margin:20px 16px 0;padding:16px 14px;background:var(--card-2);border-radius:var(--radius-md);border-left:3px solid var(--accent);font-family:'Fraunces',Georgia,serif;font-style:italic;font-size:13.5px;line-height:1.7;color:var(--muted);text-align:center;letter-spacing:.2px;}
 
 /* ---------- JFT ---------- */
 .jft-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-lg);padding:20px 18px;margin-top:6px;}
@@ -507,6 +508,12 @@ body{
       <div class="stat-card"><div class="v" id="statWeeks">0</div><div class="l">Недель</div></div>
       <div class="stat-card"><div class="v" id="statMonths">0</div><div class="l">Месяцев</div></div>
       <div class="stat-card"><div class="v" id="statHours">0</div><div class="l">Часов</div></div>
+    </div>
+
+    <div class="prayer-text">
+      Боже, дай мне разум и душевный покой принять то, что я не в силах изменить,<br>
+      мужество изменить то, что могу,<br>
+      и мудрость отличить одно от другого.
     </div>
 
     <div class="reset-link" onclick="openSettings()">Изменить дату отсчёта</div>
