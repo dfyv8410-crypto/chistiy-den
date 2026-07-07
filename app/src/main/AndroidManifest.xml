@@ -32,6 +32,13 @@
             </intent-filter>
         </activity>
 
+        <!-- Reader Activity -->
+        <activity
+            android:name=".ReaderActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|screenLayout"
+            android:windowSoftInputMode="adjustResize" />
+
         <!-- Boot Receiver: restore alarms after reboot -->
         <receiver
             android:name=".service.BootReceiver"
@@ -46,11 +53,6 @@
         <!-- Alarm Receiver: fires exact alarms -->
         <receiver
             android:name=".service.AlarmReceiver"
-            android:exported="false" />
-
-        <!-- Notification Sound -->
-        <service
-            android:name=".service.NotificationSoundService"
             android:exported="false" />
 
     </application>
