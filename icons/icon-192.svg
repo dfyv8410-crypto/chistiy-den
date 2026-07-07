@@ -1,6 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <defs>
+    <filter id="s" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#1A3E6B" flood-opacity="0.35"/>
+    </filter>
+  </defs>
   <rect width="192" height="192" rx="40" fill="#FFFFFF"/>
-  <path d="M96,24 L158.4,60 L158.4,132 L96,168 L33.6,132 L33.6,60 Z" fill="#1A3E6B"/>
-  <circle cx="96" cy="96" r="50" fill="#FFFFFF"/>
-  <text x="96" y="97" text-anchor="middle" dominant-baseline="central" font-family="Georgia,'Times New Roman',serif" font-weight="900" font-size="52" fill="#1A3E6B">NA</text>
+  <circle cx="96" cy="96" r="78" fill="#1A3E6B" filter="url(#s)"/>
+  <text x="96" y="97" text-anchor="middle" dominant-baseline="central" font-family="Georgia,'Times New Roman',serif" font-weight="900" font-size="116" fill="#FFFFFF">NA</text>
 </svg>
