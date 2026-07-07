@@ -155,6 +155,22 @@ body{
 .sos-item a.call{background:#D4816A;color:#fff;border-radius:999px;padding:10px 16px;font-size:13px;font-weight:800;text-decoration:none;white-space:nowrap;letter-spacing:.3px;transition:transform .15s;}
 .sos-item a.call:active{transform:scale(.96);}
 .disclaimer{margin-top:14px;font-size:11px;color:var(--muted);line-height:1.6;}
+.sos-sub{font-size:13px;font-weight:800;color:var(--na-blue);margin:16px 0 8px;padding-top:12px;border-top:1px solid var(--line);display:flex;align-items:center;gap:6px;}
+.sos-personal-input{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+.sos-personal-input input{flex:1;min-width:100px;padding:9px 12px;border-radius:var(--radius-sm);border:1px solid var(--line);font-size:13px;font-family:var(--font-body);background:var(--card);color:var(--cream);outline:none;}
+.sos-personal-input input:focus{border-color:var(--accent);}
+.sos-personal-input select{padding:9px 10px;border-radius:var(--radius-sm);border:1px solid var(--line);font-size:12px;font-family:var(--font-body);background:var(--card);color:var(--cream);outline:none;}
+.sos-personal-input button{padding:9px 14px;border-radius:var(--radius-sm);border:none;background:var(--accent);color:var(--cream);font-weight:800;font-size:12px;font-family:var(--font-body);cursor:pointer;white-space:nowrap;transition:transform .15s;}
+.sos-personal-input button:active{transform:scale(.96);}
+.sos-contact-item{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius-md);padding:10px 12px;margin-bottom:6px;}
+.sos-contact-item .badge{font-size:9px;font-weight:800;padding:2px 7px;border-radius:999px;background:var(--na-blue);color:#fff;letter-spacing:.3px;white-space:nowrap;}
+.sos-contact-item .info{flex:1;}
+.sos-contact-item .info .name{font-size:13px;font-weight:700;}
+.sos-contact-item .info .phone{font-size:11px;color:var(--muted);}
+.sos-contact-item .del-btn{width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:var(--card);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .15s;}
+.sos-contact-item .del-btn:active{transform:scale(.9);}
+.sos-contact-item .del-btn svg{width:12px;height:12px;stroke:var(--muted);}
+.sos-contact-item a.call-small{background:#D4816A;color:#fff;border-radius:999px;padding:6px 12px;font-size:11px;font-weight:800;text-decoration:none;white-space:nowrap;}
 
 /* ---------- SERVICE ---------- */
 .service-input-wrap{display:flex;flex-direction:column;gap:8px;margin-top:6px;}
@@ -338,6 +354,10 @@ body{
 .lib-toc-item:active{background:var(--card-2);}
 .lib-toc-item .num{width:24px;font-size:11px;color:var(--muted);flex:0 0 auto;}
 .lib-toc-item.active{color:var(--accent);}
+.lib-nav-row{display:flex;gap:8px;margin:10px 0;}
+.lib-nav-row button{flex:1;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--card);cursor:pointer;font-size:12px;font-weight:700;color:var(--na-blue);font-family:var(--font-body);transition:transform .15s;}
+.lib-nav-row button:active{transform:scale(.97);}
+.lib-nav-row button:disabled{opacity:.3;cursor:default;transform:none;}
 .lib-reader{flex:1;overflow-y:auto;padding:0 4px 20px;-webkit-overflow-scrolling:touch;}
 .lib-chapter-title{font-family:var(--font-display);font-size:19px;font-weight:700;color:var(--na-blue);margin:0 0 14px;line-height:1.3;}
 .lib-text{font-size:var(--lib-font-size,16px);line-height:var(--lib-line-height,1.7);color:var(--lib-text,#3D2B1F);}
@@ -372,6 +392,43 @@ body{
 .lib-bm-item .bm-del{width:18px;height:18px;border:none;background:none;cursor:pointer;flex:0 0 auto;color:var(--muted);padding:0;display:flex;align-items:center;justify-content:center;}
 .lib-bm-item .bm-del svg{width:12px;height:12px;stroke:currentColor;}
 .lib-empty{padding:40px 20px;text-align:center;color:var(--muted);font-size:14px;line-height:1.6;}
+.lib-book-panel{display:block;}
+.lib-book-panel.hide{display:none;}
+.lib-reader-panel{display:none;}
+.lib-reader-panel.active{display:flex;flex-direction:column;flex:1;}
+.lib-back-btn{width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:var(--card);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;}
+.lib-back-btn svg{width:16px;height:16px;stroke:var(--na-blue);stroke-width:2.5;}
+.lib-bookshelf{display:flex;flex-direction:column;gap:16px;margin-top:10px;}
+.lib-shelf-row{display:flex;gap:12px;overflow-x:auto;padding:4px 0 8px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;}
+.lib-shelf-row::-webkit-scrollbar{display:none;}
+.lib-book-card{flex:0 0 130px;width:130px;scroll-snap-align:start;cursor:pointer;transition:transform .15s;}
+.lib-book-card:active{transform:scale(.95);}
+.lib-book-cover{width:130px;height:180px;border-radius:var(--radius-sm);background:var(--accent);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px 10px;text-align:center;color:#fff;position:relative;overflow:hidden;}
+.lib-book-cover .cover-icon{font-size:36px;opacity:.6;margin-bottom:6px;}
+.lib-book-cover .cover-title{font-size:11px;font-weight:800;line-height:1.3;letter-spacing:.2px;}
+.lib-book-cover .cover-author{font-size:9px;opacity:.7;margin-top:3px;}
+.lib-book-cover .cover-progress{position:absolute;bottom:0;left:0;right:0;height:4px;background:rgba(255,255,255,.3);}
+.lib-book-cover .cover-progress-fill{height:100%;background:#fff;border-radius:0 2px 0 0;transition:width .4s;}
+.lib-book-info{margin-top:6px;}
+.lib-book-info .book-title{font-size:11px;font-weight:700;color:var(--na-blue);line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.lib-book-info .book-meta{font-size:9px;color:var(--muted);margin-top:2px;}
+.lib-shelf-label{font-size:13px;font-weight:800;color:var(--na-blue);margin-bottom:2px;}
+.lib-featured{flex:0 0 160px;width:160px;}
+.lib-featured .lib-book-cover{width:160px;height:220px;}
+.lib-featured .lib-book-cover .cover-title{font-size:13px;}
+.lib-featured .lib-book-info .book-title{font-size:12px;}
+.lib-add-btn{flex:0 0 130px;width:130px;height:180px;border-radius:var(--radius-sm);border:2px dashed var(--line);background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);transition:all .15s;gap:6px;}
+.lib-add-btn:active{background:var(--card-2);border-color:var(--accent);color:var(--accent);}
+.lib-add-btn svg{width:28px;height:28px;stroke:currentColor;stroke-width:1.5;}
+.lib-add-btn span{font-size:11px;font-weight:700;}
+.lib-progress-bar{margin:8px 0;height:4px;border-radius:2px;background:var(--line);overflow:hidden;}
+.lib-progress-bar .fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s;}
+.lib-page-info{font-size:11px;color:var(--muted);text-align:center;margin:6px 0;}
+.lib-tap-zones{display:flex;position:relative;}
+.lib-tap-zone{position:absolute;top:0;bottom:0;width:40%;z-index:2;cursor:pointer;}
+.lib-tap-zone.left{left:0;}
+.lib-tap-zone.right{right:0;}
+.lib-tap-zone-center{position:absolute;top:0;bottom:0;left:40%;right:40%;z-index:1;}
 .lib-fullscreen{position:fixed!important;inset:0!important;z-index:100!important;max-width:100%!important;border-radius:0!important;}
 .lib-fullscreen .topbar{display:none;}
 .lib-fullscreen .tabbar{display:none;}
@@ -389,6 +446,9 @@ body{
 
 [data-theme="blue"] .splash .splash-title{color:#7FA8D4;}
 [data-theme="blue"] .splash .splash-sub{color:#6B8299;}
+[data-theme="blue"] .lib-book-card .book-title{color:#7FA8D4;}
+[data-theme="blue"] .lib-book-info .book-meta{color:#6B8299;}
+[data-theme="blue"] .lib-shelf-label{color:#7FA8D4;}
 
 </style>
 </head>
@@ -504,6 +564,7 @@ body{
       <p>Это нормально — не справляться в одиночку. Можно просто набрать номер и ничего не объяснять заранее.</p>
     </div>
     <div class="sos-list">
+      <div class="sos-sub">Экстренные номера</div>
       <div class="sos-item">
         <div><div class="t">АН — Единый номер</div><div class="d">Анонимные Наркоманы, круглосуточно, бесплатно по РФ</div></div>
         <a class="call" href="tel:88001014212">8 800 101-42-12</a>
@@ -519,6 +580,23 @@ body{
       <div class="sos-item">
         <div><div class="t">Экстренные службы</div><div class="d">Единый номер экстренных служб РФ</div></div>
         <a class="call" href="tel:112">112</a>
+      </div>
+      <div class="sos-sub">Наркология в Москве</div>
+      <div class="sos-item">
+        <div><div class="t">Филиал №1 (Болотниковская)</div><div class="d">ул. Болотниковская, 49 — круглосуточно</div></div>
+        <a class="call" href="tel:74959520191">+7 495 952-01-91</a>
+      </div>
+      <div class="sos-item">
+        <div><div class="t">Филиал №3 (Люблинская, 19-я)</div><div class="d">ул. Люблинская, 37а — круглосуточно</div></div>
+        <a class="call" href="tel:74953511540">+7 495 351-15-40</a>
+      </div>
+      <div class="sos-sub">Мои контакты</div>
+      <div id="sosPersonalList"></div>
+      <div class="sos-personal-input">
+        <input type="text" id="sosContactName" placeholder="Имя или роль" autocomplete="off">
+        <input type="tel" id="sosContactPhone" placeholder="Телефон" autocomplete="off">
+        <select id="sosContactType"><option value="Наставник">Наставник</option><option value="Спонсор">Спонсор</option><option value="Доверенное лицо">Доверенное лицо</option><option value="Другое">Другое</option></select>
+        <button onclick="addSosContact()">+</button>
       </div>
     </div>
     <div class="disclaimer">
@@ -546,62 +624,82 @@ body{
 
   <!-- БИБЛИОТЕКА -->
   <div class="screen" id="screen-library">
-    <div class="lib-header">
-      <h2>Библиотека</h2>
-      <div class="lib-controls">
-        <button id="libBmBtn" onclick="toggleBookmarks()" aria-label="Закладки">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+    <div class="lib-book-panel" id="libBookPanel">
+      <div class="lib-header">
+        <h2>Библиотека</h2>
+        <div class="lib-controls">
+          <input type="file" id="libFileInput" accept=".fb2,.txt,.html" style="display:none" onchange="importBook(event)">
+          <button onclick="document.getElementById('libFileInput').click()" aria-label="Загрузить книгу" title="Загрузить книгу">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="lib-bookshelf" id="libBookshelf"></div>
+    </div>
+    <div class="lib-reader-panel" id="libReaderPanel">
+      <div class="lib-header">
+        <button class="lib-back-btn" onclick="closeReader()" aria-label="Назад">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
-        <button id="libSearchBtn" onclick="toggleSearch()" aria-label="Поиск">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        </button>
-        <button id="libSettingsBtn" onclick="toggleReaderSettings()" aria-label="Настройки">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-        </button>
+        <h2 id="libReaderTitle">Читалка</h2>
+        <div class="lib-controls">
+          <button id="libBmBtn" onclick="toggleBookmarks()" aria-label="Закладки">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+          </button>
+          <button id="libSearchBtn" onclick="toggleSearch()" aria-label="Поиск">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </button>
+          <button id="libSettingsBtn" onclick="toggleReaderSettings()" aria-label="Настройки">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          </button>
+        </div>
       </div>
-    </div>
-
-    <!-- search -->
-    <div class="lib-search" id="libSearch">
-      <input type="text" id="libSearchInput" placeholder="Поиск по книге..." autocomplete="off" oninput="searchBook()">
-      <div class="lib-search-results" id="libSearchResults"></div>
-    </div>
-
-    <!-- settings panel -->
-    <div class="lib-settings-panel" id="libSettingsPanel">
-      <div class="lib-settings-row">
-        <label>Размер</label>
-        <button class="lib-size-btn" data-size="14" onclick="setLibFontSize(14)">A</button>
-        <button class="lib-size-btn active" data-size="16" onclick="setLibFontSize(16)">A</button>
-        <button class="lib-size-btn" data-size="18" onclick="setLibFontSize(18)">A</button>
-        <button class="lib-size-btn" data-size="20" onclick="setLibFontSize(20)">A</button>
-        <button class="lib-size-btn" data-size="24" onclick="setLibFontSize(24)">A</button>
+      <!-- search -->
+      <div class="lib-search" id="libSearch">
+        <input type="text" id="libSearchInput" placeholder="Поиск по книге..." autocomplete="off" oninput="searchBook()">
+        <div class="lib-search-results" id="libSearchResults"></div>
       </div>
-      <div class="lib-settings-row">
-        <label>Интервал</label>
-        <button class="lib-size-btn" data-lh="1.4" onclick="setLibLineHeight(1.4)">1.4</button>
-        <button class="lib-size-btn active" data-lh="1.7" onclick="setLibLineHeight(1.7)">1.7</button>
-        <button class="lib-size-btn" data-lh="2.0" onclick="setLibLineHeight(2.0)">2.0</button>
+      <!-- settings panel -->
+      <div class="lib-settings-panel" id="libSettingsPanel">
+        <div class="lib-settings-row">
+          <label>Размер</label>
+          <button class="lib-size-btn" data-size="14" onclick="setLibFontSize(14)">A</button>
+          <button class="lib-size-btn active" data-size="16" onclick="setLibFontSize(16)">A</button>
+          <button class="lib-size-btn" data-size="18" onclick="setLibFontSize(18)">A</button>
+          <button class="lib-size-btn" data-size="20" onclick="setLibFontSize(20)">A</button>
+          <button class="lib-size-btn" data-size="24" onclick="setLibFontSize(24)">A</button>
+        </div>
+        <div class="lib-settings-row">
+          <label>Интервал</label>
+          <button class="lib-size-btn" data-lh="1.4" onclick="setLibLineHeight(1.4)">1.4</button>
+          <button class="lib-size-btn active" data-lh="1.7" onclick="setLibLineHeight(1.7)">1.7</button>
+          <button class="lib-size-btn" data-lh="2.0" onclick="setLibLineHeight(2.0)">2.0</button>
+        </div>
+        <div class="lib-settings-row">
+          <label>Тема</label>
+          <button class="lib-theme-btn active" data-theme="light" onclick="setLibTheme('light')">Светлая</button>
+          <button class="lib-theme-btn" data-theme="sepia" onclick="setLibTheme('sepia')">Сепия</button>
+          <button class="lib-theme-btn" data-theme="dark" onclick="setLibTheme('dark')">Тёмная</button>
+        </div>
       </div>
-      <div class="lib-settings-row">
-        <label>Тема</label>
-        <button class="lib-theme-btn active" data-theme="light" onclick="setLibTheme('light')">Светлая</button>
-        <button class="lib-theme-btn" data-theme="sepia" onclick="setLibTheme('sepia')">Сепия</button>
-        <button class="lib-theme-btn" data-theme="dark" onclick="setLibTheme('dark')">Тёмная</button>
+      <!-- bookmarks -->
+      <div class="lib-bookmarks" id="libBookmarks">
+        <div class="lib-bookmarks-header">Мои закладки</div>
+        <div id="libBmList"></div>
       </div>
+      <!-- progress bar -->
+      <div class="lib-progress-bar" id="libProgressBar"><div class="fill" id="libProgressFill" style="width:0%"></div></div>
+      <!-- reader content -->
+      <div style="position:relative;flex:1;display:flex;flex-direction:column;min-height:0;">
+        <div class="lib-reader" id="libReader"></div>
+        <div class="lib-nav-row" id="libNavRow">
+          <button id="libPrevBtn" onclick="prevChapter()">← Пред.</button>
+          <button id="libNextBtn" onclick="nextChapter()">След. →</button>
+        </div>
+      </div>
+      <div class="lib-page-info" id="libPageInfo"></div>
+      <div class="lib-toc" id="libToc"></div>
     </div>
-
-    <!-- bookmarks -->
-    <div class="lib-bookmarks" id="libBookmarks">
-      <div class="lib-bookmarks-header">Мои закладки</div>
-      <div id="libBmList"></div>
-    </div>
-
-    <!-- table of contents -->
-    <div class="lib-toc" id="libToc"></div>
-
-    <!-- reader -->
-    <div class="lib-reader" id="libReader"></div>
   </div>
 
   <!-- TABBAR + STUDIO -->
@@ -897,6 +995,7 @@ function showScreen(name){
   if(name==='groups') renderGroups();
   if(name==='plan') renderPlan();
   if(name==='service') renderService();
+  if(name==='sos') renderSosContacts();
   if(name==='library') renderLibrary();
 }
 
@@ -1244,6 +1343,43 @@ function renderPlan(){
       </button>`;
     list.appendChild(div);
   });
+}
+
+/* ------- SOS CONTACTS ------- */
+function getSosContacts(){ return JSON.parse(storage.get('sos_contacts')||'[]'); }
+function saveSosContacts(arr){ storage.set('sos_contacts', JSON.stringify(arr)); }
+function renderSosContacts(){
+  const list=document.getElementById('sosPersonalList');
+  const items=getSosContacts();
+  if(items.length===0){
+    list.innerHTML='<div style="font-size:12px;color:var(--muted);margin:6px 0;">Нет сохранённых контактов</div>';
+    return;
+  }
+  list.innerHTML='';
+  items.forEach((item,i)=>{
+    const div=document.createElement('div');
+    div.className='sos-contact-item';
+    div.innerHTML='<span class="badge">'+escHtml(item.type)+'</span><div class="info"><div class="name">'+escHtml(item.name)+'</div><div class="phone">'+escHtml(item.phone)+'</div></div><a class="call-small" href="tel:'+item.phone.replace(/[^0-9+]/g,'')+'">Позвонить</a><button class="del-btn" onclick="delSosContact('+i+')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>';
+    list.appendChild(div);
+  });
+}
+function addSosContact(){
+  const name=document.getElementById('sosContactName').value.trim();
+  const phone=document.getElementById('sosContactPhone').value.trim();
+  const type=document.getElementById('sosContactType').value;
+  if(!name||!phone){ alert('Введи имя и телефон'); return; }
+  const items=getSosContacts();
+  items.push({name,phone,type,id:Date.now()});
+  saveSosContacts(items);
+  document.getElementById('sosContactName').value='';
+  document.getElementById('sosContactPhone').value='';
+  renderSosContacts();
+}
+function delSosContact(i){
+  const items=getSosContacts();
+  items.splice(i,1);
+  saveSosContacts(items);
+  renderSosContacts();
 }
 
 function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -1706,8 +1842,9 @@ async function initLibState(){
   if(!libState.fontSize) libState.fontSize = 16;
   if(!libState.lineHeight) libState.lineHeight = 1.7;
   if(!libState.theme) libState.theme = 'light';
-  if(!libState.chapter) libState.chapter = 'intro';
+  if(libState.chapter === undefined) libState.chapter = LIB_BOOK.chapters[0]?.id;
   if(!libState.bookmarks) libState.bookmarks = [];
+  if(libState.currentBook === undefined) libState.currentBook = 0;
 }
 async function saveLibState(){
   await idbSet('lib_state', JSON.stringify(libState));
@@ -1736,33 +1873,165 @@ function idbSet(key, val){
   }catch(e){}
 }
 function renderLibrary(){
-  const reader = document.getElementById('libReader');
+  document.getElementById('libBookPanel').classList.remove('hide');
+  document.getElementById('libReaderPanel').classList.remove('active');
+  renderBookshelf();
+}
+function renderBookshelf(){
+  const shelf = document.getElementById('libBookshelf');
+  const books = getLibBooks();
+  let html = '<div class="lib-shelf-label">Мои книги</div><div class="lib-shelf-row">';
+  books.forEach((book, i) => {
+    const pct = book.chapters.length ? Math.round(((libState.currentBook === i ? getCurrentChapterIndex(i) + 1 : 0) / book.chapters.length) * 100) : 0;
+    const isFeatured = i === 0;
+    html += '<div class="lib-book-card' + (isFeatured ? ' lib-featured' : '') + '" onclick="openBook(' + i + ')">';
+    html += '<div class="lib-book-cover" style="background:' + book.color + '">';
+    html += '<div class="cover-icon">' + book.icon + '</div>';
+    html += '<div class="cover-title">' + escHtml(book.title) + '</div>';
+    if(book.author) html += '<div class="cover-author">' + escHtml(book.author) + '</div>';
+    html += '<div class="cover-progress"><div class="cover-progress-fill" style="width:' + pct + '%"></div></div>';
+    html += '</div><div class="lib-book-info"><div class="book-title">' + escHtml(book.title) + '</div>';
+    html += '<div class="book-meta">' + book.chapters.length + ' глав' + (pct > 0 ? ' · ' + pct + '%' : '') + '</div></div></div>';
+  });
+  html += '<div class="lib-add-btn" onclick="document.getElementById(\'libFileInput\').click()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span>Загрузить книгу</span></div>';
+  html += '</div>';
+  shelf.innerHTML = html;
+}
+function getCurrentChapterIndex(bookIdx){
+  const books = getLibBooks();
+  const book = books[bookIdx];
+  if(!book) return 0;
+  const idx = book.chapters.findIndex(c => c.id === libState.chapter);
+  return idx >= 0 ? idx : 0;
+}
+function openBook(idx){
+  const books = getLibBooks();
+  if(!books[idx]) return;
+  libState.currentBook = idx;
+  libState.scrollPos = 0;
+  document.getElementById('libBookPanel').classList.add('hide');
+  document.getElementById('libReaderPanel').classList.add('active');
+  document.getElementById('libReaderTitle').textContent = books[idx].title;
   const toc = document.getElementById('libToc');
   toc.innerHTML = '';
-  LIB_BOOK.chapters.forEach((ch, i) => {
+  books[idx].chapters.forEach((ch, i) => {
     const div = document.createElement('div');
     div.className = 'lib-toc-item' + (ch.id === libState.chapter ? ' active' : '');
     div.innerHTML = '<div class="num">' + (i + 1) + '.</div><span>' + ch.title + '</span>';
-    div.onclick = () => openChapter(ch.id);
+    div.onclick = () => { libState.scrollPos = 0; loadChapter(ch.id); };
     toc.appendChild(div);
   });
-  loadChapter(libState.chapter);
+  loadChapter(libState.chapter || books[idx].chapters[0].id);
   applyLibSettings();
 }
+function closeReader(){
+  document.getElementById('libBookPanel').classList.remove('hide');
+  document.getElementById('libReaderPanel').classList.remove('active');
+  saveLibState();
+}
+function getLibBooks(){
+  const imported = JSON.parse(storage.get('lib_imported')||'[]');
+  return [LIB_BOOK, ...imported];
+}
+function saveLibBooks(arr){
+  const imported = arr.slice(1);
+  storage.set('lib_imported', JSON.stringify(imported));
+}
+function importBook(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const text = e.target.result;
+    const name = file.name.replace(/\.[^/.]+$/, '');
+    let chapters = [];
+    let title = name;
+    if(file.name.endsWith('.fb2')){
+      const titleMatch = text.match(/<book-title>([^<]+)<\/book-title>/i);
+      if(titleMatch) title = titleMatch[1];
+      const bodyMatch = text.match(/<body>([\s\S]*?)<\/body>/i);
+      if(bodyMatch){
+        const bodyContent = bodyMatch[1];
+        const sections = bodyContent.match(/<section>([\s\S]*?)<\/section>/gi);
+        if(sections){
+          sections.forEach((sec, i) => {
+            const tMatch = sec.match(/<title>([\s\S]*?)<\/title>/i);
+            const secTitle = tMatch ? tMatch[1].replace(/<[^>]+>/g, '').trim() : ('Раздел ' + (i+1));
+            const pars = sec.match(/<p>([\s\S]*?)<\/p>/gi);
+            const content = pars ? pars.map(p => p.replace(/<\/?p>/gi, '').replace(/<[^>]+>/g, '').trim()).filter(p => p) : [];
+            if(content.length) chapters.push({ id:'sec_'+i, title: secTitle, content });
+          });
+        }
+      }
+    } else {
+      const lines = text.split('\n').filter(l => l.trim());
+      if(lines.length){
+        title = name;
+        const pages = [];
+        let current = [];
+        lines.forEach((l, i) => {
+          current.push(l.trim());
+          if(current.length >= 30 || i === lines.length-1){
+            pages.push({ id:'page_'+pages.length, title: 'Страница ' + (pages.length+1), content: [...current] });
+            current = [];
+          }
+        });
+        chapters = pages;
+      }
+    }
+    if(!chapters.length){
+      chapters = [{ id:'content', title: title, content: text.split('\n').filter(l => l.trim()).map(l => l.trim()) }];
+    }
+    const imported = JSON.parse(storage.get('lib_imported')||'[]');
+    imported.push({ title, author: '', icon: '📖', color: '#4A7FB5', chapters });
+    storage.set('lib_imported', JSON.stringify(imported));
+    renderBookshelf();
+  };
+  reader.readAsText(file, 'UTF-8');
+  event.target.value = '';
+}
 function loadChapter(chapterId){
-  const ch = LIB_BOOK.chapters.find(c => c.id === chapterId);
-  if(!ch){ openChapter(LIB_BOOK.chapters[0].id); return; }
+  const books = getLibBooks();
+  const book = books[libState.currentBook || 0];
+  if(!book) return;
+  const ch = book.chapters.find(c => c.id === chapterId);
+  if(!ch){ if(book.chapters.length) openChapter(book.chapters[0].id); return; }
   const reader = document.getElementById('libReader');
   reader.innerHTML = '<div class="lib-chapter-title">' + ch.title + '</div><div class="lib-text theme-' + libState.theme + '" id="libText">' + ch.content.map(p => '<p>' + p + '</p>').join('') + '</div>';
   reader.scrollTop = libState.scrollPos || 0;
-  setTimeout(() => {
-    if(libState.scrollPos) reader.scrollTop = libState.scrollPos;
-  }, 50);
+  setTimeout(() => { if(libState.scrollPos) reader.scrollTop = libState.scrollPos; }, 50);
   document.querySelectorAll('.lib-toc-item').forEach(el => {
     el.classList.toggle('active', el.querySelector('span')?.textContent === ch.title);
   });
   libState.chapter = chapterId;
+  updateProgress();
   saveLibState();
+}
+function updateProgress(){
+  const books = getLibBooks();
+  const book = books[libState.currentBook || 0];
+  if(!book) return;
+  const idx = book.chapters.findIndex(c => c.id === libState.chapter);
+  const total = book.chapters.length;
+  const pct = total ? Math.round(((idx + 1) / total) * 100) : 0;
+  document.getElementById('libProgressFill').style.width = pct + '%';
+  document.getElementById('libPageInfo').textContent = (idx + 1) + ' / ' + total + ' · ' + pct + '%';
+  document.getElementById('libPrevBtn').disabled = idx <= 0;
+  document.getElementById('libNextBtn').disabled = idx >= total - 1;
+}
+function prevChapter(){
+  const books = getLibBooks();
+  const book = books[libState.currentBook || 0];
+  if(!book) return;
+  const idx = book.chapters.findIndex(c => c.id === libState.chapter);
+  if(idx > 0) { libState.scrollPos = 0; loadChapter(book.chapters[idx-1].id); }
+}
+function nextChapter(){
+  const books = getLibBooks();
+  const book = books[libState.currentBook || 0];
+  if(!book) return;
+  const idx = book.chapters.findIndex(c => c.id === libState.chapter);
+  if(idx < book.chapters.length - 1) { libState.scrollPos = 0; loadChapter(book.chapters[idx+1].id); }
 }
 function openChapter(chapterId){
   libState.scrollPos = 0;
@@ -1816,8 +2085,11 @@ function searchBook(){
   const q = document.getElementById('libSearchInput').value.trim().toLowerCase();
   const results = document.getElementById('libSearchResults');
   if(!q){ results.innerHTML = ''; return; }
+  const books = getLibBooks();
+  const book = books[libState.currentBook || 0];
+  if(!book) return;
   let found = [];
-  LIB_BOOK.chapters.forEach(ch => {
+  book.chapters.forEach(ch => {
     const text = ch.title.toLowerCase() + ' ' + ch.content.join(' ').toLowerCase();
     if(text.includes(q)) found.push(ch);
   });
@@ -1832,7 +2104,7 @@ function searchBook(){
     const idx = ch.content.join(' ').toLowerCase().indexOf(q);
     const preview = idx >= 0 ? '...' + ch.content.join(' ').substring(Math.max(0,idx-30), idx+60) + '...' : '';
     div.innerHTML = '<strong>' + ch.title + '</strong><br><small style="color:var(--muted);">' + preview.replace(new RegExp(q, 'gi'), '<mark>$&</mark>') + '</small>';
-    div.onclick = () => { openChapter(ch.id); toggleSearch(); };
+    div.onclick = () => { libState.scrollPos = 0; openChapter(ch.id); toggleSearch(); };
     results.appendChild(div);
   });
 }
@@ -1848,19 +2120,21 @@ function renderBookmarks(){
     return;
   }
   list.innerHTML = '';
+  const books = getLibBooks();
   libState.bookmarks.forEach((bm, i) => {
-    const ch = LIB_BOOK.chapters.find(c => c.id === bm.chapter);
+    const book = books[bm.bookIdx || 0];
+    const ch = book ? book.chapters.find(c => c.id === bm.chapter) : null;
     const div = document.createElement('div');
     div.className = 'lib-bm-item';
-    div.innerHTML = '<span>' + (ch ? ch.title : bm.chapter) + '</span><button class="bm-del" onclick="event.stopPropagation();removeBookmark(' + i + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>';
-    div.onclick = () => { openChapter(bm.chapter); toggleBookmarks(); };
+    div.innerHTML = '<span>' + (ch ? ch.title : bm.chapter) + (bm.bookIdx ? ' · ' + (books[bm.bookIdx]?.title||'') : '') + '</span><button class="bm-del" onclick="event.stopPropagation();removeBookmark(' + i + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>';
+    div.onclick = () => { if(bm.bookIdx !== undefined && bm.bookIdx !== libState.currentBook) openBook(bm.bookIdx); libState.scrollPos = 0; openChapter(bm.chapter); toggleBookmarks(); };
     list.appendChild(div);
   });
 }
 function addBookmark(){
   const ch = libState.chapter;
-  if(libState.bookmarks.some(b => b.chapter === ch)) return;
-  libState.bookmarks.push({ chapter: ch, time: Date.now() });
+  if(libState.bookmarks.some(b => b.chapter === ch && b.bookIdx === libState.currentBook)) return;
+  libState.bookmarks.push({ chapter: ch, bookIdx: libState.currentBook, time: Date.now() });
   saveLibState();
 }
 function removeBookmark(i){
