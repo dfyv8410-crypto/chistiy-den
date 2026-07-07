@@ -362,7 +362,7 @@ body{
 .lib-toc-overlay.active{display:flex;}
 .lib-toc-overlay .lib-toc{max-height:70vh;overflow-y:auto;width:85%;max-width:380px;background:var(--card);border-radius:var(--radius-lg);padding:16px;box-sizing:border-box;}
 .lib-chapter-title{font-family:var(--font-display);font-size:19px;font-weight:700;color:var(--na-blue);margin:0 0 14px;line-height:1.3;}
-.lib-text{font-size:var(--lib-font-size,16px);line-height:var(--lib-line-height,1.7);color:var(--lib-text,#3D2B1F);}
+.lib-text{font-size:var(--lib-font-size,16px);line-height:var(--lib-line-height,1.7);color:var(--lib-text,#3D2B1F);font-family:var(--font-body);-webkit-font-smoothing:antialiased;}
 .lib-text p{margin:0 0 12px;}
 .lib-text em{font-style:italic;}
 .lib-text strong{font-weight:700;}
@@ -400,29 +400,29 @@ body{
 .lib-reader-panel.active{display:flex;flex-direction:column;flex:1;}
 .lib-back-btn{width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:var(--card);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;}
 .lib-back-btn svg{width:16px;height:16px;stroke:var(--na-blue);stroke-width:2.5;}
-.lib-bookshelf{display:flex;flex-direction:column;gap:16px;margin-top:10px;}
-.lib-shelf-row{display:flex;gap:12px;overflow-x:auto;padding:4px 0 8px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;}
-.lib-shelf-row::-webkit-scrollbar{display:none;}
-.lib-book-card{flex:0 0 130px;width:130px;scroll-snap-align:start;cursor:pointer;transition:transform .15s;}
-.lib-book-card:active{transform:scale(.95);}
-.lib-book-cover{width:130px;height:180px;border-radius:var(--radius-sm);background:var(--accent);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px 10px;text-align:center;color:#fff;position:relative;overflow:hidden;}
-.lib-book-cover .cover-icon{font-size:36px;opacity:.6;margin-bottom:6px;}
-.lib-book-cover .cover-title{font-size:11px;font-weight:800;line-height:1.3;letter-spacing:.2px;}
-.lib-book-cover .cover-author{font-size:9px;opacity:.7;margin-top:3px;}
-.lib-book-cover .cover-progress{position:absolute;bottom:0;left:0;right:0;height:4px;background:rgba(255,255,255,.3);}
+.lib-bookshelf{display:flex;flex-direction:column;gap:10px;margin-top:10px;}
+.lib-book-card{display:flex;align-items:stretch;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius-md);padding:8px 8px 8px 12px;transition:transform .15s,box-shadow .15s;}
+.lib-book-card-body{display:flex;align-items:stretch;gap:12px;flex:1;cursor:pointer;}
+.lib-book-card-body:active{transform:scale(.98);}
+.lib-book-del{width:32px;min-height:95px;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted);border-radius:var(--radius-sm);flex:0 0 auto;transition:all .15s;}
+.lib-book-del:active{background:var(--card-2);color:#B8403A;}
+.lib-book-del svg{width:16px;height:16px;stroke:currentColor;}
+.lib-book-cover{width:70px;min-height:95px;border-radius:var(--radius-sm);background:var(--accent);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 6px;text-align:center;color:#fff;position:relative;overflow:hidden;flex:0 0 auto;}
+.lib-book-cover .cover-icon{font-size:22px;opacity:.6;margin-bottom:4px;}
+.lib-book-cover .cover-title{font-size:9px;font-weight:800;line-height:1.2;letter-spacing:.2px;}
+.lib-book-cover .cover-author{font-size:8px;opacity:.7;margin-top:2px;}
+.lib-book-cover .cover-progress{position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,.3);}
 .lib-book-cover .cover-progress-fill{height:100%;background:#fff;border-radius:0 2px 0 0;transition:width .4s;}
-.lib-book-info{margin-top:6px;}
-.lib-book-info .book-title{font-size:11px;font-weight:700;color:var(--na-blue);line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
-.lib-book-info .book-meta{font-size:9px;color:var(--muted);margin-top:2px;}
-.lib-shelf-label{font-size:13px;font-weight:800;color:var(--na-blue);margin-bottom:2px;}
-.lib-featured{flex:0 0 160px;width:160px;}
-.lib-featured .lib-book-cover{width:160px;height:220px;}
-.lib-featured .lib-book-cover .cover-title{font-size:13px;}
-.lib-featured .lib-book-info .book-title{font-size:12px;}
-.lib-add-btn{flex:0 0 130px;width:130px;height:180px;border-radius:var(--radius-sm);border:2px dashed var(--line);background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);transition:all .15s;gap:6px;}
+.lib-book-info{flex:1;display:flex;flex-direction:column;justify-content:center;min-width:0;}
+.lib-book-info .book-title{font-size:14px;font-weight:700;color:var(--na-blue);line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.lib-book-info .book-meta{font-size:11px;color:var(--muted);margin-top:4px;}
+.lib-book-info .book-progress{height:4px;border-radius:2px;background:var(--line);overflow:hidden;margin-top:6px;max-width:180px;}
+.lib-book-info .book-progress .fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s;}
+.lib-shelf-label{font-size:13px;font-weight:800;color:var(--na-blue);margin-bottom:4px;}
+.lib-add-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;border-radius:var(--radius-md);border:2px dashed var(--line);background:var(--card);cursor:pointer;color:var(--muted);transition:all .15s;}
 .lib-add-btn:active{background:var(--card-2);border-color:var(--accent);color:var(--accent);}
-.lib-add-btn svg{width:28px;height:28px;stroke:currentColor;stroke-width:1.5;}
-.lib-add-btn span{font-size:11px;font-weight:700;}
+.lib-add-btn svg{width:22px;height:22px;stroke:currentColor;stroke-width:1.5;}
+.lib-add-btn span{font-size:13px;font-weight:700;}
 .lib-progress-bar{margin:8px 0;height:4px;border-radius:2px;background:var(--line);overflow:hidden;}
 .lib-progress-bar .fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s;}
 .lib-page-info{font-size:11px;color:var(--muted);text-align:center;margin:6px 0;}
@@ -631,7 +631,7 @@ body{
       <div class="lib-header">
         <h2>Библиотека</h2>
         <div class="lib-controls">
-          <input type="file" id="libFileInput" accept=".fb2,.txt,.html" style="display:none" onchange="importBook(event)">
+          <input type="file" id="libFileInput" accept=".fb2,.txt,.html,.epub,.pdf,.doc,.docx,.rtf" style="display:none" onchange="importBook(event)">
           <button onclick="document.getElementById('libFileInput').click()" aria-label="Загрузить книгу" title="Загрузить книгу">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           </button>
@@ -1885,21 +1885,26 @@ function renderLibrary(){
 function renderBookshelf(){
   const shelf = document.getElementById('libBookshelf');
   const books = getLibBooks();
-  let html = '<div class="lib-shelf-label">Мои книги</div><div class="lib-shelf-row">';
+  let html = '';
   books.forEach((book, i) => {
-    const pct = book.chapters.length ? Math.round(((libState.currentBook === i ? getCurrentChapterIndex(i) + 1 : 0) / book.chapters.length) * 100) : 0;
-    const isFeatured = i === 0;
-    html += '<div class="lib-book-card' + (isFeatured ? ' lib-featured' : '') + '" onclick="openBook(' + i + ')">';
+    const idx = libState.currentBook === i ? getCurrentChapterIndex(i) : -1;
+    const pct = book.chapters.length ? Math.round(((idx + 1) / book.chapters.length) * 100) : 0;
+    html += '<div class="lib-book-card">';
+    html += '<div class="lib-book-card-body" onclick="openBook(' + i + ')">';
     html += '<div class="lib-book-cover" style="background:' + book.color + '">';
-    html += '<div class="cover-icon">' + book.icon + '</div>';
+    html += '<div class="cover-icon">' + (book.icon || '&#x1F4D6;') + '</div>';
     html += '<div class="cover-title">' + escHtml(book.title) + '</div>';
     if(book.author) html += '<div class="cover-author">' + escHtml(book.author) + '</div>';
     html += '<div class="cover-progress"><div class="cover-progress-fill" style="width:' + pct + '%"></div></div>';
-    html += '</div><div class="lib-book-info"><div class="book-title">' + escHtml(book.title) + '</div>';
-    html += '<div class="book-meta">' + book.chapters.length + ' глав' + (pct > 0 ? ' · ' + pct + '%' : '') + '</div></div></div>';
+    html += '</div><div class="lib-book-info">';
+    html += '<div class="book-title">' + escHtml(book.title) + '</div>';
+    html += '<div class="book-meta">' + book.chapters.length + ' глав · ' + (book.author || 'Анонимные Наркоманы') + '</div>';
+    html += '<div class="book-progress"><div class="fill" style="width:' + pct + '%"></div></div>';
+    html += '</div></div>';
+    if(i > 0) html += '<button class="lib-book-del" onclick="event.stopPropagation();deleteBook(' + i + ')" aria-label="Удалить книгу"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>';
+    html += '</div>';
   });
   html += '<div class="lib-add-btn" onclick="document.getElementById(\'libFileInput\').click()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span>Загрузить книгу</span></div>';
-  html += '</div>';
   shelf.innerHTML = html;
 }
 function getCurrentChapterIndex(bookIdx){
@@ -1934,6 +1939,17 @@ function closeReader(){
   document.getElementById('libReaderPanel').classList.remove('active');
   saveLibState();
 }
+function deleteBook(idx){
+  if(idx <= 0) return; // нельзя удалить первую книгу
+  const books = getLibBooks();
+  if(!confirm('Удалить книгу "' + books[idx].title + '"?')) return;
+  // если удаляем текущую открытую книгу, переключаемся на первую
+  if(libState.currentBook === idx) libState.currentBook = 0;
+  const imported = JSON.parse(storage.get('lib_imported')||'[]');
+  imported.splice(idx - 1, 1); // idx 0 = LIB_BOOK, так что отнимаем 1
+  storage.set('lib_imported', JSON.stringify(imported));
+  renderBookshelf();
+}
 function getLibBooks(){
   const imported = JSON.parse(storage.get('lib_imported')||'[]');
   return [LIB_BOOK, ...imported];
@@ -1942,58 +1958,191 @@ function saveLibBooks(arr){
   const imported = arr.slice(1);
   storage.set('lib_imported', JSON.stringify(imported));
 }
+// --- format parsers ---
+async function loadJsZip(){
+  if(window.JSZip) return;
+  const s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+  document.head.appendChild(s);
+  await new Promise((ok,no)=>{ s.onload=ok; s.onerror=no; });
+}
+function stripHtmlTags(s){ return s.replace(/<[^>]+>/g,' ').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'\"').replace(/&#(\d+);/g,(_,c)=>String.fromCharCode(c)).replace(/\s+/g,' ').trim(); }
+function parseFB2Text(text){
+  const title = (text.match(/<book-title>([^<]+)<\/book-title>/i)||[])[1] || '';
+  const body = text.match(/<body>([\s\S]*?)<\/body>/i);
+  if(!body) return null;
+  const sections = body[1].match(/<section>([\s\S]*?)<\/section>/gi);
+  if(!sections) return null;
+  const chapters = [];
+  sections.forEach((sec,i)=>{
+    const tMatch = sec.match(/<title>([\s\S]*?)<\/title>/i);
+    const secTitle = tMatch ? stripHtmlTags(tMatch[1]) : ('Раздел '+(i+1));
+    const pars = sec.match(/<p>([\s\S]*?)<\/p>/gi);
+    const content = pars ? pars.map(p=>stripHtmlTags(p)).filter(p=>p) : [];
+    if(content.length) chapters.push({ id:'fb2_'+i, title:secTitle, content });
+  });
+  return { chapters, title };
+}
+function parseTxtPages(text, maxLines=30){
+  const lines = text.split('\n').filter(l=>l.trim());
+  const pages = [];
+  let cur = [];
+  lines.forEach((l,i)=>{
+    cur.push(l.trim());
+    if(cur.length>=maxLines || i===lines.length-1){ pages.push({ id:'p_'+pages.length, title:'Страница '+(pages.length+1), content:[...cur] }); cur=[]; }
+  });
+  return pages.length ? pages : [{ id:'p0', title:'Текст', content:['(пусто)'] }];
+}
+async function readZipFile(zip, path){
+  try {
+    const o = zip.file(path);
+    if(!o) return null;
+    return new Uint8Array(await o.async('arraybuffer'));
+  } catch(e){ return null; }
+}
+async function parseEPUB(buf){
+  await loadJsZip();
+  const zip = await JSZip.loadAsync(buf);
+  const container = await readZipFile(zip, 'META-INF/container.xml');
+  if(!container) return null;
+  const opfPath = (new TextDecoder().decode(container).match(/full-path=\"([^\"]+)\"/i)||[])[1];
+  if(!opfPath) return null;
+  const opfBuf = await readZipFile(zip, opfPath);
+  if(!opfBuf) return null;
+  const opfStr = new TextDecoder().decode(opfBuf);
+  const baseDir = opfPath.includes('/') ? opfPath.slice(0, opfPath.lastIndexOf('/')+1) : '';
+  const items = {};
+  const itemRegex = /<item[^>]*>/gi;
+  let m;
+  while((m=itemRegex.exec(opfStr))!==null){
+    const id = (m[0].match(/id=\"([^\"]+)\"/i)||[])[1];
+    const href = (m[0].match(/href=\"([^\"]+)\"/i)||[])[1];
+    const media = (m[0].match(/media-type=\"([^\"]+)\"/i)||[])[1];
+    if(id && href && media && media.startsWith('application/xhtml')) items[id] = href;
+  }
+  const spineOrder = [];
+  const itemrefRegex = /<itemref[^>]*>/gi;
+  while((m=itemrefRegex.exec(opfStr))!==null){
+    const idref = (m[0].match(/idref=\"([^\"]+)\"/i)||[])[1];
+    if(idref) spineOrder.push(idref);
+  }
+  const chapters = [];
+  for(let i=0; i<spineOrder.length; i++){
+    const href = items[spineOrder[i]];
+    if(!href) continue;
+    const fullPath = baseDir + href;
+    const data = await readZipFile(zip, fullPath);
+    if(!data) continue;
+    const html = new TextDecoder().decode(data);
+    const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+    if(!bodyMatch) continue;
+    const tMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+    const chTitle = tMatch ? stripHtmlTags(tMatch[1]) : href.replace(/\.x?html?$/i,'').replace(/[_-]/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+    const pMatch = bodyMatch[1].match(/<p[^>]*>([\s\S]*?)<\/p>/gi);
+    const content = pMatch ? pMatch.map(p=>stripHtmlTags(p)).filter(p=>p) : [];
+    if(content.length) chapters.push({ id:'epub_'+i, title:chTitle, content });
+  }
+  const tMatch = opfStr.match(/<dc:title[^>]*>([^<]+)<\/dc:title>/i) || opfStr.match(/<title[^>]*>([^<]+)<\/title>/i);
+  const title = tMatch ? tMatch[1].trim() : '';
+  return { chapters, title };
+}
+async function parseDOCX(buf){
+  await loadJsZip();
+  const zip = await JSZip.loadAsync(buf);
+  const doc = await readZipFile(zip, 'word/document.xml');
+  if(!doc) return null;
+  const xml = new TextDecoder().decode(doc);
+  const pars = xml.split(/<\/w:p>/i);
+  const paragraphs = [];
+  pars.forEach(p=>{
+    const ts = p.match(/<w:t[^>]*>([\s\S]*?)<\/w:t>/gi);
+    if(ts){
+      const line = ts.map(t=>stripHtmlTags(t)).filter(t=>t).join('');
+      if(line) paragraphs.push(line);
+    }
+  });
+  return { chapters: [{ id:'docx_0', title: 'Документ', content: paragraphs.length ? paragraphs : ['(пусто)'] }], title: '' };
+}
+function parseRTFText(text){
+  let out = text.replace(/\\[a-z]+\d*[- ]?/gi,' ').replace(/\\'[0-9a-f]{2}/gi,' ').replace(/\\\{/g,'{').replace(/\\\}/g,'}').replace(/\\\\/g,'\\').replace(/[{}]/g,'').replace(/\s+/g,' ').trim();
+  const lines = out.split(/\n/).map(l=>l.trim()).filter(l=>l.length>1);
+  return lines.length ? lines : [out];
+}
+async function parsePDFBuf(buf){
+  if(typeof pdfjsLib === 'undefined'){
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    document.head.appendChild(s);
+    await new Promise((ok,no)=>{ s.onload=ok; s.onerror=no; });
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+  const pdf = await pdfjsLib.getDocument({ data: buf.slice(0) }).promise;
+  const chapters = [];
+  for(let i=1; i<=pdf.numPages; i++){
+    const page = await pdf.getPage(i);
+    const textContent = await page.getTextContent();
+    const text = textContent.items.map(item=>item.str).join(' ');
+    const lines = text.split(/\n/).map(l=>l.trim()).filter(l=>l);
+    chapters.push({ id:'pdf_'+(i-1), title:'Страница '+i, content: lines.length ? lines : [text] });
+  }
+  return { chapters, title: (pdf.docInfo?.title || 'PDF документ') };
+}
+function getFormatIconColor(ext){
+  const map = {
+    fb2: {icon:'📘', color:'#3A7B4F'}, txt: {icon:'📄', color:'#5A6B7A'},
+    html:{icon:'🌐', color:'#D4703A'}, epub:{icon:'📕', color:'#8B3A8B'},
+    pdf: {icon:'📋', color:'#C0392B'}, doc:{icon:'📝', color:'#2C6FBB'},
+    docx:{icon:'📝', color:'#2C6FBB'}, rtf:{icon:'📃', color:'#7F8C8D'}
+  };
+  return map[ext] || {icon:'📖', color:'#4A7FB5'};
+}
 function importBook(event){
   const file = event.target.files[0];
   if(!file) return;
+  event.target.value = '';
+  const ext = file.name.split('.').pop().toLowerCase();
+  const name = file.name.replace(/\.[^/.]+$/, '');
+  const fi = getFormatIconColor(ext);
   const reader = new FileReader();
-  reader.onload = function(e){
-    const text = e.target.result;
-    const name = file.name.replace(/\.[^/.]+$/, '');
-    let chapters = [];
-    let title = name;
-    if(file.name.endsWith('.fb2')){
-      const titleMatch = text.match(/<book-title>([^<]+)<\/book-title>/i);
-      if(titleMatch) title = titleMatch[1];
-      const bodyMatch = text.match(/<body>([\s\S]*?)<\/body>/i);
-      if(bodyMatch){
-        const bodyContent = bodyMatch[1];
-        const sections = bodyContent.match(/<section>([\s\S]*?)<\/section>/gi);
-        if(sections){
-          sections.forEach((sec, i) => {
-            const tMatch = sec.match(/<title>([\s\S]*?)<\/title>/i);
-            const secTitle = tMatch ? tMatch[1].replace(/<[^>]+>/g, '').trim() : ('Раздел ' + (i+1));
-            const pars = sec.match(/<p>([\s\S]*?)<\/p>/gi);
-            const content = pars ? pars.map(p => p.replace(/<\/?p>/gi, '').replace(/<[^>]+>/g, '').trim()).filter(p => p) : [];
-            if(content.length) chapters.push({ id:'sec_'+i, title: secTitle, content });
-          });
-        }
+  reader.onload = async function(e){
+    let result;
+    try {
+      if(ext==='fb2') result = parseFB2Text(e.target.result);
+      else if(ext==='txt') result = { chapters: parseTxtPages(e.target.result), title: name };
+      else if(ext==='html' || ext==='htm'){
+        const html = e.target.result;
+        const tMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+        const title = tMatch ? stripHtmlTags(tMatch[1]) : name;
+        const body = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+        const pars = body ? body[1].match(/<p[^>]*>([\s\S]*?)<\/p>/gi) : html.match(/<p[^>]*>([\s\S]*?)<\/p>/gi);
+        const content = pars ? pars.map(p=>stripHtmlTags(p)).filter(p=>p) : html.split('\n').filter(l=>l.trim()).map(l=>stripHtmlTags(l)).filter(l=>l);
+        if(!content.length) content.push('(пусто)');
+        result = { chapters: [{ id:'html_0', title: title, content }], title };
       }
-    } else {
-      const lines = text.split('\n').filter(l => l.trim());
-      if(lines.length){
-        title = name;
-        const pages = [];
-        let current = [];
-        lines.forEach((l, i) => {
-          current.push(l.trim());
-          if(current.length >= 30 || i === lines.length-1){
-            pages.push({ id:'page_'+pages.length, title: 'Страница ' + (pages.length+1), content: [...current] });
-            current = [];
-          }
-        });
-        chapters = pages;
+      else if(ext==='epub') result = await parseEPUB(new Uint8Array(e.target.result));
+      else if(ext==='pdf') result = await parsePDFBuf(new Uint8Array(e.target.result));
+      else if(ext==='docx') result = await parseDOCX(new Uint8Array(e.target.result));
+      else if(ext==='doc' || ext==='rtf'){
+        const text = e.target.result;
+        const lines = parseRTFText(text);
+        result = { chapters: [{ id:'doc_0', title: name, content: lines }], title: name };
       }
+    } catch(err){
+      result = { chapters: [{ id:'err', title:'Ошибка', content:['Не удалось прочитать файл: '+err.message] }], title: name };
     }
-    if(!chapters.length){
-      chapters = [{ id:'content', title: title, content: text.split('\n').filter(l => l.trim()).map(l => l.trim()) }];
+    if(!result || !result.chapters || !result.chapters.length){
+      result = { chapters: [{ id:'err', title: name, content: ['Не удалось распознать формат файла'] }], title: name };
     }
     const imported = JSON.parse(storage.get('lib_imported')||'[]');
-    imported.push({ title, author: '', icon: '📖', color: '#4A7FB5', chapters });
+    imported.push({ title: result.title || name, author: '', icon: fi.icon, color: fi.color, chapters: result.chapters });
     storage.set('lib_imported', JSON.stringify(imported));
     renderBookshelf();
   };
-  reader.readAsText(file, 'UTF-8');
-  event.target.value = '';
+  if(['epub','pdf','docx','doc'].includes(ext)){
+    reader.readAsArrayBuffer(file);
+  } else {
+    reader.readAsText(file, 'UTF-8');
+  }
 }
 function loadChapter(chapterId){
   const books = getLibBooks();
