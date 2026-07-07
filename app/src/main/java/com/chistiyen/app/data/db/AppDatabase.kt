@@ -16,9 +16,12 @@ import com.chistiyen.app.data.db.entity.*
         BookSettings::class,
         Bookmark::class,
         Note::class,
-        SosContact::class
+        SosContact::class,
+        CravingEntry::class,
+        CravingTool::class,
+        CravingEvent::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -30,6 +33,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun bookmarkDao(): BookmarkDao
     abstract fun noteDao(): NoteDao
     abstract fun sosContactDao(): SosContactDao
+    abstract fun cravingEntryDao(): CravingEntryDao
 
     companion object {
         @Volatile private var INSTANCE: AppDatabase? = null

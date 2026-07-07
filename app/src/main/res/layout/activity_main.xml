@@ -42,6 +42,8 @@
 
         <!-- Settings -->
         <include layout="@layout/screen_settings" android:id="@+id/screenSettings" />
+        <!-- Diary -->
+        <include layout="@layout/screen_diary" android:id="@+id/screenDiary" />
     </FrameLayout>
 
     <!-- Bottom Navigation -->

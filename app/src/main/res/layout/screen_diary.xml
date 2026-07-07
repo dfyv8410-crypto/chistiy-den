@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <!-- History panel -->
+    <LinearLayout android:id="@+id/diaryListPanel"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:orientation="vertical" android:padding="16dp">
+        <LinearLayout android:orientation="horizontal"
+            android:layout_width="match_parent" android:layout_height="wrap_content">
+            <ImageButton android:id="@+id/diaryBackBtn" android:layout_width="36dp"
+                android:layout_height="36dp" android:src="@drawable/ic_close"
+                android:background="@null" android:contentDescription="Закрыть"
+                android:scaleType="center"/>
+            <TextView android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="wrap_content" android:text="Дневник тяги"
+                android:textSize="24dp" android:textColor="@color/na_blue"
+                android:fontFamily="serif" android:textStyle="bold"
+                android:gravity="center"/>
+            <ImageButton android:id="@+id/diaryStatsBtn" android:layout_width="36dp"
+                android:layout_height="36dp" android:src="@drawable/ic_settings"
+                android:background="@null" android:contentDescription="Статистика"
+                android:scaleType="center"/>
+        </LinearLayout>
+        <EditText android:id="@+id/diarySearch" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:hint="🔍 Поиск по дневнику..."
+            android:padding="12dp" android:background="@drawable/input_border"
+            android:textSize="14dp" android:layout_marginVertical="10dp"/>
+        <Button android:id="@+id/diaryNewBtn" android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="➕ Новая запись"
+            android:backgroundTint="@color/accent" android:textColor="@color/cream"
+            android:textStyle="bold" android:textSize="16dp"
+            style="@style/Widget.ChistiyDen.Button"/>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/diaryList"
+            android:layout_width="match_parent" android:layout_height="0dp"
+            android:layout_weight="1" android:layout_marginTop="8dp"/>
+    </LinearLayout>
+
+    <!-- Form panel (full-screen, hidden by default) -->
+    <ScrollView android:id="@+id/diaryFormPanel"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:visibility="gone" android:padding="16dp"
+        android:fillViewport="true">
+        <LinearLayout android:orientation="vertical"
+            android:layout_width="match_parent" android:layout_height="wrap_content">
+            <LinearLayout android:orientation="horizontal"
+                android:layout_width="match_parent" android:layout_height="wrap_content">
+                <ImageButton android:id="@+id/diaryFormBack" android:layout_width="36dp"
+                    android:layout_height="36dp" android:src="@drawable/ic_close"
+                    android:background="@null" android:contentDescription="Назад"/>
+                <TextView android:id="@+id/diaryFormTitle" android:layout_width="0dp"
+                    android:layout_weight="1" android:layout_height="wrap_content"
+                    android:text="Новая запись" android:textSize="20dp"
+                    android:textColor="@color/na_blue" android:fontFamily="serif"
+                    android:textStyle="bold" android:gravity="center"/>
+                <ImageButton android:id="@+id/diaryFormDelete" android:layout_width="36dp"
+                    android:layout_height="36dp" android:src="@drawable/ic_close"
+                    android:background="@null" android:contentDescription="Удалить"
+                    android:scaleType="center" android:visibility="gone"/>
+            </LinearLayout>
+
+            <!-- 1. Start time -->
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Начало тяги" android:textSize="15dp"
+                android:textColor="@color/na_blue" android:textStyle="bold"
+                android:layout_marginTop="14dp"/>
+            <LinearLayout android:orientation="horizontal"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:background="@drawable/card_border" android:padding="10dp">
+                <TextView android:id="@+id/diaryStartTime" android:layout_width="0dp"
+                    android:layout_weight="1" android:layout_height="wrap_content"
+                    android:textSize="14dp" android:textColor="@color/accent"
+                    android:textStyle="bold"/>
+                <Button android:id="@+id/diaryEditStartBtn" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:text="Изменить"
+                    android:textSize="12dp" android:backgroundTint="@color/card"
+                    android:textColor="@color/muted" android:paddingHorizontal="12dp"
+                    style="@style/Widget.ChistiyDen.Button"/>
+            </LinearLayout>
+
+            <!-- Situation -->
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Что произошло перед тягой?"
+                android:textSize="15dp" android:textColor="@color/na_blue"
+                android:textStyle="bold" android:layout_marginTop="12dp"/>
+            <EditText android:id="@+id/diarySituation" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:hint="Опишите ситуацию..."
+                android:padding="12dp" android:background="@drawable/input_border"
+                android:textSize="14dp" android:minLines="3"
+                android:gravity="top"/>
+
+            <!-- 2. Thoughts -->
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Мысли" android:textSize="15dp"
+                android:textColor="@color/na_blue" android:textStyle="bold"
+                android:layout_marginTop="12dp"/>
+            <LinearLayout android:orientation="horizontal"
+                android:layout_width="match_parent" android:layout_height="wrap_content">
+                <EditText android:id="@+id/diaryThoughts" android:layout_width="0dp"
+                    android:layout_weight="1" android:layout_height="wrap_content"
+                    android:hint="Какие мысли появились?"
+                    android:padding="12dp" android:background="@drawable/input_border"
+                    android:textSize="14dp" android:minLines="3" android:gravity="top"/>
+                <Button android:id="@+id/diaryThoughtsTime" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:text="🕒"
+                    android:textSize="18dp" android:backgroundTint="@color/card"
+                    android:textColor="@color/muted" android:padding="8dp"
+                    android:layout_marginStart="4dp"
+                    style="@style/Widget.ChistiyDen.Button"/>
+            </LinearLayout>
+            <TextView android:id="@+id/diaryThoughtsTimeLabel"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="11dp" android:textColor="@color/muted"
+                android:visibility="gone"/>
+
+            <!-- 3. Feelings -->
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Чувства" android:textSize="15dp"
+                android:textColor="@color/na_blue" android:textStyle="bold"
+                android:layout_marginTop="12dp"/>
+            <LinearLayout android:orientation="horizontal"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:gravity="center_vertical">
+                <LinearLayout android:orientation="vertical"
+                    android:layout_width="0dp" android:layout_weight="1"
+                    android:layout_height="wrap_content">
+                    <CheckBox android:id="@+id/feelFear" android:text="Страх"
+                        android:textSize="13dp" android:textColor="@color/cream"/>
+                    <CheckBox android:id="@+id/feelAnger" android:text="Злость"
+                        android:textSize="13dp" android:textColor="@color/cream"/>
+                    <CheckBox android:id="@+id/feelBoredom" android:text="Скука"
+                        android:textSize="13dp" android:textColor="@color/cream"/>
+                    <CheckBox android:id="@+id/feelLonely" android:text="Одиночество"
+                        android:textSize="13dp" android:textColor="@color/cream"/>
+                </LinearLayout>
+                <LinearLayout android:orientation="vertical"
+                    android:layout_width="0dp" android:layout_weight="1"
+                    android:layout_height="wrap_content">
+                    <CheckBox android:id="@+id/feelAnxiety" android:text="Тревога"
+                        android:textSize="13dp" android:textColor="@color/cream"/>
+                    <CheckBox android:id="@+id/feelTired" android:text="Усталость"
+                        android:textSize="13dp" android:textColor="@color/cream"/>
+                    <CheckBox android:id="@+id/feelOffense" android:text="Обида"
+                        android:textSize="13dp" android:textColor="@color/cream"/>
+                    <CheckBox android:id="@+id/feelOther" android:text="Другое"
+                        android:textSize="13dp" android:textColor="@color/cream"/>
+                </LinearLayout>
+            </LinearLayout>
+            <EditText android:id="@+id/diaryFeelingsOther" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:hint="Другие чувства..."
+                android:padding="10dp" android:background="@drawable/input_border"
+                android:textSize="13dp" android:layout_marginTop="4dp"/>
+
+            <!-- 4. Trigger -->
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Что вызвало тягу?" android:textSize="15dp"
+                android:textColor="@color/na_blue" android:textStyle="bold"
+                android:layout_marginTop="12dp"/>
+            <EditText android:id="@+id/diaryTrigger" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:hint="Конфликт, работа, деньги, встреча, одиночество, стресс..."
+                android:padding="12dp" android:background="@drawable/input_border"
+                android:textSize="14dp" android:minLines="2" android:gravity="top"/>
+
+            <!-- 5. Tools -->
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Какие инструменты я применил"
+                android:textSize="15dp" android:textColor="@color/na_blue"
+                android:textStyle="bold" android:layout_marginTop="12dp"/>
+            <LinearLayout android:id="@+id/diaryToolsList"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical"/>
+            <TextView android:id="@+id/diaryToolOtherLabel" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:text="Другое:"
+                android:textSize="12dp" android:textColor="@color/muted"
+                android:layout_marginTop="6dp"/>
+            <EditText android:id="@+id/diaryToolOther" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:hint="Какой ещё инструмент?"
+                android:padding="10dp" android:background="@drawable/input_border"
+                android:textSize="13dp"/>
+
+            <!-- 6. Summary -->
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Итог" android:textSize="15dp"
+                android:textColor="@color/na_blue" android:textStyle="bold"
+                android:layout_marginTop="12dp"/>
+            <EditText android:id="@+id/diarySummary" android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Что помогло? Что понял? Что сделаю в следующий раз?"
+                android:padding="12dp" android:background="@drawable/input_border"
+                android:textSize="14dp" android:minLines="3" android:gravity="top"/>
+
+            <!-- 7. End -->
+            <LinearLayout android:orientation="vertical"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:background="@drawable/card_border" android:padding="14dp"
+                android:layout_marginTop="16dp">
+                <TextView android:id="@+id/diaryEndTime" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:textSize="14dp"
+                    android:textColor="@color/accent" android:textStyle="bold"/>
+                <Button android:id="@+id/diaryEndBtn" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:text="✔ Тяга закончилась"
+                    android:backgroundTint="@color/accent" android:textColor="@color/cream"
+                    android:textStyle="bold" android:textSize="15dp"
+                    android:layout_marginTop="8dp"
+                    style="@style/Widget.ChistiyDen.Button"/>
+            </LinearLayout>
+
+            <!-- Timeline -->
+            <LinearLayout android:id="@+id/diaryTimeline"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:visibility="gone"
+                android:background="@drawable/card_border" android:padding="14dp"
+                android:layout_marginTop="12dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Временная шкала" android:textSize="15dp"
+                    android:textColor="@color/na_blue" android:textStyle="bold"/>
+            </LinearLayout>
+
+            <!-- Save button -->
+            <Button android:id="@+id/diarySaveBtn" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:text="💾 Сохранить"
+                android:backgroundTint="@color/na_blue" android:textColor="@color/white"
+                android:textStyle="bold" android:textSize="16dp"
+                android:layout_marginVertical="16dp"
+                style="@style/Widget.ChistiyDen.Button"/>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

@@ -62,6 +62,7 @@ class MainActivity : AppCompatActivity() {
         contentFrame = findViewById(R.id.contentFrame)
 
         // Register all screens
+        setupDiary()
         screens = mapOf(
             "home" to findViewById(R.id.screenHome),
             "jft" to findViewById(R.id.screenJft),
@@ -71,7 +72,8 @@ class MainActivity : AppCompatActivity() {
             "sos" to findViewById(R.id.screenSos),
             "service" to findViewById(R.id.screenService),
             "library" to findViewById(R.id.screenLibrary),
-            "settings" to findViewById(R.id.screenSettings)
+            "settings" to findViewById(R.id.screenSettings),
+            "diary" to findViewById(R.id.screenDiary)
         )
 
         setupBottomNav()
@@ -162,6 +164,9 @@ class MainActivity : AppCompatActivity() {
 
             findViewById<TextView>(R.id.settingsLink).setOnClickListener {
                 showScreen("settings")
+            }
+            findViewById<Button>(R.id.diaryBtn).setOnClickListener {
+                openDiary()
             }
         }
     }
@@ -437,6 +442,388 @@ class MainActivity : AppCompatActivity() {
     private fun dialPhone(phone: String) {
         val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:${phone.filter { it.isDigit() || it == '+' }}"))
         startActivity(intent)
+    }
+
+    /* ===================== DIARY ===================== */
+
+    private var currentDiaryEntryId: Long = -1
+    private var diaryEntryStartTime: Long = System.currentTimeMillis()
+    private var diaryEntryEndTime: Long? = null
+    private var diaryEditing = false
+
+    private fun openDiary() {
+        showScreen("diary")
+        lifecycleScope.launch {
+            val unfinished = db.cravingEntryDao().getUnfinished()
+            if (unfinished != null) {
+                withContext(Dispatchers.Main) {
+                    findViewById<Button>(R.id.diaryNewBtn).text = "➡ Продолжить черновик"
+                    findViewById<Button>(R.id.diaryNewBtn).setOnClickListener { openDiaryEntry(unfinished) }
+                }
+            } else {
+                withContext(Dispatchers.Main) {
+                    findViewById<Button>(R.id.diaryNewBtn).text = "➕ Новая запись"
+                    findViewById<Button>(R.id.diaryNewBtn).setOnClickListener { createNewEntry() }
+                }
+            }
+            loadDiaryHistory()
+        }
+    }
+
+    private fun setupDiary() {
+        findViewById<ImageButton>(R.id.diaryBackBtn).setOnClickListener { showScreen("home") }
+        findViewById<ImageButton>(R.id.diaryFormBack).setOnClickListener { saveDraftAndBack() }
+        findViewById<ImageButton>(R.id.diaryStatsBtn).setOnClickListener { showDiaryStats() }
+        findViewById<ImageButton>(R.id.diaryFormDelete).setOnClickListener { deleteCurrentEntry() }
+        findViewById<Button>(R.id.diaryNewBtn).setOnClickListener { createNewEntry() }
+        findViewById<Button>(R.id.diarySaveBtn).setOnClickListener { saveDiaryEntry() }
+        findViewById<Button>(R.id.diaryEndBtn).setOnClickListener { endDiaryEntry() }
+        findViewById<Button>(R.id.diaryEditStartBtn).setOnClickListener { editDiaryStartTime() }
+        findViewById<Button>(R.id.diaryThoughtsTime).setOnClickListener { markThoughtsTime() }
+        findViewById<EditText>(R.id.diarySearch).addTextChangedListener(object : android.text.TextWatcher {
+            override fun afterTextChanged(s: android.text.Editable?) { lifecycleScope.launch { loadDiaryHistory(s?.toString() ?: "") } }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        })
+    }
+
+    private fun saveDraftAndBack() {
+        lifecycleScope.launch {
+            val entry = collectDiaryEntry()
+            if (entry.situation.isNotEmpty() || entry.thoughts.isNotEmpty() || entry.trigger.isNotEmpty()) {
+                if (currentDiaryEntryId > 0) db.cravingEntryDao().update(entry)
+                else currentDiaryEntryId = db.cravingEntryDao().insert(entry)
+                // Save tools
+                db.cravingEntryDao().deleteTools(currentDiaryEntryId)
+                val list = findViewById<LinearLayout>(R.id.diaryToolsList)
+                for (i in 0 until list.childCount) {
+                    val row = list.getChildAt(i) as? LinearLayout ?: continue
+                    val cb = row.getChildAt(0) as? CheckBox ?: continue
+                    val et = row.getChildAt(1) as? EditText ?: continue
+                    if (cb.isChecked) db.cravingEntryDao().insertTool(com.chistiyen.app.data.db.entity.CravingTool(entryId = currentDiaryEntryId, toolName = cb.text.toString(), comment = et.text.toString().trim()))
+                }
+                val otherTool = findViewById<EditText>(R.id.diaryToolOther).text.toString().trim()
+                if (otherTool.isNotEmpty()) db.cravingEntryDao().insertTool(com.chistiyen.app.data.db.entity.CravingTool(entryId = currentDiaryEntryId, toolName = "Другое: $otherTool"))
+            }
+            showDiaryList()
+        }
+    }
+
+    private fun showDiaryList() {
+        findViewById<View>(R.id.diaryListPanel).visibility = View.VISIBLE
+        findViewById<View>(R.id.diaryFormPanel).visibility = View.GONE
+        findViewById<Button>(R.id.diaryNewBtn).text = "➕ Новая запись"
+        findViewById<Button>(R.id.diaryNewBtn).setOnClickListener { createNewEntry() }
+        lifecycleScope.launch { loadDiaryHistory() }
+    }
+
+    private fun showDiaryForm(title: String) {
+        findViewById<View>(R.id.diaryListPanel).visibility = View.GONE
+        findViewById<View>(R.id.diaryFormPanel).visibility = View.VISIBLE
+        findViewById<TextView>(R.id.diaryFormTitle).text = title
+    }
+
+    private suspend fun loadDiaryHistory(query: String = "") {
+        val entries = if (query.isNotEmpty()) db.cravingEntryDao().search(query)
+                      else db.cravingEntryDao().getAll()
+        val sdf = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
+        withContext(Dispatchers.Main) {
+            findViewById<RecyclerView>(R.id.diaryList).adapter = object : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+                override fun onCreateViewHolder(p: android.view.ViewGroup, vt: Int) =
+                    object : RecyclerView.ViewHolder(layoutInflater.inflate(R.layout.item_craving_entry, p, false)) {}
+                override fun onBindViewHolder(h: RecyclerView.ViewHolder, i: Int) {
+                    val e = entries[i]
+                    h.itemView.findViewById<TextView>(R.id.cravingDate).text = sdf.format(Date(e.createdAt))
+                    h.itemView.findViewById<TextView>(R.id.cravingSituation).text = e.situation.ifEmpty { "(без описания)" }
+                    h.itemView.findViewById<TextView>(R.id.cravingDuration).text =
+                        if (e.isCompleted && e.endTime != null) "${(e.endTime!! - e.startTime) / 60000} мин."
+                        else "Не завершено"
+                    h.itemView.findViewById<TextView>(R.id.cravingStatus).text =
+                        if (e.isCompleted) "Завершено" else "В процессе"
+                    h.itemView.setOnClickListener { openDiaryEntry(e) }
+                    h.itemView.setOnLongClickListener {
+                        android.app.AlertDialog.Builder(this@MainActivity)
+                            .setTitle(e.situation.ifEmpty { "Запись" })
+                            .setItems(arrayOf("Открыть", "Удалить", "Экспорт")) { _, w ->
+                                when (w) {
+                                    0 -> openDiaryEntry(e)
+                                    1 -> lifecycleScope.launch { deleteDiaryEntry(e) }
+                                    2 -> exportDiaryEntry(e)
+                                }
+                            }.show()
+                        true
+                    }
+                }
+                override fun getItemCount() = entries.size
+            }
+        }
+    }
+
+    private fun createNewEntry() {
+        currentDiaryEntryId = -1
+        diaryEntryStartTime = System.currentTimeMillis()
+        diaryEntryEndTime = null
+        diaryEditing = false
+        resetDiaryForm()
+        showDiaryForm("Новая запись")
+        updateDiaryTimes()
+    }
+
+    private fun openDiaryEntry(entry: com.chistiyen.app.data.db.entity.CravingEntry) {
+        currentDiaryEntryId = entry.id
+        diaryEntryStartTime = entry.startTime
+        diaryEntryEndTime = entry.endTime
+        diaryEditing = true
+        resetDiaryForm()
+        fillDiaryForm(entry)
+        showDiaryForm("Редактирование")
+        updateDiaryTimes()
+        findViewById<ImageButton>(R.id.diaryFormDelete).visibility = View.VISIBLE
+        lifecycleScope.launch {
+            val tools = db.cravingEntryDao().getTools(entry.id)
+            tools.forEach { tool ->
+                val list = findViewById<LinearLayout>(R.id.diaryToolsList)
+                for (i in 0 until list.childCount) {
+                    val row = list.getChildAt(i) as? LinearLayout ?: continue
+                    val cb = row.getChildAt(0) as? CheckBox ?: continue
+                    if (cb.text.toString() == tool.toolName) {
+                        cb.isChecked = true
+                        (row.getChildAt(1) as? EditText)?.setText(tool.comment)
+                    }
+                }
+            }
+            val other = tools.find { it.toolName.startsWith("Другое") }
+            if (other != null) findViewById<EditText>(R.id.diaryToolOther).setText(other.comment)
+        }
+    }
+
+    private fun resetDiaryForm() {
+        findViewById<EditText>(R.id.diarySituation).text.clear()
+        findViewById<EditText>(R.id.diaryThoughts).text.clear()
+        findViewById<EditText>(R.id.diaryTrigger).text.clear()
+        findViewById<EditText>(R.id.diarySummary).text.clear()
+        findViewById<EditText>(R.id.diaryFeelingsOther).text.clear()
+        findViewById<EditText>(R.id.diaryToolOther).text.clear()
+        findViewById<TextView>(R.id.diaryThoughtsTimeLabel).visibility = View.GONE
+        findViewById<LinearLayout>(R.id.diaryToolsList).removeAllViews()
+        findViewById<LinearLayout>(R.id.diaryTimeline).visibility = View.GONE
+        findViewById<ImageButton>(R.id.diaryFormDelete).visibility = View.GONE
+        listOf(R.id.feelFear, R.id.feelAnger, R.id.feelBoredom, R.id.feelLonely,
+            R.id.feelAnxiety, R.id.feelTired, R.id.feelOffense, R.id.feelOther).forEach {
+            (findViewById<View>(it) as CheckBox).isChecked = false
+        }
+        val tools = listOf("Позвонил наставнику", "Позвонил товарищу", "Написал в группу",
+            "Молитва", "Медитация", "Дыхание", "Прогулка", "Спорт", "Дневник",
+            "Шаг", "Литература", "Видео", "Музыка", "Переключился на работу")
+        val list = findViewById<LinearLayout>(R.id.diaryToolsList)
+        list.removeAllViews()
+        tools.forEach { tool ->
+            val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; setPadding(0, 2, 0, 2) }
+            val cb = CheckBox(this).apply { text = tool; textSize = 13f; setTextColor(getColor(R.color.cream)); id = View.generateViewId() }
+            row.addView(cb, LinearLayout.LayoutParams(0, -2, 1f))
+            val et = EditText(this).apply { hint = "Комментарий"; textSize = 12f; id = View.generateViewId(); setBackgroundResource(R.drawable.input_border); setPadding(8, 4, 8, 4); layoutParams = LinearLayout.LayoutParams(0, -2, 2f) }
+            row.addView(et)
+            list.addView(row)
+        }
+    }
+
+    private fun fillDiaryForm(entry: com.chistiyen.app.data.db.entity.CravingEntry) {
+        findViewById<EditText>(R.id.diarySituation).setText(entry.situation)
+        findViewById<EditText>(R.id.diaryThoughts).setText(entry.thoughts)
+        findViewById<EditText>(R.id.diaryTrigger).setText(entry.trigger)
+        findViewById<EditText>(R.id.diarySummary).setText(entry.summary)
+        findViewById<EditText>(R.id.diaryFeelingsOther).setText(entry.feelingsOther)
+        val feelings = entry.feelings.split(",").map { it.trim() }
+        val feelMap = mapOf("Страх" to R.id.feelFear, "Злость" to R.id.feelAnger, "Скука" to R.id.feelBoredom,
+            "Одиночество" to R.id.feelLonely, "Тревога" to R.id.feelAnxiety, "Усталость" to R.id.feelTired,
+            "Обида" to R.id.feelOffense, "Другое" to R.id.feelOther)
+        feelMap.forEach { (name, id) -> (findViewById<View>(id) as CheckBox).isChecked = name in feelings }
+    }
+
+    private fun updateDiaryTimes() {
+        val sdf = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
+        findViewById<TextView>(R.id.diaryStartTime).text = "Начало: ${sdf.format(Date(diaryEntryStartTime))}"
+        findViewById<TextView>(R.id.diaryEndTime).text = if (diaryEntryEndTime != null)
+            "Окончание: ${sdf.format(Date(diaryEntryEndTime!!))}" else "Тяга ещё не завершена"
+    }
+
+    private fun collectDiaryEntry(): com.chistiyen.app.data.db.entity.CravingEntry {
+        val feelings = mutableListOf<String>()
+        val feelMap = mapOf(R.id.feelFear to "Страх", R.id.feelAnger to "Злость", R.id.feelBoredom to "Скука",
+            R.id.feelLonely to "Одиночество", R.id.feelAnxiety to "Тревога", R.id.feelTired to "Усталость",
+            R.id.feelOffense to "Обида", R.id.feelOther to "Другое")
+        feelMap.forEach { (id, name) -> if ((findViewById<View>(id) as CheckBox).isChecked) feelings.add(name) }
+        val otherFeelings = findViewById<EditText>(R.id.diaryFeelingsOther).text.toString().trim()
+        if (otherFeelings.isNotEmpty() && "Другое" !in feelings) feelings.add("Другое")
+        return com.chistiyen.app.data.db.entity.CravingEntry(
+            id = if (currentDiaryEntryId > 0) currentDiaryEntryId else 0,
+            startTime = diaryEntryStartTime,
+            endTime = diaryEntryEndTime,
+            situation = findViewById<EditText>(R.id.diarySituation).text.toString().trim(),
+            thoughts = findViewById<EditText>(R.id.diaryThoughts).text.toString().trim(),
+            feelings = feelings.joinToString(", "),
+            feelingsOther = otherFeelings,
+            trigger = findViewById<EditText>(R.id.diaryTrigger).text.toString().trim(),
+            summary = findViewById<EditText>(R.id.diarySummary).text.toString().trim(),
+            isCompleted = diaryEntryEndTime != null
+        )
+    }
+
+    private fun saveDiaryEntry() {
+        lifecycleScope.launch {
+            val entry = collectDiaryEntry()
+            val id: Long
+            if (currentDiaryEntryId > 0) {
+                db.cravingEntryDao().update(entry)
+                id = currentDiaryEntryId
+            } else {
+                id = db.cravingEntryDao().insert(entry)
+                currentDiaryEntryId = id
+            }
+            // Save tools
+            db.cravingEntryDao().deleteTools(id)
+            val list = findViewById<LinearLayout>(R.id.diaryToolsList)
+            for (i in 0 until list.childCount) {
+                val row = list.getChildAt(i) as? LinearLayout ?: continue
+                val cb = row.getChildAt(0) as? CheckBox ?: continue
+                val et = row.getChildAt(1) as? EditText ?: continue
+                if (cb.isChecked) {
+                    db.cravingEntryDao().insertTool(com.chistiyen.app.data.db.entity.CravingTool(
+                        entryId = id, toolName = cb.text.toString(), comment = et.text.toString().trim()
+                    ))
+                }
+            }
+            val otherTool = findViewById<EditText>(R.id.diaryToolOther).text.toString().trim()
+            if (otherTool.isNotEmpty()) {
+                db.cravingEntryDao().insertTool(com.chistiyen.app.data.db.entity.CravingTool(
+                    entryId = id, toolName = "Другое: $otherTool"
+                ))
+            }
+            withContext(Dispatchers.Main) {
+                Toast.makeText(this@MainActivity, "Сохранено", Toast.LENGTH_SHORT).show()
+                showDiaryList()
+            }
+        }
+    }
+
+    private fun endDiaryEntry() {
+        diaryEntryEndTime = System.currentTimeMillis()
+        updateDiaryTimes()
+        updateTimeline()
+        // Auto-save on end
+        saveDiaryEntry()
+    }
+
+    private fun editDiaryStartTime() {
+        val cal = Calendar.getInstance().apply { timeInMillis = diaryEntryStartTime }
+        android.app.DatePickerDialog(this, { _, y, m, d ->
+            android.app.TimePickerDialog(this, { _, h, mi ->
+                cal.set(y, m, d, h, mi)
+                diaryEntryStartTime = cal.timeInMillis
+                updateDiaryTimes()
+            }, cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), true).show()
+        }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show()
+    }
+
+    private fun markThoughtsTime() {
+        val now = System.currentTimeMillis()
+        val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
+        val label = findViewById<TextView>(R.id.diaryThoughtsTimeLabel)
+        label.text = "🕒 Мысли отмечены: ${sdf.format(Date(now))}"
+        label.visibility = View.VISIBLE
+    }
+
+    private fun updateTimeline() {
+        val timeline = findViewById<LinearLayout>(R.id.diaryTimeline)
+        timeline.visibility = View.VISIBLE
+        timeline.removeViews(1, timeline.childCount - 1)
+        val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
+        val events = mutableListOf(
+            diaryEntryStartTime to "Начало тяги",
+            System.currentTimeMillis() to "Конец тяги"
+        )
+        events.sortedBy { it.first }.forEach { (time, label) ->
+            val row = TextView(this).apply {
+                text = "${sdf.format(Date(time))} — $label"
+                textSize = 12f; setTextColor(getColor(R.color.muted))
+                setPadding(0, 4, 0, 4)
+            }
+            timeline.addView(row)
+        }
+        val duration = if (diaryEntryEndTime != null) (diaryEntryEndTime!! - diaryEntryStartTime) / 60000 else 0
+        timeline.addView(TextView(this).apply {
+            text = "Общее время: ${duration} мин."; textSize = 13f; setTextColor(getColor(R.color.accent))
+            textStyle = android.graphics.Typeface.BOLD; setPadding(0, 8, 0, 0)
+        })
+    }
+
+    private fun deleteCurrentEntry() {
+        if (currentDiaryEntryId <= 0) return
+        android.app.AlertDialog.Builder(this)
+            .setTitle("Удалить запись?")
+            .setPositiveButton("Да") { _, _ ->
+                lifecycleScope.launch {
+                    db.cravingEntryDao().deleteById(currentDiaryEntryId)
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(this@MainActivity, "Удалено", Toast.LENGTH_SHORT).show()
+                        showDiaryList()
+                    }
+                }
+            }
+            .setNegativeButton("Нет", null).show()
+    }
+
+    private suspend fun deleteDiaryEntry(e: com.chistiyen.app.data.db.entity.CravingEntry) {
+        db.cravingEntryDao().deleteById(e.id)
+        withContext(Dispatchers.Main) { loadDiaryHistory() }
+    }
+
+    private fun exportDiaryEntry(e: com.chistiyen.app.data.db.entity.CravingEntry) {
+        val sdf = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
+        val text = buildString {
+            appendLine("=== Дневник тяги ===")
+            appendLine("Дата: ${sdf.format(Date(e.createdAt))}")
+            appendLine("Начало: ${sdf.format(Date(e.startTime))}")
+            if (e.endTime != null) appendLine("Конец: ${sdf.format(Date(e.endTime!!))}")
+            appendLine()
+            appendLine("Что произошло: ${e.situation}")
+            appendLine("Мысли: ${e.thoughts}")
+            appendLine("Чувства: ${e.feelings}")
+            appendLine("Триггер: ${e.trigger}")
+            appendLine("Итог: ${e.summary}")
+        }
+        val clipboard = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        clipboard.setPrimaryClip(android.content.ClipData.newPlainText("diary", text))
+        Toast.makeText(this, "Скопировано в буфер", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun showDiaryStats() {
+        lifecycleScope.launch {
+            val total = db.cravingEntryDao().countCompleted()
+            val avg = db.cravingEntryDao().avgDurationMinutes()
+            val max = db.cravingEntryDao().maxDurationMinutes()
+            val min = db.cravingEntryDao().minDurationMinutes()
+            val tools = db.cravingEntryDao().toolStats()
+            val msg = buildString {
+                appendLine("📊 Статистика дневника тяги")
+                appendLine("─────────────────────")
+                appendLine("Всего записей: $total")
+                if (avg != null) appendLine("Средняя длительность: ${"%.0f".format(avg)} мин.")
+                if (max != null) appendLine("Самая долгая: ${"%.0f".format(max)} мин.")
+                if (min != null) appendLine("Самая короткая: ${"%.0f".format(min)} мин.")
+                if (tools.isNotEmpty()) {
+                    appendLine()
+                    appendLine("🔧 Инструменты:")
+                    tools.take(5).forEach { appendLine("  ${it.tool_name}: ${it.cnt} раз") }
+                }
+            }
+            withContext(Dispatchers.Main) {
+                android.app.AlertDialog.Builder(this@MainActivity)
+                    .setTitle("Статистика")
+                    .setMessage(msg)
+                    .setPositiveButton("OK", null).show()
+            }
+        }
     }
 
     /* ===================== MEDALS ===================== */
