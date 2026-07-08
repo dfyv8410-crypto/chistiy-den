@@ -1671,28 +1671,28 @@ function playSound(type){
     const gain = ctx.createGain();
     osc.connect(gain);
     gain.connect(ctx.destination);
-    gain.gain.value = 0.15;
+    gain.gain.value = 0.6;
     const freqs = { default: 440, gentle: 528, standard: 660, urgent: 880 };
     const freq = freqs[type] || 440;
     if(type === 'urgent'){
       osc.frequency.setValueAtTime(freq, ctx.currentTime);
       osc.frequency.setValueAtTime(freq*1.5, ctx.currentTime + 0.15);
       osc.frequency.setValueAtTime(freq, ctx.currentTime + 0.3);
-      gain.gain.setValueAtTime(0.15, ctx.currentTime);
-      gain.gain.setValueAtTime(0.15, ctx.currentTime + 0.35);
+      gain.gain.setValueAtTime(0.6, ctx.currentTime);
+      gain.gain.setValueAtTime(0.6, ctx.currentTime + 0.35);
       osc.start(ctx.currentTime);
       osc.stop(ctx.currentTime + 0.5);
     } else if(type === 'gentle'){
       osc.type = 'sine';
       osc.frequency.setValueAtTime(freq, ctx.currentTime);
-      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.setValueAtTime(0.5, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.8);
       osc.start(ctx.currentTime);
       osc.stop(ctx.currentTime + 0.8);
     } else {
       osc.type = 'sine';
       osc.frequency.setValueAtTime(freq, ctx.currentTime);
-      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.setValueAtTime(0.6, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
       osc.start(ctx.currentTime);
       osc.stop(ctx.currentTime + 0.4);
