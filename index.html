@@ -1258,6 +1258,7 @@ body{
         <div class="settings-card">
           <p style="font-size:12px;color:var(--cream);margin:0 0 6px;" id="storageStatus">Проверка...</p>
           <p style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.4;" id="healthSummary">—</p>
+          <p style="font-size:11px;color:var(--na-blue);margin-top:6px;font-weight:600;" id="protectionStatus"></p>
           <p style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.4;">Все данные хранятся локально на устройстве. Используется трёхуровневое хранилище: IndexedDB → localStorage → память.</p>
         </div>
       </div>
@@ -1278,12 +1279,17 @@ body{
         <h4>🛡️ Безопасность данных</h4>
         <div class="settings-card">
           <p style="font-size:12px;color:var(--cream);margin:0 0 6px;" id="backupInfo">Проверка резервной копии...</p>
-          <div style="display:flex;gap:8px;margin-top:8px;">
-            <button onclick="BackupManager.exportBackup()" style="flex:1;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--card);color:var(--na-blue);font-weight:700;font-size:12px;cursor:pointer;font-family:var(--font-body);">📤 Скачать backup</button>
-            <button onclick="document.getElementById('importFileInput').click()" style="flex:1;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--card);color:var(--na-blue);font-weight:700;font-size:12px;cursor:pointer;font-family:var(--font-body);">📥 Восстановить из файла</button>
+          <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+            <button onclick="BackupManager.exportBackup()" style="flex:1;min-width:80px;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--card);color:var(--na-blue);font-weight:700;font-size:12px;cursor:pointer;font-family:var(--font-body);">📤 Скачать backup</button>
+            <button onclick="document.getElementById('importFileInput').click()" style="flex:1;min-width:80px;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--card);color:var(--na-blue);font-weight:700;font-size:12px;cursor:pointer;font-family:var(--font-body);">📥 Восстановить из файла</button>
             <input type="file" id="importFileInput" accept=".json" style="display:none;" onchange="importAllData(event)">
+            <button onclick="saveMyStory()" style="flex:1;min-width:80px;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--card);color:var(--na-blue);font-weight:700;font-size:12px;cursor:pointer;font-family:var(--font-body);">💾 Сохранить мою историю</button>
           </div>
-          <p style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.4;">Данные хранятся в IndexedDB (основное хранилище) + localStorage (кэш). При привязанной папке — дублируются туда. Версия схемы: <span id="storageVersion">3.0</span>.</p>
+          <div style="display:flex;gap:8px;margin-top:6px;">
+            <button onclick="doProtectData()" style="flex:1;padding:8px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--card);color:#3DDC84;font-weight:700;font-size:11px;cursor:pointer;font-family:var(--font-body);">🛡️ Создать резервную копию сейчас</button>
+          </div>
+          <p style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.4;" id="backupAgeHint"></p>
+          <p style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.4;">Данные хранятся в IndexedDB (основное хранилище) + localStorage (кэш). При привязанной папке — дублируются туда. Версия схемы: <span id="storageVersion">4.0</span>.</p>
         </div>
       </div>
 
@@ -2377,13 +2383,21 @@ async function updateBackupInfoUI(){
   const info = await BackupManager.getInfo();
   const el = document.getElementById('backupInfo');
   if(!el) return;
+  let html = '';
   if(info){
-    el.innerHTML = '✅ Последний backup: ' + (info.createdAt !== 'unknown' ? new Date(info.createdAt).toLocaleDateString('ru-RU') : '—') + ' | Записей: ' + info.recordsCount + ' | Размер: ' + _formatBytes(info.size);
+    html = '✅ Последний backup (папка): ' + (info.createdAt !== 'unknown' ? new Date(info.createdAt).toLocaleDateString('ru-RU') : '—') + ' | Записей: ' + info.recordsCount + ' | Размер: ' + _formatBytes(info.size);
     el.style.color = '#3DDC84';
   } else {
-    el.innerHTML = '❌ Backup не найден. Привяжите папку и создайте копию.';
+    html = '❌ Backup в папке не найден. Привяжите папку и создайте копию.';
     el.style.color = 'var(--muted)';
   }
+  const lb = await LocalBackup.getLastBackup().catch(()=>null);
+  if(lb){
+    const age = Math.floor((Date.now() - new Date(lb.createdAt).getTime())/86400000);
+    html += '<br><span style="font-size:9px;">🔄 Локальная копия: ' + new Date(lb.createdAt).toLocaleDateString('ru-RU') + ' (' + age + ' дн. назад)</span>';
+  }
+  el.innerHTML = html;
+  checkBackupAge();
 }
 async function exportAllData(){
   try {
@@ -2427,7 +2441,70 @@ async function initStorage(){
     el.textContent = text;
     updateBackupInfoUI();
     HealthMonitor.renderSummary(document.getElementById('healthSummary'));
+    updateProtectionStatus();
   } catch(e){ el.textContent = 'Стандартное хранилище браузера'; }
+}
+function closeProtectionDialog(){
+  const el = document.getElementById('protectionBackdrop');
+  if(el) el.classList.remove('active');
+}
+async function doProtectData(){
+  closeProtectionDialog();
+  showToast('🛡️ Создание резервной копии...');
+  try {
+    await LocalBackup.createBackup();
+    try{ localStorage.setItem('__protection_done','1'); }catch(e){}
+    const d = await HealthMonitor.diagnose();
+    const el = document.getElementById('protectionStatus');
+    if(el) el.textContent = '✅ Данные защищены';
+    const bi = document.getElementById('backupInfo');
+    if(d.lastBackup && bi){
+      bi.innerHTML = '✅ Последний backup: ' + new Date(d.lastBackup.createdAt).toLocaleDateString('ru-RU') + ' | Записей: ' + d.totalRecords;
+      bi.style.color = '#3DDC84';
+    }
+    showToast('✅ Данные защищены! Резервная копия создана.');
+  } catch(e){ showToast('❌ Ошибка: ' + e.message); }
+}
+async function saveMyStory(){
+  try {
+    const data = await BackupManager.collectAll();
+    const blob = new Blob([JSON.stringify({version:STORAGE_VERSION,data:data},null,2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'chistiy-den-backup.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showToast('✅ Файл сохранён');
+  } catch(e){ showToast('❌ Ошибка: ' + e.message); }
+}
+async function checkBackupAge(){
+  try {
+    const localBackup = await LocalBackup.getLastBackup().catch(()=>null);
+    if(!localBackup) return;
+    const age = Date.now() - new Date(localBackup.createdAt).getTime();
+    const days = Math.floor(age / 86400000);
+    const hint = document.getElementById('backupAgeHint');
+    if(!hint) return;
+    if(days > 7){
+      hint.innerHTML = '⚠️ Последней копии больше <strong>' + days + ' дней</strong>. Создайте новую.';
+      hint.style.color = '#E88A7A';
+    } else {
+      hint.innerHTML = '✅ Копия создана ' + days + ' дн. назад';
+      hint.style.color = '#3DDC84';
+    }
+  } catch(e){}
+}
+async function updateProtectionStatus(){
+  const el = document.getElementById('protectionStatus');
+  if(!el) return;
+  const done = localStorage.getItem('__protection_done');
+  if(done){
+    el.textContent = '✅ Данные защищены';
+    return;
+  }
+  const lb = await LocalBackup.getLastBackup().catch(()=>null);
+  if(lb) el.textContent = '✅ Данные защищены (локальная копия)';
+  else el.textContent = '⚠️ Резервная копия не создана';
 }
 const MILESTONES = [
   { days:0,    key:'white',  name:'Белая',     hex:'#F0EDE8', desc:'Первый день или готовность начать заново' },
@@ -2785,8 +2862,20 @@ function displayGroups(meetings){
               ${isOnline ? '<span class="groups-type-badge online">Online</span>' : ''}
               ${visibleTypes.map(t => '<span class="groups-type-badge">' + escHtml(t) + '</span>').join('')}
               ${extra ? '<span class="groups-type-badge">' + extra + '</span>' : ''}
-            </div>
-          </div>
+    </div>
+  </div>
+
+  <!-- PROTECTION DIALOG -->
+  <div class="modal-backdrop" id="protectionBackdrop">
+    <div class="modal" style="max-width:360px;text-align:center;">
+      <h3 style="margin:0 0 12px;">🛡️ Защита данных</h3>
+      <p style="font-size:14px;color:var(--cream);line-height:1.6;margin:0 0 16px;">Ваши данные восстановления хранятся на устройстве.<br>Создайте резервную копию для защиты истории.</p>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+        <button onclick="doProtectData()" class="btn-primary" style="padding:12px 24px;font-size:14px;">🛡️ Защитить данные</button>
+        <button onclick="closeProtectionDialog()" style="padding:12px 24px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--card);color:var(--muted);font-weight:700;font-size:14px;cursor:pointer;font-family:var(--font-body);">Позже</button>
+      </div>
+    </div>
+  </div>
         </div>`;
       group.appendChild(item);
     });
@@ -5190,6 +5279,18 @@ readyPromise.then(async ()=>{
   renderJft();
   checkSvcReminders();
   checkPlanReminder();
+  // защита данных при первом запуске
+  try {
+    const lc = parseInt(storage.get('launch_count')||'0') + 1;
+    if(lc === 1){
+      setTimeout(()=>{
+        const el = document.getElementById('protectionBackdrop');
+        if(el) el.classList.add('active');
+      }, 3000);
+    }
+  } catch(e){}
+  // проверка возраста backup при открытии настроек
+  checkBackupAge();
 });
 
 /* ------- donate banner: 3rd launch, then weekly ------- */
@@ -5203,6 +5304,18 @@ try {
     setTimeout(()=>{ document.getElementById('donateBanner').classList.add('active'); }, 4000);
   }
 } catch(e){ console.warn('Donate banner error:', e); }
+
+/* ------- защита от потери данных при закрытии ------- */
+try {
+  window.addEventListener('beforeunload', function(e){
+    const done = localStorage.getItem('__protection_done');
+    if(done) return;
+    const hasData = storage.get('startDate') || Object.keys(memoryStore).length > 2;
+    if(!hasData) return;
+    e.preventDefault();
+    e.returnValue = '';
+  });
+} catch(e){} 
 
 setInterval(renderHome, 60000);
 
