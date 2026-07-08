@@ -580,6 +580,8 @@ body{
 .lib-text.theme-sepia{color:#5B4636;background:#F5EDE0;}
 .lib-text.theme-dark{color:#C8D8E8;background:#1B3560;}
 .lib-text.theme-light{color:#3D2B1F;background:#FFFFFF;}
+.lib-text{-webkit-user-select:none;user-select:none;}
+.lib-text p{-webkit-user-select:text;user-select:text;}
 [data-theme="blue"] .lib-text.theme-dark{color:#C8D8E8;background:#0F1F3D;}
 [data-theme="blue"] .lib-text.theme-light{color:#C8D8E8;background:var(--card);}
 [data-theme="blue"] .lib-text.theme-sepia{color:#C8D8E8;background:#1B3560;}
@@ -2743,6 +2745,8 @@ function renderBookshelf(){
     html += '</div>';
   });
   html += '<div class="lib-add-btn" onclick="document.getElementById(\'libFileInput\').click()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span>Загрузить книгу</span></div>';
+  const exists = getLibBooks().some(b => b.title === 'Анонимные Наркоманы. Базовый текст');
+  if(!exists) html += '<div class="lib-add-btn" onclick="loadBundledBook()" style="margin-top:6px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span>Загрузить Базовый текст</span></div>';
   shelf.innerHTML = html;
 }
 function getCurrentChapterIndex(bookIdx){
@@ -2878,17 +2882,21 @@ async function loadJsZip(){
 }
 function stripHtmlTags(s){ return s.replace(/<[^>]+>/g,' ').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'\"').replace(/&#(\d+);/g,(_,c)=>String.fromCharCode(c)).replace(/\s+/g,' ').trim(); }
 function parseFB2Text(text){
-  const title = (text.match(/<book-title>([^<]+)<\/book-title>/i)||[])[1] || '';
-  const body = text.match(/<body>([\s\S]*?)<\/body>/i);
+  text = text.replace(/<(\/?)(\w+):/g, '<$1').replace(/\s+xmlns(?::\w+)?="[^"]*"/g, '');
+  const doc = new DOMParser().parseFromString(text, 'application/xml');
+  if(!doc || !doc.documentElement) return null;
+  const titleEl = doc.querySelector('book-title');
+  const title = titleEl ? titleEl.textContent.trim() : '';
+  const body = doc.querySelector('body');
   if(!body) return null;
-  const sections = body[1].match(/<section>([\s\S]*?)<\/section>/gi);
-  if(!sections) return null;
+  const sections = body.querySelectorAll('section');
+  if(!sections.length) return null;
   const chapters = [];
   sections.forEach((sec,i)=>{
-    const tMatch = sec.match(/<title>([\s\S]*?)<\/title>/i);
-    const secTitle = tMatch ? stripHtmlTags(tMatch[1]) : ('Раздел '+(i+1));
-    const pars = sec.match(/<p>([\s\S]*?)<\/p>/gi);
-    const content = pars ? pars.map(p=>stripHtmlTags(p)).filter(p=>p) : [];
+    const tEl = sec.querySelector('title');
+    const secTitle = tEl ? Array.from(tEl.childNodes).filter(n=>n.nodeType===3||n.nodeName==='p').map(n=>n.textContent).join(' ').trim().replace(/\s+/g,' ') : ('Раздел '+(i+1));
+    const pars = sec.querySelectorAll('p');
+    const content = pars.length ? Array.from(pars).map(p=>p.textContent.trim()).filter(p=>p) : [];
     if(content.length) chapters.push({ id:'fb2_'+i, title:secTitle, content });
   });
   return { chapters, title };
@@ -3068,6 +3076,29 @@ function importBook(event){
     reader.readAsArrayBuffer(file);
   } else {
     reader.readAsText(file, 'UTF-8');
+  }
+}
+async function loadBundledBook(){
+  const exists = getLibBooks().some(b => b.title === 'Анонимные Наркоманы. Базовый текст');
+  if(exists) return;
+  try {
+    const resp = await fetch('basic_text.fb2');
+    if(!resp.ok) throw new Error('Файл не найден');
+    const text = await resp.text();
+    let result;
+    try { result = parseFB2Text(text); } catch(e){}
+    if(!result || !result.chapters || !result.chapters.length){
+      alert('Не удалось загрузить встроенную книгу');
+      return;
+    }
+    if(!result.title) result.title = 'Анонимные Наркоманы. Базовый текст';
+    const imported = JSON.parse(storage.get('lib_imported')||'[]');
+    imported.push({ title: result.title, author: 'NA World Services', icon: '📖', color: '#1A3E6B', chapters: result.chapters });
+    storage.set('lib_imported', JSON.stringify(imported));
+    renderBookshelf();
+    alert('✅ «' + result.title + '» загружена (' + result.chapters.length + ' разделов)');
+  } catch(e){
+    alert('Ошибка загрузки: ' + e.message);
   }
 }
 function loadChapter(chapterId){
@@ -3326,7 +3357,7 @@ function showPrayer(){
   if(prayerTimer) clearTimeout(prayerTimer);
   prayerTimer = setTimeout(() => {
     backdrop.classList.remove('active');
-  }, 3000);
+  }, 9000);
 }
 function closePrayer(){
   document.getElementById('prayerBackdrop').classList.remove('active');
@@ -3966,6 +3997,12 @@ setTimeout(()=>{
   const s=document.getElementById('splash');
   if(s) s.classList.add('hide');
 }, 1500);
+
+/* ------- PLAGIARISM PROTECTION ------- */
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => {
+  if(e.ctrlKey && (e.key === 'c' || e.key === 'u' || e.key === 's' || e.key === 'p')) e.preventDefault();
+});
 </script>
 </body>
 </html>
