@@ -1,4 +1,4 @@
-const CACHE_NAME = 'chistiy-den-v1';
+const CACHE_NAME = 'chistiy-den-v2';
 const ASSETS = [
   './',
   './index.html',

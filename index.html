@@ -276,6 +276,30 @@ body{
 .theme-opt{padding:6px 14px;border-radius:999px;border:none;background:transparent;font-size:12px;font-weight:700;font-family:var(--font-body);color:var(--muted);cursor:pointer;transition:all .2s;}
 .theme-opt.active{background:var(--card);color:var(--na-blue);}
 
+/* ---------- craving diary ---------- */
+.diary-entry{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-md);padding:14px;margin-bottom:10px;}
+.diary-entry .date{font-size:11px;color:var(--muted);}
+.diary-entry .situation{font-size:13px;color:var(--cream);margin:4px 0;}
+.diary-entry .feel{font-size:11px;color:var(--accent);}
+.diary-entry .tools{font-size:11px;color:var(--na-blue);}
+.diary-form-group{margin-bottom:14px;}
+.diary-form-group label{display:block;font-size:12px;font-weight:700;color:var(--na-blue);margin-bottom:4px;}
+.diary-form-group textarea,.diary-form-group input[type="text"]{width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--line);font-size:14px;font-family:var(--font-body);background:var(--card-2);color:var(--cream);resize:vertical;box-sizing:border-box;}
+.diary-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.diary-chip{padding:6px 14px;border-radius:20px;border:1px solid var(--line);font-size:12px;cursor:pointer;background:transparent;color:var(--cream);transition:all .15s;}
+.diary-chip.selected{background:var(--accent);color:var(--cream);border-color:var(--accent);}
+.diary-tool-row{display:flex;gap:8px;align-items:center;margin-bottom:6px;}
+.diary-tool-row input[type="text"]{flex:1;padding:8px;border-radius:var(--radius-sm);border:1px solid var(--line);font-size:13px;background:var(--card-2);color:var(--cream);}
+.diary-tool-row .icon-btn{width:28px;height:28px;}
+.diary-timeline{border-left:2px solid var(--accent);padding-left:14px;margin:10px 0;}
+.diary-timeline-item{position:relative;padding:4px 0 4px 10px;font-size:12px;color:var(--cream);}
+.diary-timeline-item::before{content:'';position:absolute;left:-6px;top:8px;width:10px;height:10px;border-radius:50%;background:var(--accent);}
+.diary-timeline-item .t{font-size:10px;color:var(--muted);}
+.diary-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0;}
+.diary-stat-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-md);padding:12px;text-align:center;}
+.diary-stat-card .v{font-size:22px;font-weight:800;color:var(--na-blue);}
+.diary-stat-card .l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.search-bar{width:100%;padding:10px 12px;border-radius:var(--radius-sm);border:1px solid var(--line);font-size:14px;font-family:var(--font-body);background:var(--card-2);color:var(--cream);margin-bottom:12px;box-sizing:border-box;}
 /* ---------- settings ---------- */
 .settings-section{margin-bottom:18px;}
 .settings-section h4{font-family:var(--font-display);font-size:16px;color:var(--na-blue);margin:0 0 8px;}
@@ -510,6 +534,8 @@ body{
       <div class="stat-card"><div class="v" id="statHours">0</div><div class="l">Часов</div></div>
     </div>
 
+    <button class="btn-primary" onclick="showScreen('diary')" style="width:100%;margin:14px 0 6px;">📓 Дневник тяги</button>
+
     <div class="prayer-text">
       Боже, дай мне разум и душевный покой принять то, что я не в силах изменить,<br>
       мужество изменить то, что могу,<br>
@@ -517,6 +543,74 @@ body{
     </div>
 
     <div class="reset-link" onclick="openSettings()">Изменить дату отсчёта</div>
+  </div>
+
+  <!-- DIARY / Дневник тяги -->
+  <div class="screen" id="screen-diary">
+    <div style="display:flex;align-items:center;gap:8px;margin:12px 0 4px;">
+      <button class="icon-btn" onclick="showScreen('home')" aria-label="Назад"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <div class="screen-title" style="margin:0;">Дневник тяги</div>
+    </div>
+    <div class="screen-sub">Отслеживай свои состояния, триггеры и инструменты</div>
+
+    <div id="diaryView" style="display:block;">
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        <button class="btn-primary" onclick="diaryNew()" style="flex:1;">➕ Новая запись</button>
+        <button class="btn-secondary" onclick="diaryShowStats()" style="flex:1;">📊 Статистика</button>
+      </div>
+      <input class="search-bar" id="diarySearch" type="text" placeholder="Поиск по записям..." oninput="diaryRenderList()">
+      <div id="diaryList"></div>
+    </div>
+
+    <div id="diaryForm" style="display:none;">
+      <div class="diary-form-group">
+        <label>Когда началось?</label>
+        <input type="datetime-local" id="diaryStartTime">
+      </div>
+      <div class="diary-form-group">
+        <label>Ситуация (где, с кем, что делал?)</label>
+        <textarea id="diarySituation" rows="2" placeholder="Где ты был? С кем? Что делал перед тем, как почувствовал тягу?"></textarea>
+      </div>
+      <div class="diary-form-group">
+        <label>Мысли (о чём думал?)</label>
+        <textarea id="diaryThoughts" rows="2" placeholder="Какие мысли были в голове?"></textarea>
+      </div>
+      <div class="diary-form-group">
+        <label>Чувства</label>
+        <div class="diary-chips" id="diaryFeelings"></div>
+        <input type="text" id="diaryFeelingsOther" placeholder="Другое..." style="width:100%;padding:8px;border-radius:var(--radius-sm);border:1px solid var(--line);font-size:13px;background:var(--card-2);color:var(--cream);margin-top:6px;box-sizing:border-box;">
+      </div>
+      <div class="diary-form-group">
+        <label>Триггер (что спровоцировало?)</label>
+        <textarea id="diaryTrigger" rows="2" placeholder="Что именно вызвало тягу?"></textarea>
+      </div>
+      <div class="diary-form-group">
+        <label>Инструменты (что помогло / пробовал?)</label>
+        <div id="diaryToolsList"></div>
+        <button class="btn-secondary" onclick="diaryAddTool()" style="width:100%;margin-top:4px;font-size:12px;">+ Инструмент</button>
+      </div>
+      <div class="diary-form-group">
+        <label>Чем закончилось?</label>
+        <textarea id="diarySummary" rows="2" placeholder="Удалось сохранить чистоту? Что помогло? Как себя чувствуешь?"></textarea>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:4px;">
+        <button class="btn-primary" onclick="diarySave()" style="flex:1;">💾 Сохранить</button>
+        <button class="btn-secondary" onclick="diaryCancel()" style="flex:1;">Отмена</button>
+      </div>
+      <div id="diaryTimeline" class="diary-timeline" style="display:none;margin-top:14px;"></div>
+    </div>
+
+    <div id="diaryStats" style="display:none;">
+      <button class="btn-secondary" onclick="diaryBackToList()" style="margin-bottom:10px;">← Назад к списку</button>
+      <div class="diary-stats-grid">
+        <div class="diary-stat-card"><div class="v" id="diaryStatCount">0</div><div class="l">Записей</div></div>
+        <div class="diary-stat-card"><div class="v" id="diaryStatAvg">-</div><div class="l">Средняя длит.</div></div>
+        <div class="diary-stat-card"><div class="v" id="diaryStatMax">-</div><div class="l">Макс. длит.</div></div>
+        <div class="diary-stat-card"><div class="v" id="diaryStatMin">-</div><div class="l">Мин. длит.</div></div>
+      </div>
+      <div style="font-size:13px;color:var(--na-blue);font-weight:700;margin:8px 0 4px;">Частые инструменты</div>
+      <div id="diaryStatTools"></div>
+    </div>
   </div>
 
   <!-- JFT / Ежедневник -->
@@ -843,6 +937,24 @@ body{
               <input type="checkbox" id="notifySound" checked onchange="saveNotifySettings()" style="accent-color:var(--accent);"> Звук
             </label>
           </div>
+          <div style="margin-top:8px;">
+            <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:2px;">Тип звука</label>
+            <select id="notifySoundType" onchange="saveNotifySettings()" style="width:100%;padding:8px;border-radius:var(--radius-sm);border:1px solid var(--line);font-size:13px;background:var(--card-2);color:var(--cream);">
+              <option value="default">Обычный</option>
+              <option value="gentle">Нежный</option>
+              <option value="standard">Стандартный</option>
+              <option value="urgent">Срочный</option>
+            </select>
+          </div>
+          <div style="margin-top:6px;">
+            <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:2px;">Режим вибрации</label>
+            <select id="notifyVibratePattern" onchange="saveNotifySettings()" style="width:100%;padding:8px;border-radius:var(--radius-sm);border:1px solid var(--line);font-size:13px;background:var(--card-2);color:var(--cream);">
+              <option value="default">Обычная</option>
+              <option value="short">Короткая</option>
+              <option value="long">Длинная</option>
+              <option value="double">Двойная</option>
+            </select>
+          </div>
           <p style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;">На Android уведомления работают только когда приложение открыто (или свёрнуто в фоне). Для напоминаний после перезагрузки телефона требуется нативная версия приложения.</p>
         </div>
       </div>
@@ -1046,6 +1158,7 @@ function showScreen(name){
   if(name==='service') renderService();
   if(name==='sos') renderSosContacts();
   if(name==='library') renderLibrary();
+  if(name==='diary') diaryRenderList();
 }
 
 function setAccent(hex){
@@ -1488,6 +1601,10 @@ function requestNotifyPerm(){
 function saveNotifySettings(){
   storage.set('notify_vibrate', document.getElementById('notifyVibrate').checked ? '1' : '0');
   storage.set('notify_sound', document.getElementById('notifySound').checked ? '1' : '0');
+  const st = document.getElementById('notifySoundType');
+  if(st) storage.set('notify_sound_type', st.value);
+  const vp = document.getElementById('notifyVibratePattern');
+  if(vp) storage.set('notify_vibrate_pattern', vp.value);
 }
 function loadNotifySettings(){
   const vib = storage.get('notify_vibrate');
@@ -1496,13 +1613,214 @@ function loadNotifySettings(){
   const sndEl = document.getElementById('notifySound');
   if(vibEl) vibEl.checked = vib !== '0';
   if(sndEl) sndEl.checked = snd !== '0';
+  const st = document.getElementById('notifySoundType');
+  if(st) st.value = storage.get('notify_sound_type') || 'default';
+  const vp = document.getElementById('notifyVibratePattern');
+  if(vp) vp.value = storage.get('notify_vibrate_pattern') || 'default';
+}
+
+/* ===================== CRAVING DIARY ===================== */
+const FEELINGS = ['Злость','Грусть','Страх','Одиночество','Стыд','Вина','Надежда','Радость','Усталость','Тревога','Пустота','Благодарность'];
+let diaryEditingId = null;
+let diaryToolCount = 0;
+
+function diaryNew(){
+  diaryEditingId = null;
+  document.getElementById('diaryView').style.display='none';
+  document.getElementById('diaryForm').style.display='block';
+  document.getElementById('diaryStats').style.display='none';
+  document.getElementById('diaryStartTime').value = new Date().toISOString().slice(0,16);
+  document.getElementById('diarySituation').value='';
+  document.getElementById('diaryThoughts').value='';
+  document.getElementById('diaryTrigger').value='';
+  document.getElementById('diarySummary').value='';
+  document.getElementById('diaryFeelingsOther').value='';
+  document.getElementById('diaryTimeline').style.display='none';
+  diaryToolCount=0;
+  document.getElementById('diaryToolsList').innerHTML='';
+  renderFeelingChips();
+}
+
+function renderFeelingChips(){
+  const c=document.getElementById('diaryFeelings');
+  c.innerHTML='';
+  FEELINGS.forEach(f=>{
+    const b=document.createElement('button');
+    b.className='diary-chip';
+    b.textContent=f;
+    b.onclick=()=>b.classList.toggle('selected');
+    c.appendChild(b);
+  });
+}
+
+function diaryAddTool(){
+  const div=document.createElement('div');
+  div.className='diary-tool-row';
+  div.id='dtool_'+ (++diaryToolCount);
+  div.innerHTML='<input type="text" placeholder="Название инструмента"><input type="text" placeholder="Комментарий" style="flex:0.6;"><button class="icon-btn" onclick="this.parentElement.remove()">✕</button>';
+  document.getElementById('diaryToolsList').appendChild(div);
+}
+
+function diaryCancel(){
+  document.getElementById('diaryForm').style.display='none';
+  document.getElementById('diaryView').style.display='block';
+}
+
+function diarySave(){
+  const startTime = document.getElementById('diaryStartTime').value;
+  const situation = document.getElementById('diarySituation').value.trim();
+  const thoughts = document.getElementById('diaryThoughts').value.trim();
+  const trigger = document.getElementById('diaryTrigger').value.trim();
+  const summary = document.getElementById('diarySummary').value.trim();
+  const feelings = [...document.querySelectorAll('#diaryFeelings .diary-chip.selected')].map(b=>b.textContent);
+  const feelingsOther = document.getElementById('diaryFeelingsOther').value.trim();
+  if(feelingsOther && !feelings.includes(feelingsOther)) feelings.push(feelingsOther);
+  const tools = [];
+  document.querySelectorAll('#diaryToolsList .diary-tool-row').forEach(row=>{
+    const inputs=row.querySelectorAll('input');
+    if(inputs[0]&&inputs[0].value.trim()) tools.push({ name: inputs[0].value.trim(), comment: inputs[1]?inputs[1].value.trim():'' });
+  });
+  if(!startTime){ showToast('Укажи время начала'); return; }
+  const entry = {
+    id: diaryEditingId || Date.now(),
+    startTime: new Date(startTime).getTime(),
+    endTime: null,
+    situation, thoughts, feelings, trigger, summary,
+    tools, events: [],
+    isCompleted: !!summary,
+    createdAt: diaryEditingId ? (JSON.parse(storage.get('diary_entries')||'[]').find(e=>e.id===diaryEditingId)?.createdAt||Date.now()) : Date.now(),
+    updatedAt: Date.now()
+  };
+  const all = JSON.parse(storage.get('diary_entries')||'[]');
+  const idx = all.findIndex(e=>e.id===entry.id);
+  if(idx>=0) all[idx]=entry; else all.push(entry);
+  storage.set('diary_entries', JSON.stringify(all));
+  diaryCancel();
+  diaryRenderList();
+  showToast('Сохранено');
+}
+
+function diaryRenderList(){
+  const q = (document.getElementById('diarySearch').value||'').toLowerCase();
+  const all = JSON.parse(storage.get('diary_entries')||'[]');
+  all.sort((a,b)=>b.createdAt - a.createdAt);
+  const list = document.getElementById('diaryList');
+  list.innerHTML='';
+  const filtered = q ? all.filter(e=>(e.situation+' '+e.thoughts+' '+e.trigger+' '+e.summary).toLowerCase().includes(q)) : all;
+  if(filtered.length===0){ list.innerHTML='<div style="font-size:13px;color:var(--muted);padding:20px;text-align:center;">Записей пока нет</div>'; return; }
+  filtered.forEach(e=>{
+    const d=new Date(e.createdAt);
+    const dateStr = d.toLocaleDateString('ru-RU', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    const feelingsStr = e.feelings?.length ? e.feelings.join(', ') : '';
+    const toolsStr = e.tools?.length ? e.tools.map(t=>t.name).join(', ') : '';
+    const div=document.createElement('div');
+    div.className='diary-entry';
+    div.innerHTML=`
+      <div class="date">${dateStr} ${e.isCompleted?'✅':''}</div>
+      ${e.situation?'<div class="situation">'+esc(e.situation)+'</div>':''}
+      ${feelingsStr?'<div class="feel">'+esc(feelingsStr)+'</div>':''}
+      ${toolsStr?'<div class="tools">🧰 '+esc(toolsStr)+'</div>':''}
+      <div style="display:flex;gap:6px;margin-top:6px;">
+        <button class="btn-secondary" style="font-size:11px;padding:4px 10px;" onclick="diaryEdit(${e.id})">✏️</button>
+        <button class="btn-secondary" style="font-size:11px;padding:4px 10px;" onclick="diaryDelete(${e.id})">🗑️</button>
+      </div>`;
+    list.appendChild(div);
+  });
+}
+
+function diaryEdit(id){
+  const all = JSON.parse(storage.get('diary_entries')||'[]');
+  const e = all.find(x=>x.id===id);
+  if(!e) return;
+  diaryEditingId = id;
+  document.getElementById('diaryView').style.display='none';
+  document.getElementById('diaryForm').style.display='block';
+  document.getElementById('diaryStats').style.display='none';
+  document.getElementById('diaryStartTime').value = new Date(e.startTime).toISOString().slice(0,16);
+  document.getElementById('diarySituation').value = e.situation||'';
+  document.getElementById('diaryThoughts').value = e.thoughts||'';
+  document.getElementById('diaryTrigger').value = e.trigger||'';
+  document.getElementById('diarySummary').value = e.summary||'';
+  document.getElementById('diaryFeelingsOther').value = '';
+  renderFeelingChips();
+  if(e.feelings){
+    document.querySelectorAll('#diaryFeelings .diary-chip').forEach(b=>{
+      if(e.feelings.includes(b.textContent)) b.classList.add('selected');
+    });
+  }
+  diaryToolCount=0;
+  const tl = document.getElementById('diaryToolsList');
+  tl.innerHTML='';
+  if(e.tools) e.tools.forEach(t=>{
+    const div=document.createElement('div');
+    div.className='diary-tool-row';
+    div.id='dtool_'+ (++diaryToolCount);
+    div.innerHTML='<input type="text" value="'+esc(t.name)+'"><input type="text" value="'+esc(t.comment||'')+'" style="flex:0.6;"><button class="icon-btn" onclick="this.parentElement.remove()">✕</button>';
+    tl.appendChild(div);
+  });
+  const timeline = document.getElementById('diaryTimeline');
+  timeline.style.display='block';
+  timeline.innerHTML='<div style="font-size:12px;font-weight:700;color:var(--na-blue);margin-bottom:6px;">Хронология</div>';
+  if(e.events) e.events.forEach(ev=>{
+    const t=new Date(ev.timestamp);
+    const ts=t.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+    const item=document.createElement('div');
+    item.className='diary-timeline-item';
+    item.innerHTML='<div class="t">'+ts+'</div>'+esc(ev.label||ev.event_type);
+    timeline.appendChild(item);
+  });
+}
+
+function diaryDelete(id){
+  if(!confirm('Удалить запись?')) return;
+  let all = JSON.parse(storage.get('diary_entries')||'[]');
+  all = all.filter(e=>e.id!==id);
+  storage.set('diary_entries', JSON.stringify(all));
+  diaryRenderList();
+}
+
+function diaryShowStats(){
+  document.getElementById('diaryView').style.display='none';
+  document.getElementById('diaryForm').style.display='none';
+  document.getElementById('diaryStats').style.display='block';
+  const all = JSON.parse(storage.get('diary_entries')||'[]');
+  const completed = all.filter(e=>e.isCompleted);
+  document.getElementById('diaryStatCount').textContent = all.length;
+  let totalMin=0, cnt=0, maxMin=0, minMin=Infinity;
+  completed.forEach(e=>{
+    if(e.endTime && e.startTime){
+      const dur = Math.round((e.endTime - e.startTime)/60000);
+      if(dur>0){ totalMin+=dur; cnt++; maxMin=Math.max(maxMin,dur); minMin=Math.min(minMin,dur); }
+    }
+  });
+  document.getElementById('diaryStatAvg').textContent = cnt ? Math.round(totalMin/cnt)+' мин' : '-';
+  document.getElementById('diaryStatMax').textContent = maxMin ? maxMin+' мин' : '-';
+  document.getElementById('diaryStatMin').textContent = minMin<Infinity ? minMin+' мин' : '-';
+  const toolFreq = {};
+  all.forEach(e=>{ if(e.tools) e.tools.forEach(t=>{ toolFreq[t.name]=(toolFreq[t.name]||0)+1; }); });
+  const sorted = Object.entries(toolFreq).sort((a,b)=>b[1]-a[1]);
+  const tc = document.getElementById('diaryStatTools');
+  tc.innerHTML = sorted.length ? sorted.map(([n,c])=>'<span style="display:inline-block;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:3px 10px;font-size:11px;margin:2px;">'+esc(n)+' ('+c+')</span>').join(' ') : '<div style="font-size:12px;color:var(--muted);">Нет данных</div>';
+}
+
+function diaryBackToList(){
+  document.getElementById('diaryView').style.display='block';
+  document.getElementById('diaryStats').style.display='none';
+}
+
+function esc(s){ const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+
+function vibratePattern(pattern){
+  const patterns = { 'short': [100,50,100], 'long': [400,100,400], 'double': [150,100,150,100,150], 'default': [200,100,200] };
+  return patterns[pattern] || patterns['default'];
 }
 function notify(body, icon, silent){
   const ico = icon || 'icons/icon-192.svg';
   if(notifyPerm === 'granted'){
     const useVibrate = storage.get('notify_vibrate') !== '0';
     const useSound = silent !== true && storage.get('notify_sound') !== '0';
-    if(useVibrate && navigator.vibrate) { try { navigator.vibrate(200); } catch(e) {} }
+    const vibPattern = storage.get('notify_vibrate_pattern') || 'default';
+    if(useVibrate && navigator.vibrate) { try { navigator.vibrate(vibratePattern(vibPattern)); } catch(e) {} }
     try {
       new Notification('Чистый день', {
         body, icon:ico, requireInteraction:true,
@@ -2570,6 +2888,7 @@ function openSettings(){
   const startStr=storage.get('startDate');
   document.getElementById('startDateInput').value = startStr || new Date().toISOString().slice(0,10);
   document.getElementById('modalBackdrop').classList.add('active');
+  loadNotifySettings();
   const ns=document.getElementById('notifyStatus');
   if(Notification.permission==='granted') ns.textContent='✅ Уведомления разрешены';
   else if(Notification.permission==='denied') ns.textContent='⛔ Уведомления запрещены (измени в настройках браузера)';
