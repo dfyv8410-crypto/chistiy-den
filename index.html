@@ -1274,7 +1274,7 @@ body{
             <button id="folderPickBtn" onclick="pickDataFolder()" style="flex:1;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--card);color:var(--na-blue);font-weight:700;font-size:12px;cursor:pointer;font-family:var(--font-body);">📂 Выбрать папку</button>
             <button id="folderUnlinkBtn" onclick="unlinkDataFolder()" style="display:none;flex:1;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--card);color:#E88A7A;font-weight:700;font-size:12px;cursor:pointer;font-family:var(--font-body);">🔗 Отвязать</button>
           </div>
-          <p style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.4;">Папка создаётся автоматически (служебная, без вашего участия). Всегда можно привязать видимую папку для дополнительной сохранности — выберите любую папку на устройстве (например «ЧистыйДень»). Данные дублируются туда и не пропадут даже после очистки куков. Работает в Chrome / Edge / Samsung Internet.</p>
+          <p style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.4;">Привяжите папку — и все данные будут храниться в ней, а не в браузере. Очистка куков больше не страшна. При переустановке или сбое — просто выберите ту же папку. Работает в Chrome / Edge / Samsung Internet.</p>
         </div>
       </div>
 
@@ -1558,14 +1558,13 @@ const storage = {
     try{ localStorage.setItem(key,val); }catch(e){ console.warn('localStorage set error:', e.message); }
     memoryStore[key]=val;
     _idbSet(key,val).catch(err => console.error('IDB set error:', err));
-    // асинхронно дублируем в папку
-    _queueFolderSync();
+    saveToFolder(); // сразу дублируем в папку
   },
   remove(key){
     try{ localStorage.removeItem(key); }catch(e){ console.warn('localStorage remove error:', e.message); }
     delete memoryStore[key];
     _idbDel(key).catch(err => console.error('IDB del error:', err));
-    _queueFolderSync();
+    saveToFolder();
   }
 };
 // migrate on startup — восстанавливаем localStorage из IndexedDB если куки сброшены
@@ -3777,38 +3776,85 @@ function closePrayer(){
   if(prayerTimer) clearTimeout(prayerTimer);
 }
 
-/* ------- FOLDER BINDING (File System Access API + OPFS) ------- */
-let _userFolderHandle = null; // папка, выбранная пользователем
-let _opfsRoot = null;         // корень OPFS (создаётся автоматически)
-let _folderSyncQueued = false;
+/* ------- FOLDER BINDING (File System Access API) ------- */
+let _folderHandle = null; // handle выбранной пользователем папки
 
-// получение корня OPFS (автоматическая папка, не требует разрешения)
-async function getOpfsRoot(){
-  if(_opfsRoot) return _opfsRoot;
-  try {
-    _opfsRoot = await navigator.storage.getDirectory();
-    return _opfsRoot;
-  } catch(e){
-    console.warn('OPFS unavailable:', e.message);
-    return null;
-  }
-}
-
-// получение handle пользовательской папки (если привязана)
-async function getUserFolderHandle(){
-  if(_userFolderHandle) return _userFolderHandle;
+// получение handle папки (проверяет разрешение)
+async function getFolderHandle(){
+  if(_folderHandle) return _folderHandle;
   try {
     const handle = await _idbGet('_folder_handle');
     if(handle && handle.queryPermission){
       const perm = await handle.queryPermission({mode:'readwrite'});
-      if(perm === 'granted'){ _userFolderHandle = handle; return handle; }
+      if(perm === 'granted'){ _folderHandle = handle; return handle; }
       const req = await handle.requestPermission({mode:'readwrite'});
-      if(req === 'granted'){ _userFolderHandle = handle; return handle; }
+      if(req === 'granted'){ _folderHandle = handle; return handle; }
     }
   } catch(e){ /* нет handle */ }
   return null;
 }
 
+// запись JSON-файла в папку
+async function _writeFolder(handle, data){
+  const fh = await handle.getFileHandle('chistiy-den.json', {create:true});
+  const w = await fh.createWritable();
+  await w.write(JSON.stringify(data, null, 2));
+  await w.close();
+}
+// чтение JSON-файла из папки
+async function _readFolder(handle){
+  let fh;
+  try { fh = await handle.getFileHandle('chistiy-den.json'); }
+  catch(e) { return null; }
+  return JSON.parse(await (await fh.getFile()).text());
+}
+
+// сбор данных из localStorage (+ IDB если есть)
+async function _gatherAll(){
+  const data = {};
+  if(_db){
+    const tx = _db.transaction('data','readonly');
+    const store = tx.objectStore('data');
+    const keys = await new Promise((r)=>{ const x=store.getAllKeys(); x.onsuccess=()=>r(x.result); x.onerror=()=>r([]); });
+    for(const k of keys){
+      const v = await new Promise((r)=>{ const x=store.get(k); x.onsuccess=()=>r(x.result); x.onerror=()=>r(undefined); });
+      if(v !== undefined) data[k] = v;
+    }
+  }
+  for(const k of Object.keys(localStorage)) if(data[k]===undefined) data[k]=localStorage.getItem(k);
+  return data;
+}
+
+// записать всё в папку
+async function saveToFolder(){
+  const h = await getFolderHandle();
+  if(!h) return;
+  try {
+    await _writeFolder(h, await _gatherAll());
+  } catch(e){ console.warn('saveToFolder error:', e.message); }
+}
+
+// восстановить из папки (заменяет localStorage + IDB + memoryStore)
+async function restoreFromFolder(){
+  const h = await getFolderHandle();
+  if(!h) return false;
+  try {
+    const data = await _readFolder(h);
+    if(!data || typeof data !== 'object') return false;
+    let count = 0;
+    for(const [key, val] of Object.entries(data)){
+      const str = typeof val === 'string' ? val : JSON.stringify(val);
+      await _idbSet(key, val).catch(()=>{});
+      try{ localStorage.setItem(key, str); }catch(e){}
+      memoryStore[key] = str;
+      count++;
+    }
+    console.log('Restored', count, 'keys from folder');
+    return true;
+  } catch(e){ console.warn('restoreFromFolder error:', e.message); return false; }
+}
+
+// выбор папки пользователем
 async function pickDataFolder(){
   if(!window.showDirectoryPicker){
     alert('Ваш браузер не поддерживает выбор папки. Попробуйте Chrome, Edge или Samsung Internet.');
@@ -3818,192 +3864,49 @@ async function pickDataFolder(){
     const handle = await window.showDirectoryPicker();
     const perm = await handle.requestPermission({mode:'readwrite'});
     if(perm !== 'granted'){ alert('❌ Нет доступа к папке'); return; }
-    _userFolderHandle = handle;
+    _folderHandle = handle;
     await _idbSet('_folder_handle', handle).catch(()=>{});
-    // сразу сохраняем все данные в папку
-    await syncToUserFolder();
+    await saveToFolder();
     updateFolderUI();
-    showToast('✅ Папка привязана');
+    showToast('✅ Папка привязана — все данные сохраняются туда');
   } catch(e){
-    if(e.name !== 'AbortError' && e.name !== 'SecurityError'){
-      alert('Ошибка: ' + e.message);
-    }
+    if(e.name !== 'AbortError' && e.name !== 'SecurityError') alert('Ошибка: ' + e.message);
   }
 }
 
 async function unlinkDataFolder(){
-  if(!confirm('Отвязать папку? Данные в папке останутся, но приложение перестанет туда сохранять.')) return;
-  _userFolderHandle = null;
+  if(!confirm('Отвязать папку? Файл chistiy-den.json останется на месте, но новые данные перестанут в него записываться.')) return;
+  _folderHandle = null;
   await _idbDel('_folder_handle').catch(()=>{});
   updateFolderUI();
   showToast('Папка отвязана');
 }
 
 async function updateFolderUI(){
-  const status = document.getElementById('folderStatus');
-  const pickBtn = document.getElementById('folderPickBtn');
-  const unlinkBtn = document.getElementById('folderUnlinkBtn');
-  if(!status) return;
-  const userHandle = await getUserFolderHandle();
-  if(userHandle){
-    status.textContent = '✅ Папка привязана — данные дублируются на устройство';
-    status.style.color = '#3DDC84';
-    if(pickBtn) pickBtn.textContent = '📂 Выбрать другую';
-    if(unlinkBtn) unlinkBtn.style.display = 'flex';
+  const el=document.getElementById('folderStatus'), btn=document.getElementById('folderPickBtn'), unl=document.getElementById('folderUnlinkBtn');
+  if(!el) return;
+  if(await getFolderHandle()){
+    el.innerHTML = '✅ Папка привязана — <b>все данные хранятся в ней</b>. Очистка куков браузера не страшна.';
+    el.style.color = '#3DDC84';
+    if(btn) btn.textContent = '📂 Выбрать другую папку';
+    if(unl) unl.style.display = 'flex';
   } else {
-    status.textContent = '❌ Папка не привязана. Но данные автоматически хранятся в служебной папке приложения (OPFS) — они не пропадут при очистке куков.';
-    status.style.color = 'var(--muted)';
-    if(pickBtn) pickBtn.textContent = '📂 Привязать папку на устройстве';
-    if(unlinkBtn) unlinkBtn.style.display = 'none';
+    el.innerHTML = '❌ Папка не привязана. Данные хранятся только в браузере и <b>пропадут при очистке куков</b>. Настоятельно рекомендуется привязать папку.';
+    el.style.color = 'var(--muted)';
+    if(btn) btn.textContent = '📂 Привязать папку на устройстве';
+    if(unl) unl.style.display = 'none';
   }
 }
 
-// сбор всех данных из IDB + localStorage
-async function _collectAllData(){
-  const data = {};
-  if(_db){
-    const tx = _db.transaction('data','readonly');
-    const store = tx.objectStore('data');
-    const keys = await new Promise((res,rej)=>{ const r=store.getAllKeys(); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(); });
-    for(const k of keys){
-      const v = await new Promise((res)=>{ const r=store.get(k); r.onsuccess=()=>res(r.result); r.onerror=()=>res(undefined); });
-      if(v !== undefined) data[k] = v;
-    }
-  }
-  const lsKeys = Object.keys(localStorage);
-  for(const k of lsKeys){
-    if(data[k] === undefined) data[k] = localStorage.getItem(k);
-  }
-  return data;
-}
-// запись JSON-файла в handle
-async function _writeJsonToHandle(handle, data){
-  const fileHandle = await handle.getFileHandle('chistiy-den.json', {create:true});
-  const writable = await fileHandle.createWritable();
-  await writable.write(JSON.stringify(data, null, 2));
-  await writable.close();
-}
-// чтение JSON-файла из handle
-async function _readJsonFromHandle(handle){
-  let fileHandle;
-  try { fileHandle = await handle.getFileHandle('chistiy-den.json'); }
-  catch(e) { return null; }
-  const file = await fileHandle.getFile();
-  const text = await file.text();
-  return JSON.parse(text);
-}
-
-// синхронизация в OPFS (автоматически, без участия пользователя)
-async function syncToOpfs(){
-  try {
-    const root = await getOpfsRoot();
-    if(!root) return;
-    const data = await _collectAllData();
-    await _writeJsonToHandle(root, data);
-  } catch(e){
-    console.warn('OPFS sync error:', e.message);
-  }
-}
-// синхронизация в пользовательскую папку (если привязана)
-async function syncToUserFolder(){
-  try {
-    const handle = await getUserFolderHandle();
-    if(!handle) return;
-    const data = await _collectAllData();
-    await _writeJsonToHandle(handle, data);
-  } catch(e){
-    console.warn('User folder sync error:', e.message);
-  }
-}
-// полная синхронизация во все внешние хранилища
-async function syncToAllFolders(){
-  await syncToOpfs();
-  await syncToUserFolder();
-}
-
-// восстановление из OPFS (автоматическое)
-async function restoreFromOpfs(){
-  try {
-    const lsKeys = Object.keys(localStorage);
-    if(lsKeys.length > 0) return false;
-    const root = await getOpfsRoot();
-    if(!root) return false;
-    const data = await _readJsonFromHandle(root);
-    if(!data || typeof data !== 'object') return false;
-    let count = 0;
-    for(const [key, val] of Object.entries(data)){
-      await _idbSet(key, val).catch(()=>{});
-      try{ localStorage.setItem(key, typeof val === 'string' ? val : JSON.stringify(val)); }catch(e){}
-      memoryStore[key] = typeof val === 'string' ? val : JSON.stringify(val);
-      count++;
-    }
-    console.log('Restored', count, 'keys from OPFS');
-    return true;
-  } catch(e){
-    console.warn('OPFS restore error:', e.message);
-    return false;
-  }
-}
-// восстановление из пользовательской папки (если привязана)
-async function restoreFromUserFolder(){
-  try {
-    const handle = await getUserFolderHandle();
-    if(!handle) return false;
-    const lsKeys = Object.keys(localStorage);
-    if(lsKeys.length > 0) return false;
-    const data = await _readJsonFromHandle(handle);
-    if(!data || typeof data !== 'object') return false;
-    let count = 0;
-    for(const [key, val] of Object.entries(data)){
-      await _idbSet(key, val).catch(()=>{});
-      try{ localStorage.setItem(key, typeof val === 'string' ? val : JSON.stringify(val)); }catch(e){}
-      memoryStore[key] = typeof val === 'string' ? val : JSON.stringify(val);
-      count++;
-    }
-    console.log('Restored', count, 'keys from user folder');
-    return true;
-  } catch(e){
-    console.warn('User folder restore error:', e.message);
-    return false;
-  }
-}
-// проверка целостности всех хранилищ при запуске
+// проверка целостности: если localStorage пуст — пробуем папку
 async function _verifyIntegrity(){
-  try {
-    // собираем ключи из всех источников
-    const lsKeys = new Set(Object.keys(localStorage));
-    const idbKeys = new Set();
-    if(_db){
-      try {
-        const tx = _db.transaction('data','readonly');
-        const store = tx.objectStore('data');
-        const keys = await new Promise((res,rej)=>{ const r=store.getAllKeys(); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(); });
-        keys.forEach(k => idbKeys.add(k));
-      } catch(e){ /* IDB недоступна */ }
-    }
-    // если LS пуст, а IDB нет — уже восстановлено миграцией/папкой
-    if(lsKeys.size === 0 && idbKeys.size > 0){
-      // LS восстановлен выше, ничего не делаем
-      return;
-    }
-    // LS есть, но IDB может отставать — синхронизируем IDB из LS
-    if(lsKeys.size > 0 && _db){
-      for(const k of lsKeys){
-        const v = localStorage.getItem(k);
-        if(v !== null) await _idbSet(k, v).catch(()=>{});
-      }
-    }
-    // если LS есть — синхронизируем во внешние хранилища (OPFS + пользовательская папка)
-    if(lsKeys.size > 0) syncToAllFolders();
-  } catch(e){
-    console.warn('Integrity check error:', e.message);
+  if(Object.keys(localStorage).length > 0){
+    // данные есть — синхронизируем в папку если привязана
+    saveToFolder();
+    return;
   }
-}
-// дебаунс для синхронизации с папками — не дёргаем файл при каждом set()
-let _folderSyncTimer = null;
-function _queueFolderSync(){
-  if(_folderSyncTimer) clearTimeout(_folderSyncTimer);
-  _folderSyncTimer = setTimeout(() => { _folderSyncTimer = null; syncToAllFolders(); }, 3000);
+  // localStorage пуст — пробуем папку
+  await restoreFromFolder();
 }
 async function initStorage(){
   const el = document.getElementById('storageStatus');
@@ -4631,12 +4534,7 @@ if('serviceWorker' in navigator){
 }
 
 readyPromise.then(async ()=>{
-// восстанавливаем из OPFS (автоматическая папка, не требует разрешения)
-if(!await restoreFromOpfs()){
-  // если OPFS пуст — пробуем пользовательскую папку
-  await restoreFromUserFolder();
-}
-// проверяем целостность: если одна из копий (LS/IDB/OPFS) полнее — синхронизируем остальные
+// восстанавливаем из папки если localStorage пуст (очистка куков)
 await _verifyIntegrity();
 renderHome();
 showPrayer();
