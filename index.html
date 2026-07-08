@@ -1257,6 +1257,7 @@ body{
         <h4>💾 Хранилище</h4>
         <div class="settings-card">
           <p style="font-size:12px;color:var(--cream);margin:0 0 6px;" id="storageStatus">Проверка...</p>
+          <p style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.4;" id="healthSummary">—</p>
           <p style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.4;">Все данные хранятся локально на устройстве. Используется трёхуровневое хранилище: IndexedDB → localStorage → память.</p>
         </div>
       </div>
@@ -1282,7 +1283,7 @@ body{
             <button onclick="document.getElementById('importFileInput').click()" style="flex:1;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--card);color:var(--na-blue);font-weight:700;font-size:12px;cursor:pointer;font-family:var(--font-body);">📥 Восстановить из файла</button>
             <input type="file" id="importFileInput" accept=".json" style="display:none;" onchange="importAllData(event)">
           </div>
-          <p style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.4;">Данные хранятся в IndexedDB (основное хранилище) + localStorage (кэш). При привязанной папке — дублируются туда. Версия схемы: <span id="storageVersion">2.0</span>.</p>
+          <p style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.4;">Данные хранятся в IndexedDB (основное хранилище) + localStorage (кэш). При привязанной папке — дублируются туда. Версия схемы: <span id="storageVersion">3.0</span>.</p>
         </div>
       </div>
 
@@ -1497,14 +1498,15 @@ body{
 
 
 <script>
-/* ===================== STORAGE SERVICE V2 ===================== */
-// Архитектура: IndexedDB (основное) → localStorage (кэш) → memoryStore (горячий кэш)
-// Резервное копирование: папка на устройстве через File System Access API
-// Версия схемы: 2.0 — подготовлено для замены на SQLite при переходе в Android Native
+/* ===================== STORAGE SERVICE V3 ===================== */
+// Трехуровневое хранилище: IndexedDB (основное) → localStorage (кэш) → memoryStore (быстрый кэш)
+// Backup-менеджер: снапшоты, ретраи, контроль целостности, приоритеты
+// Cloud-ready: SyncProvider-абстракция для будущего Firebase/Supabase
 
-const STORAGE_VERSION = '2.0';
+const STORAGE_VERSION = '3.0';
+const SNAPSHOT_MAX = 5;
 const DB_NAME = 'chistiy_den';
-const DB_SCHEMA_VERSION = 2;
+const DB_SCHEMA_VERSION = 3;
 
 const memoryStore = {};
 let _db = null;
@@ -1518,7 +1520,6 @@ function openDB(){
       req.onupgradeneeded = e => {
         const db = e.target.result;
         if(!db.objectStoreNames.contains('data')) db.createObjectStore('data');
-        // будущая миграция: здесь добавить store для версионирования
       };
       req.onsuccess = e => resolve(e.target.result);
       req.onerror = e => reject(e.target.error);
@@ -1584,55 +1585,198 @@ const storage = {
     memoryStore[key]=val;
     try{ localStorage.setItem(key,val); }catch(e){ console.warn('localStorage set error:', e.message); }
     _idbSet(key,val).catch(err => console.error('IDB set error:', err));
+    PriorityManager.onDataChanged(key);
     BackupManager.scheduleBackup();
   },
   remove(key){
     delete memoryStore[key];
     try{ localStorage.removeItem(key); }catch(e){ console.warn('localStorage remove error:', e.message); }
     _idbDel(key).catch(err => console.error('IDB del error:', err));
+    PriorityManager.onDataChanged(key);
     BackupManager.scheduleBackup();
   }
 };
 
-// --- Миграция данных V1 → V2 ---
+// --- Утилиты ---
 
-async function _runStartupMigration(){
+function _generateId(){
+  return 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+}
+async function _checksum(data){
+  const str = typeof data === 'string' ? data : JSON.stringify(data);
   try {
-    _db = await openDB();
-    // проверяем версию хранилища
-    const ver = await _idbGet('__storage_version').catch(()=>null);
-    if(!ver){
-      // V1 → V2: переносим данные из localStorage в IDB
-      const lsKeys = Object.keys(localStorage);
-      for(const k of lsKeys){
-        const v = localStorage.getItem(k);
-        if(v !== null && k !== '__storage_version') await _idbSet(k, v).catch(()=>{});
-      }
-      await _idbSet('__storage_version', STORAGE_VERSION);
-    }
-    // восстанавливаем localStorage из IDB если первый пуст
-    const lsKeys = Object.keys(localStorage);
-    const idbKeys = (await _idbGetAllKeys().catch(()=>[])).filter(k => !k.startsWith('__'));
-    if(lsKeys.length === 0 && idbKeys.length > 0){
-      for(const k of idbKeys){
-        const v = await _idbGet(k).catch(()=>undefined);
-        if(v !== undefined){
-          const str = typeof v === 'string' ? v : JSON.stringify(v);
-          try{ localStorage.setItem(k, str); }catch(e){}
-          memoryStore[k] = str;
-        }
-      }
-    }
-  } catch(e){ console.warn('Migration error:', e.message); }
+    const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
+  } catch(e){
+    let h = 0;
+    for(let i = 0; i < str.length; i++){ h = ((h << 5) - h) + str.charCodeAt(i); h |= 0; }
+    return 'f' + Math.abs(h).toString(16);
+  }
+}
+function _formatBytes(bytes){
+  if(bytes < 1024) return bytes + ' B';
+  if(bytes < 1048576) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/1048576).toFixed(1) + ' MB';
 }
 
-// --- BackupManager (резервное копирование в папку на устройстве) ---
+// --- Data Priority Manager ---
+// Уровень 1: дневник тяги, чистые дни, шаги
+// Уровень 2: заметки, благодарности
+// Уровень 3: настройки
+
+const PRIORITY_L1 = ['craving_log','startDate','steps_log','plan_regime','plan_text','plan_start'];
+const PRIORITY_L2 = ['gratitude_log','notes','lib_state','lib_imported','jft_favorites','svc_reminder'];
+const PRIORITY_L3 = ['theme','notify_settings','donate_closed','last_donate_prompt','launch_count','prayer_shown_at','seen_features'];
+
+const PriorityManager = {
+  getLevel(key){
+    if(PRIORITY_L1.includes(key)) return 1;
+    if(PRIORITY_L2.includes(key)) return 2;
+    return 3;
+  },
+  sortByPriority(keys){
+    return keys.slice().sort((a,b) => PriorityManager.getLevel(a) - PriorityManager.getLevel(b));
+  },
+  onDataChanged(key){}
+};
+
+// --- Device Profile ---
+
+const DeviceProfile = {
+  _id: null,
+  async getDeviceId(){
+    if(this._id) return this._id;
+    let id = memoryStore['__device_id'];
+    if(!id) id = await _idbGet('__device_id').catch(()=>null);
+    if(!id){
+      id = _generateId();
+      await _idbSet('__device_id', id).catch(()=>{});
+      try{ localStorage.setItem('__device_id', id); }catch(e){}
+      memoryStore['__device_id'] = id;
+      await this._updateMeta();
+    } else {
+      memoryStore['__device_id'] = id;
+      this._id = id;
+    }
+    return id;
+  },
+  async _updateMeta(){
+    const meta = {
+      deviceId: await this.getDeviceId(),
+      installedAt: new Date().toISOString(),
+      version: STORAGE_VERSION,
+      lastBackup: null,
+      recordsCount: 0,
+      syncStatus: 'local'
+    };
+    const existing = await _idbGet('__device_meta').catch(()=>null);
+    if(existing && typeof existing === 'object') Object.assign(meta, existing);
+    const keys = await _idbGetAllKeys().catch(()=>[]);
+    meta.recordsCount = keys.filter(k => !k.startsWith('__')).length;
+    await _idbSet('__device_meta', meta).catch(()=>{});
+    try{ localStorage.setItem('__device_meta', JSON.stringify(meta)); }catch(e){}
+    memoryStore['__device_meta'] = JSON.stringify(meta);
+    return meta;
+  },
+  async getMeta(){
+    const str = memoryStore['__device_meta'];
+    if(str) return JSON.parse(str);
+    const ls = localStorage.getItem('__device_meta');
+    if(ls) return JSON.parse(ls);
+    const m = await _idbGet('__device_meta').catch(()=>null);
+    return m || await this._updateMeta();
+  }
+};
+
+// --- SyncProvider (абстракция облака, no-op) ---
+
+const SyncProvider = {
+  isConnected: false,
+  name: 'none',
+  async connect(){ return false; },
+  async disconnect(){ this.isConnected = false; },
+  async push(data){ return false; },
+  async pull(){ return null; },
+  async ping(){ return false; }
+};
+
+// --- Snapshot System ---
+
+const SnapshotSystem = {
+  async create(){
+    const h = await BackupManager.getHandle();
+    if(!h) return null;
+    try {
+      const data = await BackupManager.collectAll();
+      const snapshot = {
+        id: _generateId(),
+        createdAt: new Date().toISOString(),
+        checksum: await _checksum(data),
+        recordsCount: Object.keys(data).length,
+        size: new Blob([JSON.stringify(data)]).size,
+        version: STORAGE_VERSION,
+        data: data
+      };
+      let snapshots = await this._loadAll();
+      snapshots.unshift(snapshot);
+      if(snapshots.length > SNAPSHOT_MAX) snapshots = snapshots.slice(0, SNAPSHOT_MAX);
+      await this._saveAll(snapshots);
+      return snapshot;
+    } catch(e){ console.warn('Snapshot error:', e.message); return null; }
+  },
+  async list(){
+    const snapshots = await this._loadAll();
+    return snapshots.map(s => ({ id: s.id, createdAt: s.createdAt, recordsCount: s.recordsCount, size: s.size, version: s.version }));
+  },
+  async restore(id){
+    const snapshots = await this._loadAll();
+    const snap = snapshots.find(s => s.id === id);
+    if(!snap) return false;
+    try {
+      const cs = await _checksum(snap.data);
+      if(cs !== snap.checksum){ console.warn('Snapshot checksum mismatch:', id); return false; }
+      const sorted = PriorityManager.sortByPriority(Object.keys(snap.data));
+      for(const key of sorted){
+        if(key.startsWith('__')) continue;
+        const val = snap.data[key];
+        const str = typeof val === 'string' ? val : JSON.stringify(val);
+        await _idbSet(key, val).catch(()=>{});
+        try{ localStorage.setItem(key, str); }catch(e){}
+        memoryStore[key] = str;
+      }
+      return true;
+    } catch(e){ console.warn('Snapshot restore error:', e.message); return false; }
+  },
+  async _loadAll(){
+    const h = await BackupManager.getHandle();
+    if(!h) return [];
+    try {
+      let fh;
+      try { fh = await h.getFileHandle('chistiy-den-snapshots.json'); } catch(e) { return []; }
+      const file = JSON.parse(await (await fh.getFile()).text());
+      return file.snapshots || [];
+    } catch(e){ return []; }
+  },
+  async _saveAll(snapshots){
+    const h = await BackupManager.getHandle();
+    if(!h) return;
+    try {
+      const fh = await h.getFileHandle('chistiy-den-snapshots.json', {create:true});
+      const w = await fh.createWritable();
+      await w.write(JSON.stringify({version: STORAGE_VERSION, snapshots: snapshots}, null, 2));
+      await w.close();
+    } catch(e){ console.warn('Snapshot save error:', e.message); }
+  }
+};
+
+// --- BackupManager (Enhanced V3) ---
 
 const BackupManager = {
   _handle: null,
   _timer: null,
+  _retryQueue: [],
+  _retryTimer: null,
 
-  // получить handle папки
   async getHandle(){
     if(this._handle) return this._handle;
     try {
@@ -1644,8 +1788,6 @@ const BackupManager = {
     } catch(e){}
     return null;
   },
-
-  // собрать все данные из IDB + localStorage
   async collectAll(){
     const data = {};
     if(_db){
@@ -1664,16 +1806,19 @@ const BackupManager = {
     }
     return data;
   },
-
-  // записать backup в папку
   async createBackup(){
     const h = await this.getHandle();
     if(!h) return false;
     try {
       const data = await this.collectAll();
       const backup = {
+        id: _generateId(),
         version: STORAGE_VERSION,
-        created: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        checksum: await _checksum(data),
+        recordsCount: Object.keys(data).length,
+        size: new Blob([JSON.stringify(data)]).size,
         app: 'chistiy-den',
         data: data
       };
@@ -1681,11 +1826,15 @@ const BackupManager = {
       const w = await fh.createWritable();
       await w.write(JSON.stringify(backup, null, 2));
       await w.close();
+      DeviceProfile._updateMeta().catch(()=>{});
+      SnapshotSystem.create().catch(()=>{});
       return true;
-    } catch(e){ console.warn('Backup error:', e.message); return false; }
+    } catch(e){
+      console.warn('Backup error:', e.message);
+      this._addToRetry();
+      return false;
+    }
   },
-
-  // восстановить из папки
   async restoreFromBackup(){
     const h = await this.getHandle();
     if(!h) return false;
@@ -1695,30 +1844,25 @@ const BackupManager = {
       catch(e) { return false; }
       const backup = JSON.parse(await (await fh.getFile()).text());
       if(!backup || !backup.data || typeof backup.data !== 'object') return false;
-      const entries = Object.entries(backup.data);
-      for(const [key, val] of entries){
+      const cs = await _checksum(backup.data);
+      if(cs !== backup.checksum) console.warn('Backup checksum mismatch, attempting restore anyway');
+      const sorted = PriorityManager.sortByPriority(Object.keys(backup.data));
+      for(const key of sorted){
         if(key.startsWith('__')) continue;
+        const val = backup.data[key];
         const str = typeof val === 'string' ? val : JSON.stringify(val);
         await _idbSet(key, val).catch(()=>{});
         try{ localStorage.setItem(key, str); }catch(e){}
         memoryStore[key] = str;
       }
-      // сохраняем версию
       await _idbSet('__storage_version', backup.version || STORAGE_VERSION);
-      console.log('Restored', entries.length, 'keys from backup');
+      console.log('Restored', sorted.length, 'keys from backup');
       return true;
     } catch(e){ console.warn('Restore error:', e.message); return false; }
   },
-
-  // проверка целостности: если localStorage пуст — восстанавливаем
   async verify(){
     const lsKeys = Object.keys(localStorage).filter(k => !k.startsWith('__'));
-    if(lsKeys.length > 0){
-      // данные есть — синхронизируем в папку если привязана
-      this.scheduleBackup();
-      return true;
-    }
-    // localStorage пуст — пробуем IDB
+    if(lsKeys.length > 0){ this.scheduleBackup(); return true; }
     try {
       const idbKeys = (await _idbGetAllKeys().catch(()=>[])).filter(k => !k.startsWith('__'));
       if(idbKeys.length > 0){
@@ -1734,11 +1878,8 @@ const BackupManager = {
         return true;
       }
     } catch(e){}
-    // IDB пуст — пробуем папку
     return await this.restoreFromBackup();
   },
-
-  // получить информацию о backup
   async getInfo(){
     const h = await this.getHandle();
     if(!h) return null;
@@ -1749,39 +1890,257 @@ const BackupManager = {
       const file = await fh.getFile();
       const backup = JSON.parse(await file.text());
       return {
+        id: backup.id,
         version: backup.version || 'unknown',
-        created: backup.created || 'unknown',
+        createdAt: backup.createdAt || 'unknown',
+        updatedAt: backup.updatedAt || backup.createdAt || 'unknown',
+        recordsCount: backup.recordsCount || (backup.data ? Object.keys(backup.data).length : 0),
         size: file.size,
-        keys: backup.data ? Object.keys(backup.data).length : 0
+        checksum: backup.checksum || 'unknown'
       };
     } catch(e){ return null; }
   },
-
-  // экспорт backup как скачиваемый файл
   async exportBackup(){
     const data = await this.collectAll();
-    const backup = {
-      version: STORAGE_VERSION,
-      created: new Date().toISOString(),
-      app: 'chistiy-den',
-      data: data
-    };
-    const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
+    const blob = new Blob([JSON.stringify({version:STORAGE_VERSION,createdAt:new Date().toISOString(),app:'chistiy-den',data:data},null,2)], {type:'application/json'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `chistiy-den-backup-${new Date().toISOString().slice(0,10)}.json`;
+    a.download = 'chistiy-den-backup-' + new Date().toISOString().slice(0,10) + '.json';
     a.click();
     URL.revokeObjectURL(a.href);
   },
-
-  // запланировать отложенный backup (не дёргаем файл при каждом set)
   scheduleBackup(){
     if(this._timer) clearTimeout(this._timer);
-    this._timer = setTimeout(() => { this._timer = null; this.createBackup(); }, 2000);
+    this._timer = setTimeout(() => { this._timer = null; this._doBackup(); }, 2000);
+  },
+  async _doBackup(){
+    const ok = await this.createBackup();
+    if(ok) this._flushRetryQueue();
+  },
+  _addToRetry(){
+    this._retryQueue.push({time:Date.now(),attempt:0});
+    this._processRetryQueue();
+  },
+  async _processRetryQueue(){
+    if(this._retryTimer) return;
+    const backoff = [1000, 2000, 4000];
+    const tryItem = async () => {
+      for(let i = 0; i < 3; i++){
+        const ok = await this.createBackup().catch(()=>false);
+        if(ok) return true;
+        await new Promise(r => setTimeout(r, backoff[i] || 8000));
+      }
+      return false;
+    };
+    const process = async () => {
+      if(this._retryQueue.length === 0){ this._retryTimer = null; return; }
+      const ok = await tryItem();
+      if(ok) this._retryQueue.shift();
+      if(this._retryQueue.length > 0) this._retryTimer = setTimeout(process, 5000);
+      else this._retryTimer = null;
+    };
+    process();
+  },
+  _flushRetryQueue(){
+    this._retryQueue = [];
+    if(this._retryTimer){ clearTimeout(this._retryTimer); this._retryTimer = null; }
+  },
+  async dailyBackupCheck(){
+    const info = await this.getInfo();
+    if(!info || !info.createdAt) return this.createBackup();
+    if(Date.now() - new Date(info.createdAt).getTime() > 86400000) return this.createBackup();
+    return false;
   }
 };
 
-// --- Старые функции backup для обратной совместимости ---
+// --- Recovery System ---
+
+const RecoverySystem = {
+  async checkHealth(){
+    const report = {healthy:true, layers:[], warnings:[], errors:[]};
+    try {
+      const idbKeys = await _idbGetAllKeys().catch(()=>[]);
+      const dataKeys = idbKeys.filter(k => !k.startsWith('__'));
+      report.layers.push({name:'IndexedDB', status:'ok', count:dataKeys.length});
+    } catch(e){
+      report.layers.push({name:'IndexedDB', status:'error', error:e.message});
+      report.healthy = false; report.errors.push('IndexedDB: '+e.message);
+    }
+    try {
+      const lsKeys = Object.keys(localStorage).filter(k => !k.startsWith('__'));
+      report.layers.push({name:'localStorage', status:'ok', count:lsKeys.length});
+    } catch(e){
+      report.layers.push({name:'localStorage', status:'error', error:e.message});
+      report.healthy = false; report.errors.push('localStorage: '+e.message);
+    }
+    try {
+      const handle = await BackupManager.getHandle();
+      if(handle){
+        const info = await BackupManager.getInfo();
+        report.layers.push({name:'Backup folder', status:info?'ok':'no_backup', info:info});
+      } else {
+        report.layers.push({name:'Backup folder', status:'not_connected'});
+      }
+    } catch(e){
+      report.layers.push({name:'Backup folder', status:'error', error:e.message});
+      report.errors.push('Backup folder: '+e.message);
+    }
+    try {
+      const snaps = await SnapshotSystem.list();
+      report.layers.push({name:'Snapshots', status:snaps.length>0?'ok':'empty', count:snaps.length});
+    } catch(e){}
+    return report;
+  },
+  async fullRecovery(){
+    try {
+      const idbKeys = (await _idbGetAllKeys().catch(()=>[])).filter(k => !k.startsWith('__'));
+      if(idbKeys.length > 0){
+        let count = 0;
+        for(const k of idbKeys){
+          const v = await _idbGet(k).catch(()=>undefined);
+          if(v !== undefined){
+            const str = typeof v === 'string' ? v : JSON.stringify(v);
+            try{ localStorage.setItem(k, str); }catch(e){}
+            memoryStore[k] = str; count++;
+          }
+        }
+        if(count > 0) return {source:'IndexedDB', count:count};
+      }
+    } catch(e){}
+    try {
+      const ok = await BackupManager.restoreFromBackup();
+      if(ok) return {source:'Backup folder'};
+    } catch(e){}
+    try {
+      const snaps = await SnapshotSystem.list();
+      if(snaps.length > 0){
+        const ok = await SnapshotSystem.restore(snaps[0].id);
+        if(ok) return {source:'Snapshot', id:snaps[0].id};
+      }
+    } catch(e){}
+    return null;
+  },
+  async detectEmptyDB(){
+    const lsKeys = Object.keys(localStorage).filter(k => !k.startsWith('__'));
+    const idbKeys = (await _idbGetAllKeys().catch(()=>[])).filter(k => !k.startsWith('__'));
+    return lsKeys.length === 0 && idbKeys.length === 0;
+  }
+};
+
+// --- SmartImport ---
+
+let _importMode = 'full';
+
+const SmartImport = {
+  modes: ['full','merge','new_only'],
+  async execute(data, mode){
+    if(!data || typeof data !== 'object') return {ok:false, error:'Invalid data format'};
+    const keys = Object.keys(data).filter(k => !k.startsWith('__'));
+    let imported=0, skipped=0, conflicts=[];
+    const sorted = PriorityManager.sortByPriority(keys);
+    for(const k of sorted){
+      const val = data[k];
+      const str = typeof val === 'string' ? val : JSON.stringify(val);
+      if(mode === 'full'){ storage.set(k, str); imported++; }
+      else if(mode === 'new_only'){
+        if(storage.get(k) === undefined){ storage.set(k, str); imported++; }
+        else skipped++;
+      } else {
+        const existing = storage.get(k);
+        if(existing !== undefined && existing !== str) conflicts.push({key:k, local:existing, import:str});
+        storage.set(k, str); imported++;
+      }
+    }
+    return {ok:true, imported:imported, skipped:skipped, conflicts:conflicts};
+  },
+  async fromFile(file, mode){
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const json = JSON.parse(e.target.result);
+          const data = json.data || json;
+          resolve(this.execute(data, mode));
+        } catch(err){ resolve({ok:false, error:'Invalid file format'}); }
+      };
+      reader.onerror = () => resolve({ok:false, error:'File read error'});
+      reader.readAsText(file);
+    });
+  }
+};
+
+// --- Health Monitor ---
+
+const HealthMonitor = {
+  _errorCount: parseInt(localStorage.getItem('__health_errors')||'0'),
+  recordError(){
+    this._errorCount++;
+    try{ localStorage.setItem('__health_errors', String(this._errorCount)); }catch(e){}
+  },
+  async diagnose(){
+    const report = await RecoverySystem.checkHealth();
+    const meta = await DeviceProfile.getMeta().catch(()=>({}));
+    const snaps = await SnapshotSystem.list().catch(()=>[]);
+    const info = await BackupManager.getInfo().catch(()=>null);
+    return {
+      version: STORAGE_VERSION,
+      deviceId: meta.deviceId || 'unknown',
+      layers: report.layers,
+      healthy: report.healthy,
+      warnings: report.warnings,
+      errors: report.errors,
+      lastBackup: info ? {createdAt:info.createdAt, recordsCount:info.recordsCount, size:info.size} : null,
+      snapshots: snaps.length,
+      totalRecords: report.layers.reduce((s,l) => l.count !== undefined ? s+l.count : s, 0),
+      errorCount: this._errorCount,
+      memoryStoreSize: Object.keys(memoryStore).length
+    };
+  },
+  renderSummary(el){
+    if(!el) return;
+    this.diagnose().then(d => {
+      const s = d.healthy ? 'OK' : 'ERROR';
+      const c = d.healthy ? '#3DDC84' : '#E88A7A';
+      el.innerHTML = '<span style="color:'+c+';font-weight:700;">'+s+'</span> | Backup: ' +
+        (d.lastBackup ? new Date(d.lastBackup.createdAt).toLocaleDateString('ru-RU') : '—') +
+        ' | Records: ' + d.totalRecords + ' | Errors: ' + d.errorCount;
+    });
+  }
+};
+
+// --- Миграция V2 -> V3 ---
+
+async function _runStartupMigration(){
+  try {
+    _db = await openDB();
+    const ver = await _idbGet('__storage_version').catch(()=>null);
+    if(!ver){
+      const lsKeys = Object.keys(localStorage);
+      for(const k of lsKeys){
+        const v = localStorage.getItem(k);
+        if(v !== null && k !== '__storage_version') await _idbSet(k, v).catch(()=>{});
+      }
+      await _idbSet('__storage_version', STORAGE_VERSION);
+    } else if(ver !== STORAGE_VERSION){
+      await _idbSet('__storage_version', STORAGE_VERSION);
+    }
+    const lsKeys = Object.keys(localStorage);
+    const idbKeys = (await _idbGetAllKeys().catch(()=>[])).filter(k => !k.startsWith('__'));
+    if(lsKeys.length === 0 && idbKeys.length > 0){
+      for(const k of idbKeys){
+        const v = await _idbGet(k).catch(()=>undefined);
+        if(v !== undefined){
+          const str = typeof v === 'string' ? v : JSON.stringify(v);
+          try{ localStorage.setItem(k, str); }catch(e){}
+          memoryStore[k] = str;
+        }
+      }
+    }
+    await DeviceProfile.getDeviceId();
+  } catch(e){ console.warn('Migration error:', e.message); }
+}
+
+// --- Legacy функции (обратная совместимость) ---
 
 async function saveToFolder(){ BackupManager.createBackup(); }
 async function restoreFromFolder(){ return BackupManager.restoreFromBackup(); }
@@ -1794,12 +2153,12 @@ async function pickDataFolder(){
   try {
     const handle = await window.showDirectoryPicker();
     const perm = await handle.requestPermission({mode:'readwrite'});
-    if(perm !== 'granted'){ alert('❌ Нет доступа к папке'); return; }
+    if(perm !== 'granted'){ alert('Нет доступа к папке'); return; }
     BackupManager._handle = handle;
     await _idbSet('_folder_handle', handle).catch(()=>{});
     await BackupManager.createBackup();
     updateFolderUI();
-    showToast('✅ Папка привязана — все данные сохраняются туда');
+    showToast('Папка привязана — все данные сохраняются туда');
   } catch(e){
     if(e.name !== 'AbortError' && e.name !== 'SecurityError') alert('Ошибка: ' + e.message);
   }
@@ -1826,29 +2185,25 @@ async function updateFolderUI(){
     if(unl) unl.style.display = 'none';
   }
 }
-// обновить UI статуса в настройках
 async function updateBackupInfoUI(){
   const info = await BackupManager.getInfo();
   const el = document.getElementById('backupInfo');
   if(!el) return;
   if(info){
-    el.innerHTML = '✅ Последний backup: ' + (info.created !== 'unknown' ? new Date(info.created).toLocaleDateString('ru-RU') : '—') + '<br>Записей: ' + info.keys + ', версия: ' + info.version;
+    el.innerHTML = '✅ Последний backup: ' + (info.createdAt !== 'unknown' ? new Date(info.createdAt).toLocaleDateString('ru-RU') : '—') + ' | Записей: ' + info.recordsCount + ' | Размер: ' + _formatBytes(info.size);
     el.style.color = '#3DDC84';
   } else {
     el.innerHTML = '❌ Backup не найден. Привяжите папку и создайте копию.';
     el.style.color = 'var(--muted)';
   }
 }
-
-// --- Старые функции export/import для обратной совместимости ---
-
 async function exportAllData(){
   try {
     const data = await BackupManager.collectAll();
     const blob = new Blob([JSON.stringify({version:STORAGE_VERSION,data:data},null,2)], {type:'application/json'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `chistiy-den-backup-${new Date().toISOString().slice(0,10)}.json`;
+    a.download = 'chistiy-den-backup-' + new Date().toISOString().slice(0,10) + '.json';
     a.click();
     URL.revokeObjectURL(a.href);
   } catch(e){ alert('Ошибка при создании бэкапа: ' + e.message); }
@@ -1856,50 +2211,35 @@ async function exportAllData(){
 function importAllData(event){
   const file = event.target.files[0];
   if(!file) return;
-  const reader = new FileReader();
-  reader.onload = function(e){
-    try {
-      const json = JSON.parse(e.target.result);
-      const data = json.data || json; // поддерживаем старый и новый формат
-      const keys = Object.keys(data);
-      for(const k of keys){
-        if(k.startsWith('__')) continue;
-        storage.set(k, typeof data[k] === 'string' ? data[k] : JSON.stringify(data[k]));
-      }
-      renderHome();
-      closeSettings();
-      alert('✅ Данные восстановлены!');
-    } catch(err){ alert('❌ Ошибка: неверный формат файла'); }
-  };
-  reader.readAsText(file);
+  SmartImport.fromFile(file, _importMode).then(result => {
+    if(!result.ok){ alert('Ошибка импорта: ' + result.error); return; }
+    let msg = 'Импортировано: ' + result.imported + ' записей';
+    if(result.skipped > 0) msg += ', пропущено: ' + result.skipped;
+    if(result.conflicts && result.conflicts.length > 0) msg += ', конфликтов: ' + result.conflicts.length + ' (использованы импортированные данные)';
+    renderHome(); closeSettings();
+    alert(result.imported > 0 ? msg : 'Нет новых записей для импорта');
+  }).catch(() => alert('Ошибка импорта: неверный формат файла'));
   event.target.value = '';
 }
-
-// --- Persistent Storage (защита от удаления браузером) ---
-
 async function initStorage(){
   const el = document.getElementById('storageStatus');
   let text = '', persisted = false;
   try {
     if(navigator.storage && navigator.storage.persist){
       persisted = await navigator.storage.persisted();
-      if(!persisted){
-        const granted = await navigator.storage.persist();
-        persisted = granted;
-      }
+      if(!persisted) persisted = await navigator.storage.persist();
     }
-    if ('storage' in navigator && 'estimate' in navigator.storage) {
+    if('storage' in navigator && 'estimate' in navigator.storage){
       const est = await navigator.storage.estimate();
-      const used = est.usage ? (est.usage / 1024 / 1024).toFixed(1) : '?';
-      const quota = est.quota ? (est.quota / 1024 / 1024).toFixed(1) : '?';
-      text = `📀 Использовано ${used} МБ из ${quota} МБ`;
+      const used = est.usage ? (est.usage/1024/1024).toFixed(1) : '?';
+      const quota = est.quota ? (est.quota/1024/1024).toFixed(1) : '?';
+      text = 'Использовано ' + used + ' МБ из ' + quota + ' МБ';
     }
-    text += persisted ? ' 🔒 Данные защищены' : ' ⚠️ Данные могут быть удалены браузером';
-  } catch(e){
-    text = '⚠️ Стандартное хранилище браузера';
-  }
-  el.textContent = text;
-  updateBackupInfoUI();
+    text += persisted ? ' [Данные защищены]' : ' [Могут быть удалены браузером]';
+    el.textContent = text;
+    updateBackupInfoUI();
+    HealthMonitor.renderSummary(document.getElementById('healthSummary'));
+  } catch(e){ el.textContent = 'Стандартное хранилище браузера'; }
 }
 const MILESTONES = [
   { days:0,    key:'white',  name:'Белая',     hex:'#F0EDE8', desc:'Первый день или готовность начать заново' },
@@ -4648,6 +4988,14 @@ if('serviceWorker' in navigator){
 const readyPromise = _runStartupMigration();
 readyPromise.then(async ()=>{
   await _verifyIntegrity();
+  // проверка здоровья: если пустая БД — пробуем восстановить
+  const empty = await RecoverySystem.detectEmptyDB();
+  if(empty){
+    const recovered = await RecoverySystem.fullRecovery();
+    if(recovered) console.log('Recovery successful:', recovered.source);
+  }
+  // ежедневный backup при наличии папки
+  BackupManager.dailyBackupCheck().catch(()=>{});
   renderHome();
   showPrayer();
   renderJft();
