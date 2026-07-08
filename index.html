@@ -1210,6 +1210,19 @@ body{
       </div>
 
       <div class="settings-section">
+        <h4>💾 Хранилище</h4>
+        <div class="settings-card">
+          <p style="font-size:12px;color:var(--cream);margin:0 0 6px;" id="storageStatus">Проверка...</p>
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <button onclick="exportAllData()" style="flex:1;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--card);color:var(--na-blue);font-weight:700;font-size:12px;cursor:pointer;font-family:var(--font-body);">📤 Резервная копия</button>
+            <button onclick="document.getElementById('importFileInput').click()" style="flex:1;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--card);color:var(--na-blue);font-weight:700;font-size:12px;cursor:pointer;font-family:var(--font-body);">📥 Восстановить</button>
+            <input type="file" id="importFileInput" accept=".json" style="display:none;" onchange="importAllData(event)">
+          </div>
+          <p style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.4;">Все данные хранятся локально на устройстве. Резервная копия — JSON файл, который можно сохранить в любое место.</p>
+        </div>
+      </div>
+
+      <div class="settings-section">
         <h4>О разработчике</h4>
         <div class="settings-card">
           <div class="label">Разработчик</div>
@@ -3301,6 +3314,7 @@ function openSettings(){
   document.getElementById('modalBackdrop').classList.add('active');
   updateNotifyStatus();
   loadNotifySettings();
+  initStorage();
 }
 function closeSettings(){ document.getElementById('modalBackdrop').classList.remove('active'); }
 
@@ -3317,6 +3331,61 @@ function showPrayer(){
 function closePrayer(){
   document.getElementById('prayerBackdrop').classList.remove('active');
   if(prayerTimer) clearTimeout(prayerTimer);
+}
+
+/* ------- PERSISTENT STORAGE ------- */
+async function initStorage(){
+  const el = document.getElementById('storageStatus');
+  let text = '', persisted = false;
+  try {
+    if(navigator.storage && navigator.storage.persist){
+      persisted = await navigator.storage.persisted();
+      if(!persisted){
+        const granted = await navigator.storage.persist();
+        persisted = granted;
+      }
+    }
+    if ('storage' in navigator && 'estimate' in navigator.storage) {
+      const est = await navigator.storage.estimate();
+      const used = est.usage ? (est.usage / 1024 / 1024).toFixed(1) : '?';
+      const quota = est.quota ? (est.quota / 1024 / 1024).toFixed(1) : '?';
+      text = `📀 Использовано ${used} МБ из ${quota} МБ`;
+    }
+    text += persisted ? ' 🔒 Данные защищены' : ' ⚠️ Данные могут быть удалены браузером';
+  } catch(e){
+    text = '⚠️ Стандартное хранилище браузера';
+  }
+  el.textContent = text;
+}
+function exportAllData(){
+  const data = {};
+  const keys = Object.keys(memoryStore);
+  for(const k of keys) data[k] = memoryStore[k];
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `chistiy-den-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+function importAllData(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try {
+      const data = JSON.parse(e.target.result);
+      const keys = Object.keys(data);
+      for(const k of keys) storage.set(k, String(data[k]));
+      renderHome();
+      closeSettings();
+      alert('✅ Данные восстановлены!');
+    } catch(err){
+      alert('❌ Ошибка: неверный формат файла');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
 }
 function saveStartDate(){
   const v=document.getElementById('startDateInput').value;
