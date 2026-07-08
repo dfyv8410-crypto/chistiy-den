@@ -11,8 +11,8 @@ android {
         applicationId = "com.chistiyen.app"
         minSdk = 26
         targetSdk = 29
-        versionCode = 11
-        versionName = "11.0.3.0"
+        versionCode = 12
+        versionName = "11.0.4.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

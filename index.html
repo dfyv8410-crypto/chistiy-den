@@ -1581,7 +1581,11 @@ const readyPromise = (async()=>{
     if(lsKeys.length === 0 && idbKeys.length > 0){
       for(const k of idbKeys){
         const v = await _idbGet(k).catch(()=>undefined);
-        if(v !== undefined) try{ localStorage.setItem(k, v); }catch(e){ console.warn('localStorage migrate error:', e.message); }
+        if(v !== undefined){
+          const str = typeof v === 'string' ? v : JSON.stringify(v);
+          try{ localStorage.setItem(k, str); }catch(e){}
+          memoryStore[k] = str;
+        }
       }
     }
   } catch(e){ console.warn('IndexedDB unavailable, using localStorage:', e.message); }
