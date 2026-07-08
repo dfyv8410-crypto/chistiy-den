@@ -1267,6 +1267,18 @@ body{
       </div>
 
       <div class="settings-section">
+        <h4>📁 Привязать папку на устройстве</h4>
+        <div class="settings-card">
+          <p style="font-size:12px;color:var(--cream);margin:0 0 6px;" id="folderStatus">Проверка доступа к папке...</p>
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <button id="folderPickBtn" onclick="pickDataFolder()" style="flex:1;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--card);color:var(--na-blue);font-weight:700;font-size:12px;cursor:pointer;font-family:var(--font-body);">📂 Выбрать папку</button>
+            <button id="folderUnlinkBtn" onclick="unlinkDataFolder()" style="display:none;flex:1;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--card);color:#E88A7A;font-weight:700;font-size:12px;cursor:pointer;font-family:var(--font-body);">🔗 Отвязать</button>
+          </div>
+          <p style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.4;">Выберите любую папку на устройстве (например «ЧистыйДень»). Все данные приложения будут дублироваться туда. Даже если очистить куки браузера — данные восстановятся из этой папки. Работает в Chrome / Edge / Samsung Internet.</p>
+        </div>
+      </div>
+
+      <div class="settings-section">
         <h4>📘 Помощь — все функции приложения</h4>
         <div class="settings-card">
           <div style="font-size:13px;color:var(--cream);line-height:1.7;">
@@ -1547,11 +1559,14 @@ const storage = {
     try{ localStorage.setItem(key,val); }catch(e){ console.warn('localStorage set error:', e.message); }
     memoryStore[key]=val;
     _idbSet(key,val).catch(err => console.error('IDB set error:', err));
+    // асинхронно дублируем в папку
+    _queueFolderSync();
   },
   remove(key){
     try{ localStorage.removeItem(key); }catch(e){ console.warn('localStorage remove error:', e.message); }
     delete memoryStore[key];
     _idbDel(key).catch(err => console.error('IDB del error:', err));
+    _queueFolderSync();
   }
 };
 // migrate on startup — восстанавливаем localStorage из IndexedDB если куки сброшены
@@ -3735,6 +3750,7 @@ function openSettings(){
   updateNotifyStatus();
   loadNotifySettings();
   initStorage();
+  updateFolderUI();
 }
 function closeSettings(){ document.getElementById('modalBackdrop').classList.remove('active'); }
 
@@ -3758,7 +3774,144 @@ function closePrayer(){
   if(prayerTimer) clearTimeout(prayerTimer);
 }
 
-/* ------- PERSISTENT STORAGE ------- */
+/* ------- FOLDER BINDING (File System Access API) ------- */
+let _folderHandle = null;
+let _folderSyncQueued = false;
+
+async function getFolderHandle(){
+  if(_folderHandle) return _folderHandle;
+  try {
+    const handle = await _idbGet('_folder_handle');
+    if(handle && handle.queryPermission){
+      const perm = await handle.queryPermission({mode:'readwrite'});
+      if(perm === 'granted'){ _folderHandle = handle; return handle; }
+      const req = await handle.requestPermission({mode:'readwrite'});
+      if(req === 'granted'){ _folderHandle = handle; return handle; }
+    }
+  } catch(e){ /* no handle in IDB */ }
+  return null;
+}
+
+async function pickDataFolder(){
+  if(!window.showDirectoryPicker){
+    alert('Ваш браузер не поддерживает выбор папки. Попробуйте Chrome, Edge или Samsung Internet.');
+    return;
+  }
+  try {
+    const handle = await window.showDirectoryPicker();
+    const perm = await handle.requestPermission({mode:'readwrite'});
+    if(perm !== 'granted'){ alert('❌ Нет доступа к папке'); return; }
+    _folderHandle = handle;
+    await _idbSet('_folder_handle', handle).catch(()=>{});
+    // сразу сохраняем все данные в папку
+    await syncToFolder();
+    updateFolderUI();
+    showToast('✅ Папка привязана');
+  } catch(e){
+    if(e.name !== 'AbortError' && e.name !== 'SecurityError'){
+      alert('Ошибка: ' + e.message);
+    }
+  }
+}
+
+async function unlinkDataFolder(){
+  if(!confirm('Отвязать папку? Данные в папке останутся, но приложение перестанет туда сохранять.')) return;
+  _folderHandle = null;
+  await _idbDel('_folder_handle').catch(()=>{});
+  updateFolderUI();
+  showToast('Папка отвязана');
+}
+
+async function updateFolderUI(){
+  const status = document.getElementById('folderStatus');
+  const pickBtn = document.getElementById('folderPickBtn');
+  const unlinkBtn = document.getElementById('folderUnlinkBtn');
+  if(!status) return;
+  try {
+    const handle = await getFolderHandle();
+    if(handle){
+      status.textContent = '✅ Папка привязана — данные дублируются на устройство';
+      status.style.color = '#3DDC84';
+      if(pickBtn) pickBtn.textContent = '📂 Выбрать другую';
+      if(unlinkBtn) unlinkBtn.style.display = 'flex';
+    } else {
+      status.textContent = '❌ Папка не привязана. Данные хранятся только в браузере.';
+      status.style.color = 'var(--muted)';
+      if(pickBtn) pickBtn.textContent = '📂 Выбрать папку';
+      if(unlinkBtn) unlinkBtn.style.display = 'none';
+    }
+  } catch(e){
+    status.textContent = '❌ Ошибка доступа к папке. Привяжите заново.';
+    status.style.color = '#E88A7A';
+    if(pickBtn) pickBtn.textContent = '📂 Выбрать папку';
+    if(unlinkBtn) unlinkBtn.style.display = 'none';
+  }
+}
+
+async function syncToFolder(){
+  try {
+    const handle = await getFolderHandle();
+    if(!handle) return;
+    // собираем все данные
+    const data = {};
+    if(_db){
+      const tx = _db.transaction('data','readonly');
+      const store = tx.objectStore('data');
+      const keys = await new Promise((res,rej)=>{ const r=store.getAllKeys(); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(); });
+      for(const k of keys){
+        const v = await new Promise((res)=>{ const r=store.get(k); r.onsuccess=()=>res(r.result); r.onerror=()=>res(undefined); });
+        if(v !== undefined) data[k] = v;
+      }
+    }
+    const lsKeys = Object.keys(localStorage);
+    for(const k of lsKeys){
+      if(data[k] === undefined) data[k] = localStorage.getItem(k);
+    }
+    // записываем JSON-файл в папку
+    const fileHandle = await handle.getFileHandle('chistiy-den.json', {create:true});
+    const writable = await fileHandle.createWritable();
+    await writable.write(JSON.stringify(data, null, 2));
+    await writable.close();
+  } catch(e){
+    console.warn('Folder sync error:', e.message);
+  }
+}
+
+async function restoreFromFolder(){
+  try {
+    const handle = await getFolderHandle();
+    if(!handle) return false;
+    // проверяем, пуст ли localStorage
+    const lsKeys = Object.keys(localStorage);
+    if(lsKeys.length > 0) return false; // данные уже есть, не восстанавливаем
+    // читаем файл из папки
+    let fileHandle;
+    try { fileHandle = await handle.getFileHandle('chistiy-den.json'); }
+    catch(e) { return false; } // файла нет
+    const file = await fileHandle.getFile();
+    const text = await file.text();
+    const data = JSON.parse(text);
+    if(typeof data !== 'object' || !data) return false;
+    let count = 0;
+    for(const [key, val] of Object.entries(data)){
+      await _idbSet(key, val).catch(()=>{});
+      try{ localStorage.setItem(key, typeof val === 'string' ? val : JSON.stringify(val)); }catch(e){}
+      memoryStore[key] = typeof val === 'string' ? val : JSON.stringify(val);
+      count++;
+    }
+    console.log('Restored', count, 'keys from folder');
+    return true;
+  } catch(e){
+    console.warn('Folder restore error:', e.message);
+    return false;
+  }
+}
+// дебаунс для синхронизации с папкой — не дёргаем файл при каждом set()
+let _folderSyncTimer = null;
+function _queueFolderSync(){
+  if(_folderSyncTimer) clearTimeout(_folderSyncTimer);
+  _folderSyncTimer = setTimeout(() => { _folderSyncTimer = null; syncToFolder(); }, 3000);
+}
 async function initStorage(){
   const el = document.getElementById('storageStatus');
   let text = '', persisted = false;
@@ -4384,7 +4537,9 @@ if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{ navigator.serviceWorker.register('sw.js').catch(e=>console.error('SW register error:', e)); });
 }
 
-readyPromise.then(()=>{
+readyPromise.then(async ()=>{
+// после миграции из IDB пробуем восстановить из папки, если localStorage пуст
+await restoreFromFolder();
 renderHome();
 showPrayer();
 renderJft();
