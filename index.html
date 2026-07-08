@@ -580,8 +580,6 @@ body{
 .lib-text.theme-sepia{color:#5B4636;background:#F5EDE0;}
 .lib-text.theme-dark{color:#C8D8E8;background:#1B3560;}
 .lib-text.theme-light{color:#3D2B1F;background:#FFFFFF;}
-.lib-text{-webkit-user-select:none;user-select:none;}
-.lib-text p{-webkit-user-select:text;user-select:text;}
 [data-theme="blue"] .lib-text.theme-dark{color:#C8D8E8;background:#0F1F3D;}
 [data-theme="blue"] .lib-text.theme-light{color:#C8D8E8;background:var(--card);}
 [data-theme="blue"] .lib-text.theme-sepia{color:#C8D8E8;background:#1B3560;}
@@ -1225,6 +1223,42 @@ body{
       </div>
 
       <div class="settings-section">
+        <h4>📘 Помощь</h4>
+        <div class="settings-card">
+          <div style="font-size:13px;color:var(--cream);line-height:1.7;">
+            <strong style="color:var(--na-blue);">🏠 Главный экран</strong><br>
+            Показывает количество чистых дней, текущий жетон, цитату дня «Только сегодня» и ближайшие события.
+            Дата отсчёта меняется в настройках.
+            <br><br>
+            <strong style="color:var(--na-blue);">🙏 Молитва</strong><br>
+            При каждом запуске приложения появляется молитва на 9 секунд. Можно закрыть раньше кнопкой или крестиком.
+            <br><br>
+            <strong style="color:var(--na-blue);">📊 Статистика</strong><br>
+            График прогресса по дням/неделям/месяцам. Показывает динамику чистого времени.
+            <br><br>
+            <strong style="color:var(--na-blue);">📖 Библиотека</strong><br>
+            Встроенный Базовый текст АН (13 глав по Шагам). Поддерживает загрузку своих книг в форматах FB2, EPUB, PDF, DOCX, TXT, RTF, HTML.
+            Читалка с настройками: размер шрифта, межстрочный интервал, тема (светлая/сепия/тёмная), оглавление, поиск по тексту, закладки и заметки.
+            <br><br>
+            <strong style="color:var(--na-blue);">🕐 Расписание собраний</strong><br>
+            Загружает расписание встреч АН в Москве и МО с na-russia.org.
+            <br><br>
+            <strong style="color:var(--na-blue);">📅 Календарь</strong><br>
+            Отмечает дни чистоты. Зелёные дни — чистые, красные — срывы (отмечаются нажатием).
+            <br><br>
+            <strong style="color:var(--na-blue);">📝 Дневник</strong><br>
+            Записи по Шагам с возможностью быстрой заметки при чтении в библиотеке.
+            <br><br>
+            <strong style="color:var(--na-blue);">⚙️ Настройки</strong><br>
+            Изменить дату отсчёта, цветовую тему, уведомления о напоминаниях, управление хранилищем (резервная копия / восстановление).
+            <br><br>
+            <strong style="color:var(--na-blue);">💾 Хранилище</strong><br>
+            Все данные сохраняются локально в IndexedDB + localStorage. Можно сделать резервную копию в JSON-файл и восстановить её на любом устройстве.
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-section">
         <h4>О разработчике</h4>
         <div class="settings-card">
           <div class="label">Разработчик</div>
@@ -1241,6 +1275,9 @@ body{
           <div style="height:8px"></div>
           <div class="label">Дизайн</div>
           <div class="val">DFDIZ</div>
+          <div style="height:8px"></div>
+          <div class="label">© Авторские права</div>
+          <div class="val">Хромов Иван Викторович</div>
         </div>
       </div>
 
@@ -3998,11 +4035,7 @@ setTimeout(()=>{
   if(s) s.classList.add('hide');
 }, 1500);
 
-/* ------- PLAGIARISM PROTECTION ------- */
-document.addEventListener('contextmenu', e => e.preventDefault());
-document.addEventListener('keydown', e => {
-  if(e.ctrlKey && (e.key === 'c' || e.key === 'u' || e.key === 's' || e.key === 'p')) e.preventDefault();
-});
+
 </script>
 </body>
 </html>
