@@ -322,6 +322,73 @@ body{
 .diary-stat-card .v{font-size:22px;font-weight:800;color:var(--na-blue);}
 .diary-stat-card .l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
 .search-bar{width:100%;padding:10px 12px;border-radius:var(--radius-sm);border:1px solid var(--line);font-size:14px;font-family:var(--font-body);background:var(--card-2);color:var(--cream);margin-bottom:12px;box-sizing:border-box;}
+/* ---------- steps workbook ---------- */
+.home-steps-card{display:flex;align-items:center;gap:12px;background:var(--card);border:2px solid var(--accent);border-radius:var(--radius-lg);padding:14px;margin:0 0 6px;cursor:pointer;transition:transform .15s,box-shadow .15s;}
+.home-steps-card:active{transform:scale(.98);}
+.home-steps-icon{width:40px;height:40px;border-radius:12px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
+.home-steps-icon svg{width:22px;height:22px;}
+.home-steps-text{flex:1;min-width:0;}
+.home-steps-title{font-weight:800;font-size:15px;color:var(--na-blue);}
+.home-steps-desc{font-size:11px;color:var(--muted);margin-top:1px;}
+.home-steps-arrow{width:20px;height:20px;color:var(--accent);flex:0 0 auto;}
+.home-steps-arrow svg{width:100%;height:100%;}
+.steps-screen-header{display:flex;align-items:center;gap:10px;margin:12px 0 0;}
+.steps-back-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--na-blue);cursor:pointer;display:flex;align-items:center;justify-content:center;flex:0 0 auto;transition:transform .15s;padding:0;}
+.steps-back-btn:active{transform:scale(.9);}
+.steps-back-btn svg{width:18px;height:18px;}
+.steps-active{background:var(--card);border:2px solid var(--accent);border-radius:var(--radius-lg);padding:16px;margin:10px 0;}
+.steps-active-step{font-family:var(--font-display);font-size:17px;font-weight:700;color:var(--na-blue);}
+.steps-active-title{font-size:13px;color:var(--cream);margin:4px 0;}
+.steps-active-progress{height:6px;border-radius:999px;background:var(--line);overflow:hidden;margin:8px 0;}
+.steps-active-progress .fill{height:100%;border-radius:999px;background:var(--accent);transition:width .4s;}
+.steps-active-meta{font-size:11px;color:var(--muted);display:flex;justify-content:space-between;}
+.steps-continue-btn{display:block;width:100%;padding:12px;border-radius:var(--radius-md);border:none;background:var(--accent);color:#fff;font-weight:800;font-size:14px;font-family:var(--font-body);cursor:pointer;transition:transform .15s;margin-top:10px;text-align:center;}
+.steps-continue-btn:active{transform:scale(.97);}
+.steps-quick-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:var(--radius-md);border:2px dashed var(--accent);background:var(--card);color:var(--accent);font-weight:700;font-size:13px;font-family:var(--font-body);cursor:pointer;transition:all .15s;margin-bottom:10px;}
+.steps-quick-btn:active{transform:scale(.97);background:var(--card-2);}
+.steps-quick-btn svg{width:18px;height:18px;stroke:currentColor;stroke-width:2;}
+.steps-list{display:flex;flex-direction:column;gap:6px;}
+.steps-item{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius-md);padding:12px 14px;cursor:pointer;transition:transform .15s,box-shadow .15s;}
+.steps-item:active{transform:scale(.98);}
+.steps-item .num{width:28px;height:28px;border-radius:50%;background:var(--card-2);color:var(--muted);font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
+.steps-item.completed .num{background:var(--accent);color:#fff;}
+.steps-item .info{flex:1;min-width:0;}
+.steps-item .info .name{font-size:14px;font-weight:700;color:var(--na-blue);}
+.steps-item .info .prog{font-size:11px;color:var(--muted);margin-top:1px;}
+.steps-item .check{width:20px;height:20px;flex:0 0 auto;}
+.steps-item .check svg{width:100%;height:100%;stroke:var(--accent);stroke-width:2.5;}
+.step-section{border:1px solid var(--line);border-radius:var(--radius-md);margin-bottom:8px;overflow:hidden;}
+.step-section-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer;background:var(--card);transition:background .15s;user-select:none;}
+.step-section-header:active{background:var(--card-2);}
+.step-section-header .label{font-weight:700;font-size:14px;color:var(--na-blue);}
+.step-section-header .arrow{width:16px;height:16px;stroke:var(--muted);stroke-width:2.5;transition:transform .2s;}
+.step-section-header .arrow.open{transform:rotate(90deg);}
+.step-section-body{display:none;padding:0 14px 14px;background:var(--card);}
+.step-section-body.open{display:block;}
+.step-form-field{margin-bottom:8px;}
+.step-form-field label{display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:.3px;}
+.step-form-field textarea,.step-form-field input{width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--line);font-size:13px;font-family:var(--font-body);background:var(--card-2);color:var(--cream);resize:vertical;outline:none;box-sizing:border-box;}
+.step-form-field textarea:focus,.step-form-field input:focus{border-color:var(--accent);}
+.step-table{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0;}
+.step-table td,.step-table th{padding:8px 6px;border:1px solid var(--line);text-align:left;vertical-align:top;}
+.step-table th{background:var(--card-2);font-weight:700;color:var(--na-blue);font-size:11px;text-transform:uppercase;letter-spacing:.3px;}
+.step-table textarea{width:100%;padding:6px;border-radius:var(--radius-sm);border:1px solid var(--line);font-size:12px;font-family:var(--font-body);background:var(--card-2);color:var(--cream);resize:vertical;outline:none;box-sizing:border-box;min-height:36px;}
+.step-table textarea:focus{border-color:var(--accent);}
+.step-timeline{border-left:2px solid var(--accent);padding-left:14px;margin:10px 0;}
+.step-timeline-item{position:relative;padding:4px 0 4px 10px;font-size:12px;color:var(--cream);}
+.step-timeline-item::before{content:'';position:absolute;left:-6px;top:8px;width:10px;height:10px;border-radius:50%;background:var(--accent);}
+.step-timeline-item .t{font-size:10px;color:var(--muted);}
+.step-mentor-row{background:var(--card-2);border-radius:var(--radius-md);padding:12px;margin:10px 0;}
+.step-mentor-row .mentor-q{font-size:12px;font-weight:700;color:var(--na-blue);margin-bottom:4px;}
+.step-mentor-row .mentor-a{font-size:12px;color:var(--cream);line-height:1.6;}
+.step-save-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;border-radius:var(--radius-md);border:none;background:var(--accent);color:#fff;font-weight:800;font-size:15px;font-family:var(--font-body);cursor:pointer;transition:transform .15s;margin-top:10px;width:100%;}
+.step-save-btn:active{transform:scale(.97);}
+.step-mentor-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border-radius:var(--radius-md);border:1px solid var(--na-blue);background:var(--card);color:var(--na-blue);font-weight:700;font-size:12px;font-family:var(--font-body);cursor:pointer;transition:all .15s;width:100%;}
+.step-mentor-btn:active{transform:scale(.97);}
+.step-mentor-btn svg{width:16px;height:16px;stroke:currentColor;}
+.step-export-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border-radius:var(--radius-md);border:1px solid var(--line);background:var(--card);color:var(--muted);font-weight:700;font-size:12px;font-family:var(--font-body);cursor:pointer;transition:all .15s;margin-top:6px;}
+.step-export-btn:active{transform:scale(.97);}
+.step-export-btn svg{width:16px;height:16px;stroke:currentColor;}
 /* ---------- settings ---------- */
 .settings-section{margin-bottom:18px;}
 .settings-section h4{font-family:var(--font-display);font-size:16px;color:var(--na-blue);margin:0 0 8px;}
@@ -571,6 +638,24 @@ body{
         <div class="home-diary-desc">Отслеживай состояния, триггеры и инструменты</div>
       </div>
       <div class="home-diary-arrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </div>
+
+    <div class="home-steps-card" onclick="showScreen('steps')">
+      <div class="home-steps-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+          <line x1="8" y1="7" x2="16" y2="7"/>
+          <line x1="8" y1="11" x2="14" y2="11"/>
+        </svg>
+      </div>
+      <div class="home-steps-text">
+        <div class="home-steps-title">Шаговая тетрадь</div>
+        <div class="home-steps-desc">12 шагов — работа над собой</div>
+      </div>
+      <div class="home-steps-arrow">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
     </div>
@@ -890,6 +975,77 @@ body{
       <!-- toggleable toc overlay -->
       <div class="lib-toc-overlay" id="libTocOverlay" onclick="toggleLibToc()">
         <div class="lib-toc" id="libToc" onclick="event.stopPropagation()"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEPS WORKBOOK -->
+  <div class="screen" id="screen-steps">
+    <div class="steps-screen-header">
+      <button class="steps-back-btn" onclick="showScreen('home')" aria-label="Назад">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <div>
+        <div class="screen-title" style="margin:0;">Шаговая тетрадь</div>
+        <div class="screen-sub">Работай по 12 шагам и отслеживай прогресс</div>
+      </div>
+    </div>
+    <div id="stepsCurrentInfo"></div>
+    <button class="steps-quick-btn" onclick="stepsQuickNote()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      <span>Быстрая запись</span>
+    </button>
+    <div class="steps-list" id="stepsList"></div>
+    <div style="display:flex;gap:8px;margin-top:10px;">
+      <button class="step-mentor-btn" onclick="stepsPrepareMentor()" style="flex:1;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        <span>Подготовка к встрече с наставником</span>
+      </button>
+      <button class="step-export-btn" onclick="stepsExport()" style="flex:0 0 auto;padding:10px 14px;" title="Экспорт">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- STEP DETAIL -->
+  <div class="screen" id="screen-step">
+    <div class="steps-screen-header">
+      <button class="steps-back-btn" onclick="stepsBackToList()" aria-label="Назад">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <div>
+        <div class="screen-title" style="margin:0;" id="stepDetailTitle">Шаг 1</div>
+        <div class="screen-sub" id="stepDetailSub">Работа над шагом</div>
+      </div>
+    </div>
+    <div id="stepDetailContent"></div>
+    <button class="step-save-btn" onclick="stepsSaveCurrent()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      <span>Сохранить</span>
+    </button>
+    <div id="stepTimeline" class="step-timeline" style="margin-top:10px;"></div>
+    <button class="step-mentor-btn" onclick="stepsAddMentorQuestion()" style="margin-top:10px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      <span>Добавить вопрос наставнику</span>
+    </button>
+  </div>
+
+  <!-- QUICK NOTE MODAL -->
+  <div class="modal-backdrop" id="stepsNoteBackdrop">
+    <div class="modal">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <h3 style="margin:0;">Быстрая запись</h3>
+        <button class="icon-btn" onclick="stepsCloseNote()" aria-label="Закрыть" style="width:32px;height:32px;border:none;box-shadow:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="step-form-field">
+        <label>Что ты понял или заметил?</label>
+        <textarea id="stepsQuickNoteText" rows="4" placeholder="Любая мысль, инсайт, вопрос, который пришёл в голову во время работы над шагами..."></textarea>
+      </div>
+      <div class="actions">
+        <button class="btn-secondary" onclick="stepsCloseNote()">Отмена</button>
+        <button class="btn-primary" onclick="stepsSaveQuickNote()">Сохранить</button>
       </div>
     </div>
   </div>
@@ -1217,6 +1373,8 @@ function showScreen(name){
   if(name==='sos') renderSosContacts();
   if(name==='library') renderLibrary();
   if(name==='diary') diaryRenderList();
+  if(name==='steps') stepsRender();
+  if(name==='step') stepsRenderDetail(stepDetailNum);
 }
 
 function setAccent(hex){
@@ -3104,6 +3262,447 @@ document.getElementById('legalBackdrop').addEventListener('click', e=>{ if(e.tar
 initTheme();
 requestNotifyPerm();
 loadNotifySettings();
+
+/* ===================== 12 STEPS WORKBOOK ===================== */
+const STEPS_DATA = [
+  { num:1, title:'Мы признали свое бессилие перед наркотиками, признали, что потеряли контроль над своей жизнью.',
+    explain:'Мы честно признаём: мы не можем справиться с зависимостью своими силами. Наша жизнь стала неуправляемой. Это не стыдно — это первый шаг к выздоровлению.',
+    goal:'Признать своё бессилие — значит перестать бороться в одиночку и открыться для помощи.', questions:[
+      'Что для меня значит «бессилие»? В каких ситуациях я особенно остро его чувствовал?',
+      'Как моя жизнь стала неуправляемой? Приведи конкретные примеры.',
+      'Когда я впервые заподозрил, что у меня проблема? Что я тогда чувствовал?',
+      'Какие попытки контролировать употребление я предпринимал? Чем они закончились?',
+      'Что мешает мне честно признать своё бессилие прямо сейчас?']},
+  { num:2, title:'Пришли к убеждению, что Сила, более могущественная, чем наша, может вернуть нам здравомыслие.',
+    explain:'Мы не обязаны верить в Бога. Достаточно признать, что есть что-то большее, чем наша зависимость и наше эго. Это может быть Высшая Сила, сообщество, природа, любовь — что угодно, что помогает нам оставаться чистыми.',
+    goal:'Открыть свой разум для помощи извне — какой бы формы она ни была.', questions:[
+      'Что для меня является «Высшей Силой»? Как я её понимаю?',
+      'Был ли в моей жизни момент, когда я чувствовал, что меня ведёт что-то更大ее меня?',
+      'Что мешает мне довериться Высшей Силе? Какие у меня сомнения?',
+      'Как я могу укрепить свою связь с Высшей Силой?',
+      'Что для меня значит «здравомыслие»? Когда я в последний раз чувствовал себя здравомыслящим?']},
+  { num:3, title:'Приняли решение передать нашу волю и нашу жизнь под опеку Бога, как мы Его понимали.',
+    explain:'Мы принимаем решение доверить свою жизнь Высшей Силе. Это не значит стать пассивным. Это значит перестать всё контролировать и позволить чему-то большему вести нас.',
+    goal:'Сделать сознательный выбор доверять Высшей Силе и следовать её руководству.', questions:[
+      'Что для меня значит «передать свою волю»? Чего я боюсь в этом?',
+      'Какие сферы моей жизни я всё ещё пытаюсь контролировать сам?',
+      'Были ли моменты, когда я доверился и получил помощь? Что тогда произошло?',
+      'Как я могу сегодня практиковать доверие Высшей Силе?',
+      'Что мешает мне принять это решение полностью?']},
+  { num:4, title:'Сделали глубокую и бесстрашную моральную инвентаризацию себя.',
+    explain:'Мы честно смотрим на свою жизнь: наши поступки, обиды, страхи, то, что мы сделали другим и себе. Без осуждения, без стыда — просто чтобы увидеть правду.',
+    goal:'Увидеть себя настоящего — свои сильные и слабые стороны, обиды, страхи, причинённый вред.', questions:[
+      'Какие обиды я ношу в себе? На кого я злюсь?',
+      'Каких поступков я стыжусь? Что я хотел бы забыть?',
+      'Какие страхи управляют моей жизнью?',
+      'Какой вред я причинил другим людям? А себе?',
+      'Какие мои качества характера мешают мне жить?',
+      'Что я делал, чтобы казаться лучше, чем я есть?']},
+  { num:5, title:'Признали перед Богом, собой и каким-либо другим человеком истинную природу наших заблуждений.',
+    explain:'Мы делимся своей инвентаризацией с другим человеком — наставником, священником, близким другом. Тайны, которые мы носим, перестают управлять нами, когда мы произносим их вслух.',
+    goal:'Перестать прятаться. Честность с другим человеком освобождает нас от стыда и одиночества.', questions:[
+      'Перед кем я могу быть полностью честным?',
+      'Что мне труднее всего рассказать другому человеку?',
+      'Какой секрет я ношу дольше всего?',
+      'Что я чувствую, когда думаю о том, чтобы рассказать правду?',
+      'Как, по-моему, изменится моя жизнь после этого признания?']},
+  { num:6, title:'Полностью подготовили себя к тому, чтобы Бог устранил все наши дефекты характера.',
+    explain:'Мы понимаем: наши недостатки — это не навсегда. Мы готовы отпустить их, даже если они стали частью нас. Мы открываемся для перемен.',
+    goal:'Быть готовым измениться. Отпустить то, что нам больше не служит.', questions:[
+      'От каких дефектов характера я готов избавиться?',
+      'За какие свои недостатки я держусь? Почему?',
+      'Какую выгоду я получаю от своих дефектов?',
+      'Что изменится в моей жизни, если я избавлюсь от них?',
+      'Готов ли я попросить Высшую Силу помочь мне измениться?']},
+  { num:7, title:'Смиренно просили Его устранить наши недостатки.',
+    explain:'Мы не можем изменить себя одной лишь силой воли. Мы просим помощи у Высшей Силы — смиренно, без гордости, с открытым сердцем.',
+    goal:'Научиться просить о помощи и принимать её.', questions:[
+      'Что для меня значит «смирение»? Чем оно отличается от унижения?',
+      'Как я прошу о помощи? Или я предпочитаю справляться сам?',
+      'Что я чувствую, когда прошу Высшую Силу о помощи?',
+      'Какие недостатки я хочу попросить устранить в первую очередь?',
+      'Как я пойму, что мой недостаток уходит?']},
+  { num:8, title:'Составили список всех людей, которым мы причинили вред, и стали готовы возместить им всем.',
+    explain:'Мы вспоминаем всех, кого задели, обманули, использовали. Не чтобы себя ругать — чтобы понять, кому и как мы можем исправить ситуацию.',
+    goal:'Осознать, кому мы причинили боль, и внутренне подготовиться к возмещению ущерба.', questions:[
+      'Кому я причинил вред? (Семья, друзья, коллеги, случайные люди)',
+      'Какой вред я причинил конкретным людям?',
+      'Что я чувствую, когда думаю о возмещении ущерба?',
+      'Готов ли я извиниться и исправить то, что возможно?',
+      'Что мешает мне составить этот список?']},
+  { num:9, title:'Лично возместили причинённый нами ущерб этим людям, где только возможно, кроме тех случаев, когда это могло повредить им или кому-либо другому.',
+    explain:'Мы переходим от слов к делу. Извиняемся, возвращаем долги, исправляем ошибки. Но осторожно — чтобы не навредить снова.',
+    goal:'Исправить то, что можно исправить. Исцелить отношения.', questions:[
+      'С кем я могу связаться прямо сейчас, чтобы извиниться?',
+      'Какие материальные долги я должен вернуть?',
+      'В каких случаях возмещение может навредить? Как это определить?',
+      'Что я чувствую, когда представляю процесс возмещения?',
+      'Как изменится моя жизнь после того, как я исправлю свои ошибки?']},
+  { num:10, title:'Продолжали делать личную инвентаризацию и, когда допускали ошибки, сразу признавали это.',
+    explain:'Честность становится ежедневной практикой. Мы не ждём, пока накопится новый груз ошибок — мы разбираемся сразу.',
+    goal:'Сделать честность и самоанализ своей ежедневной привычкой.', questions:[
+      'Как я могу практиковать ежедневную инвентаризацию?',
+      'Когда я в последний раз ошибся и признал это сразу?',
+      'Что мешает мне признавать свои ошибки вовремя?',
+      'Как изменится моя жизнь, если я буду честен с собой каждый день?',
+      'Какие инструменты помогут мне не забывать об этом шаге?']},
+  { num:11, title:'Стремились путём молитвы и размышления углубить нашу сознательную связь с Богом, как мы Его понимали, молясь лишь о знании Его воли для нас и о даровании силы для её исполнения.',
+    explain:'Мы развиваем свои отношения с Высшей Силой. Молитва — это не просьбы о вещах, а желание понять, куда нам двигаться, и получить силы на этот путь.',
+    goal:'Углубить духовную связь и научиться слышать направление в своей жизни.', questions:[
+      'Как я сейчас общаюсь с Высшей Силой?',
+      'Что для меня значит «молитва»? Как я могу молиться?',
+      'Как я могу узнать, чего Высшая Сила хочет от меня?',
+      'Что помогает мне чувствовать связь с Высшей Силой?',
+      'Как я могу сделать духовную практику частью своего дня?']},
+  { num:12, title:'Достигнув духовного пробуждения, к которому привели эти Шаги, мы старались нести это послание наркоманам и применять эти принципы во всех наших делах.',
+    explain:'Мы делимся тем, что получили. Не потому что мы лучше — а потому что мы знаем, как это больно, и хотим помочь тем, кто всё ещё страдает. Выздоровление завершается служением.',
+    goal:'Помогать другим и жить по принципам программы во всех сферах жизни.', questions:[
+      'Что я получил благодаря 12 шагам?',
+      'Кому я могу рассказать о своём опыте выздоровления?',
+      'Как я могу помогать другим прямо сейчас?',
+      'Как принципы программы применимы к моей работе, семье, отношениям?',
+      'Что для меня значит «духовное пробуждение»? Произошло ли оно?',
+      'Как я хочу нести послание другим наркоманам?']}
+];
+
+let stepDetailNum = 1;
+let stepsData = null;
+
+function stepsLoad(){
+  let d = storage.get('steps_workbook');
+  if(d){ try{ stepsData = JSON.parse(d); }catch(e){ stepsData = null; } }
+  if(!stepsData){
+    stepsData = { steps:{} };
+    STEPS_DATA.forEach(s => {
+      stepsData.steps[s.num] = {
+        blocks: { thoughts:'', experience1:'', experience2:'', feelings1:'', feelings2:'', denial1:'', denial2:'', fears1:'', fears2:'', responsibility1:'', responsibility2:'', actions:'', summary:'' },
+        history: [], quickNotes: [], mentor: [], lastEntry: null
+      };
+    });
+    stepsSave();
+  }
+}
+
+function stepsSave(){
+  storage.set('steps_workbook', JSON.stringify(stepsData));
+}
+
+function stepsCalcProgress(stepNum){
+  const s = stepsData.steps[stepNum];
+  if(!s) return 0;
+  const fields = ['thoughts','experience1','experience2','feelings1','feelings2','denial1','denial2','fears1','fears2','responsibility1','responsibility2','actions','summary'];
+  const filled = fields.filter(f => s.blocks[f] && s.blocks[f].trim().length > 0).length;
+  return Math.round((filled / fields.length) * 100);
+}
+
+function stepsTotalProgress(){
+  let total = 0;
+  for(let i=1; i<=12; i++) total += stepsCalcProgress(i);
+  return Math.round(total / 12);
+}
+
+function stepsGetActiveNum(){
+  let active = 1;
+  for(let i=12; i>=1; i--){
+    if(stepsCalcProgress(i) >= 80){ active = Math.min(i+1, 12); break; }
+  }
+  return active;
+}
+
+function stepsEsc(s){
+  const d = document.createElement('div');
+  d.textContent = s || '';
+  return d.innerHTML;
+}
+
+function stepsRender(){
+  stepsLoad();
+  const activeNum = stepsGetActiveNum();
+  const totalProg = stepsTotalProgress();
+  const container = document.getElementById('stepsCurrentInfo');
+  if(!container) return;
+  const activeStep = STEPS_DATA[activeNum-1];
+  const lastEntry = stepsData.steps[activeNum].lastEntry
+    ? new Date(stepsData.steps[activeNum].lastEntry).toLocaleString('ru-RU', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'})
+    : 'Нет записей';
+  container.innerHTML = `
+    <div class="steps-active">
+      <div class="steps-active-step">Мой текущий шаг: Шаг ${activeNum}</div>
+      <div class="steps-active-title">${stepsEsc(activeStep.title)}</div>
+      <div class="steps-active-progress"><div class="fill" style="width:${totalProg}%"></div></div>
+      <div class="steps-active-meta"><span>Общий прогресс: ${totalProg}%</span><span>Последняя запись: ${lastEntry}</span></div>
+      <div style="margin-top:10px;"><button class="step-save-btn" onclick="stepsOpen(${activeNum})" style="margin:0;">Продолжить работу</button></div>
+    </div>`;
+
+  const list = document.getElementById('stepsList');
+  list.innerHTML = '';
+  STEPS_DATA.forEach(s => {
+    const prog = stepsCalcProgress(s.num);
+    const completed = prog >= 80;
+    const item = document.createElement('div');
+    item.className = 'steps-item' + (completed ? ' completed' : '');
+    item.onclick = () => stepsOpen(s.num);
+    item.innerHTML = `
+      <div class="num">${s.num}</div>
+      <div class="info">
+        <div class="name">Шаг ${s.num}</div>
+        <div class="prog">${completed ? 'Завершён' : prog + '%'}</div>
+      </div>
+      ${completed ? '<div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg></div>' : ''}`;
+    list.appendChild(item);
+  });
+}
+
+function stepsOpen(num){
+  stepDetailNum = num;
+  showScreen('step');
+}
+
+function stepsRenderDetail(num){
+  stepsLoad();
+  const s = STEPS_DATA[num-1];
+  const d = stepsData.steps[num];
+  document.getElementById('stepDetailTitle').textContent = 'Шаг ' + num;
+  document.getElementById('stepDetailSub').textContent = s.title;
+
+  const content = document.getElementById('stepDetailContent');
+  content.innerHTML = '';
+
+  // Step explanation
+  const explainDiv = document.createElement('div');
+  explainDiv.style.cssText = 'background:var(--card-2);border-radius:var(--radius-md);padding:14px;margin-bottom:12px;';
+  explainDiv.innerHTML = `<div style="font-size:12px;color:var(--accent);font-weight:700;margin-bottom:4px;">Что это значит для меня</div>
+    <div style="font-size:13px;color:var(--cream);line-height:1.6;">${stepsEsc(s.explain)}</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:6px;">Цель: ${stepsEsc(s.goal)}</div>`;
+  content.appendChild(explainDiv);
+
+  // Questions
+  const qDiv = document.createElement('div');
+  qDiv.style.cssText = 'background:var(--card);border:1px solid var(--line);border-radius:var(--radius-md);padding:14px;margin-bottom:12px;';
+  let qHTML = '<div style="font-size:12px;color:var(--na-blue);font-weight:700;margin-bottom:6px;">Вопросы для размышления</div>';
+  s.questions.forEach((q,i) => {
+    qHTML += `<div style="font-size:12px;color:var(--cream);line-height:1.5;margin-bottom:4px;padding-left:12px;">${i+1}. ${stepsEsc(q)}</div>`;
+  });
+  qDiv.innerHTML = qHTML;
+  content.appendChild(qDiv);
+
+  // Work blocks
+  const blocks = [
+    { id:'thoughts', title:'Мои мысли', fields:['thoughts'], labels:['Что я думаю об этом шаге? Какие мысли приходят?'] },
+    { id:'experience', title:'Мой опыт', fields:['experience1','experience2'], labels:['Где это проявлялось в моей жизни?','Какие ситуации вспоминаются?'] },
+    { id:'feelings', title:'Мои чувства', fields:['feelings1','feelings2'], labels:['Что я чувствовал, когда думаю об этом?','Чего я избегал? Что не хотел замечать?'] },
+    { id:'denial', title:'Самообман и отрицание', fields:['denial1','denial2'], labels:['Что я раньше не хотел видеть?','Что я сейчас понимаю? В чём был нечестен с собой?'] },
+    { id:'fears', title:'Мои страхи', fields:['fears1','fears2'], labels:['Чего я боюсь?','Как этот страх влияет на мои решения и поступки?'] },
+    { id:'responsibility', title:'Моя ответственность', fields:['responsibility1','responsibility2'], labels:['Что я признаю? Что готов принять?','Что я могу изменить в своей жизни?'] },
+    { id:'actions', title:'Мои действия', fields:['actions'], labels:['Что я буду делать дальше? Какие конкретные шаги?'] },
+    { id:'summary', title:'Что я понял', fields:['summary'], labels:['Главный вывод из работы над этим шагом'] }
+  ];
+
+  blocks.forEach(b => {
+    const section = document.createElement('div');
+    section.className = 'step-section';
+    const isOpen = b.fields.some(f => d.blocks[f] && d.blocks[f].trim());
+    section.innerHTML = `
+      <div class="step-section-header" onclick="this.nextElementSibling.classList.toggle('open');this.querySelector('.arrow').classList.toggle('open');">
+        <span class="label">${b.title}</span>
+        <svg class="arrow ${isOpen?'open':''}" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+      <div class="step-section-body ${isOpen?'open':''}">${b.fields.map((f, fi) => `
+        <div class="step-form-field">
+          <label>${b.labels[fi] || ''}</label>
+          <textarea id="sf_${f}" rows="3" onchange="stepsData.steps[${num}].blocks.${f}=this.value;stepsSave();">${stepsEsc(d.blocks[f]||'')}</textarea>
+        </div>`).join('')}
+      </div>`;
+    content.appendChild(section);
+  });
+
+  // Mentor section
+  const mentorDiv = document.createElement('div');
+  mentorDiv.style.cssText = 'margin-top:8px;';
+  let mentorHTML = '<div style="font-size:13px;font-weight:700;color:var(--na-blue);margin-bottom:6px;">👤 Работа с наставником</div>';
+  if(d.mentor && d.mentor.length){
+    d.mentor.forEach((m,i) => {
+      mentorHTML += `<div style="background:var(--card);border:1px solid var(--line);border-radius:var(--radius-md);padding:12px;margin-bottom:6px;">
+        <div style="font-size:11px;color:var(--muted);">${new Date(m.date).toLocaleString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
+        <div style="font-size:12px;margin-top:4px;"><strong>Вопрос:</strong> ${stepsEsc(m.question)}</div>
+        ${m.answer ? `<div style="font-size:12px;margin-top:2px;"><strong>Ответ:</strong> ${stepsEsc(m.answer)}</div>` : ''}
+        ${m.comment ? `<div style="font-size:12px;color:var(--accent);margin-top:2px;"><strong>Комментарий:</strong> ${stepsEsc(m.comment)}</div>` : ''}
+        <button class="step-export-btn" style="margin-top:4px;font-size:11px;padding:4px 10px;" onclick="stepsEditMentor(${num},${i})">✎ Редактировать</button>
+      </div>`;
+    });
+  }
+  mentorHTML += `<button class="step-mentor-btn" onclick="stepsAddMentorQuestion(${num})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg><span>Добавить вопрос наставнику</span></button>`;
+  mentorDiv.innerHTML = mentorHTML;
+  content.appendChild(mentorDiv);
+
+  // History timeline
+  renderStepTimeline(num);
+}
+
+function renderStepTimeline(num){
+  const d = stepsData.steps[num];
+  const tl = document.getElementById('stepTimeline');
+  if(!tl) return;
+  if(!d.history || d.history.length === 0){
+    tl.style.display = 'none';
+    return;
+  }
+  tl.style.display = 'block';
+  tl.innerHTML = '<div style="font-size:12px;font-weight:700;color:var(--na-blue);margin-bottom:6px;">История работы</div>';
+  d.history.slice().reverse().forEach(h => {
+    const t = new Date(h.time);
+    const ts = t.toLocaleString('ru-RU', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    const item = document.createElement('div');
+    item.className = 'step-timeline-item';
+    item.innerHTML = '<div class="t">'+ts+'</div>'+stepsEsc(h.action);
+    tl.appendChild(item);
+  });
+}
+
+function stepsSaveCurrent(){
+  stepsLoad();
+  const fields = ['thoughts','experience1','experience2','feelings1','feelings2','denial1','denial2','fears1','fears2','responsibility1','responsibility2','actions','summary'];
+  fields.forEach(f => {
+    const el = document.getElementById('sf_'+f);
+    if(el) stepsData.steps[stepDetailNum].blocks[f] = el.value;
+  });
+  stepsData.steps[stepDetailNum].lastEntry = Date.now();
+  stepsAddHistory(stepDetailNum, 'Сохранил работу над шагом');
+  stepsSave();
+  showToast('Сохранено');
+  renderStepTimeline(stepDetailNum);
+}
+
+function stepsAddHistory(num, action){
+  if(!stepsData.steps[num].history) stepsData.steps[num].history = [];
+  stepsData.steps[num].history.push({ time: Date.now(), action: action });
+  stepsSave();
+}
+
+function stepsBackToList(){
+  showScreen('steps');
+}
+
+function stepsQuickNote(){
+  document.getElementById('stepsNoteBackdrop').classList.add('active');
+  document.getElementById('stepsQuickNoteText').value = '';
+}
+
+function stepsCloseNote(){
+  document.getElementById('stepsNoteBackdrop').classList.remove('active');
+}
+
+function stepsSaveQuickNote(){
+  const text = document.getElementById('stepsQuickNoteText').value.trim();
+  if(!text){ showToast('Напиши что-нибудь'); return; }
+  stepsLoad();
+  const activeNum = stepsGetActiveNum();
+  if(!stepsData.steps[activeNum].quickNotes) stepsData.steps[activeNum].quickNotes = [];
+  stepsData.steps[activeNum].quickNotes.push({ text: text, time: Date.now() });
+  stepsAddHistory(activeNum, 'Быстрая запись: ' + text.substring(0, 50) + (text.length>50?'...':''));
+  stepsCloseNote();
+  showToast('Быстрая запись сохранена к шагу ' + activeNum);
+}
+
+function stepsAddMentorQuestion(num){
+  stepsLoad();
+  const s = stepsData.steps[num || stepDetailNum];
+  const n = num || stepDetailNum;
+  const question = prompt('Вопрос наставника (или оставь пустым, чтобы написать позже):');
+  if(question === null) return;
+  if(!s.mentor) s.mentor = [];
+  s.mentor.push({ question: question || '', answer: '', comment: '', date: Date.now() });
+  stepsAddHistory(n, 'Добавил вопрос для наставника');
+  showToast('Вопрос сохранён');
+  if(!num) stepsRenderDetail(stepDetailNum);
+}
+
+function stepsEditMentor(num, idx){
+  const m = stepsData.steps[num].mentor[idx];
+  if(!m) return;
+  const answer = prompt('Твой ответ на вопрос наставника:', m.answer || '');
+  if(answer === null) return;
+  m.answer = answer;
+  m.date = Date.now();
+  stepsAddHistory(num, 'Ответил на вопрос наставника');
+  stepsSave();
+  stepsRenderDetail(num);
+  showToast('Ответ сохранён');
+}
+
+function stepsPrepareMentor(){
+  stepsLoad();
+  const activeNum = stepsGetActiveNum();
+  const s = stepsData.steps[activeNum];
+  let report = '=== ПОДГОТОВКА К ВСТРЕЧЕ С НАСТАВНИКОМ ===\n';
+  report += 'Дата: ' + new Date().toLocaleString('ru-RU') + '\n\n';
+  report += 'Текущий шаг: ' + activeNum + '\n';
+  report += 'Прогресс: ' + stepsCalcProgress(activeNum) + '%\n\n';
+  report += '--- Мои основные мысли ---\n';
+  report += (s.blocks.thoughts || '—') + '\n\n';
+  report += '--- Что я понял ---\n';
+  report += (s.blocks.summary || '—') + '\n\n';
+  report += '--- Мои страхи ---\n';
+  report += (s.blocks.fears1 || '—') + '\n';
+  report += (s.blocks.fears2 || '—') + '\n\n';
+  report += '--- Мои действия ---\n';
+  report += (s.blocks.actions || '—') + '\n\n';
+  if(s.mentor && s.mentor.length){
+    report += '--- Вопросы наставнику ---\n';
+    s.mentor.forEach((m,i) => {
+      report += (i+1) + '. ' + (m.question || '—') + '\n';
+      if(m.answer) report += '   Ответ: ' + m.answer + '\n';
+    });
+  }
+  report += '\n--- Быстрые записи ---\n';
+  if(s.quickNotes && s.quickNotes.length){
+    s.quickNotes.forEach(q => {
+      report += '• ' + new Date(q.time).toLocaleString('ru-RU') + ': ' + q.text + '\n';
+    });
+  } else {
+    report += '—\n';
+  }
+
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(report).then(() => {
+      showToast('Отчёт скопирован в буфер');
+    }).catch(() => { alert(report); });
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = report;
+    document.body.appendChild(ta);
+    ta.select();
+    try{ document.execCommand('copy'); showToast('Отчёт скопирован'); }catch(e){ alert(report); }
+    document.body.removeChild(ta);
+  }
+}
+
+function stepsExport(){
+  stepsLoad();
+  let text = '=== ШАГОВАЯ ТЕТРАДЬ ===\n';
+  text += 'Экспорт: ' + new Date().toLocaleString('ru-RU') + '\n';
+  text += 'Общий прогресс: ' + stepsTotalProgress() + '%\n\n';
+  STEPS_DATA.forEach(s => {
+    const d = stepsData.steps[s.num];
+    const prog = stepsCalcProgress(s.num);
+    text += '── ШАГ ' + s.num + ' (' + prog + '%) ──\n';
+    text += s.title + '\n';
+    if(d.blocks.thoughts) text += 'Мысли: ' + d.blocks.thoughts.substring(0, 100) + '...\n';
+    if(d.blocks.summary) text += 'Итог: ' + d.blocks.summary.substring(0, 100) + '...\n';
+    text += '\n';
+  });
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(() => showToast('Экспорт скопирован'));
+  } else {
+    const blob = new Blob([text], {type:'text/plain'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'tetrad_12_shagov_' + new Date().toISOString().slice(0,10) + '.txt';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showToast('Файл сохранён');
+  }
+}
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{ navigator.serviceWorker.register('sw.js').catch(e=>console.error('SW register error:', e)); });
