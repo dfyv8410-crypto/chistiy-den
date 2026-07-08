@@ -27,13 +27,13 @@
   --radius-sm:10px;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html,body{margin:0;padding:0;height:100%;overscroll-behavior:none;}
+html,body{margin:0;padding:0;height:100%;overscroll-behavior:none;overflow:hidden;}
 body{
   display:flex;justify-content:center;
   font-family:var(--font-body);color:var(--cream);
-  background:var(--bg);min-height:100vh;
+  background:var(--bg);
 }
-#app{width:100%;max-width:480px;min-height:100vh;display:flex;flex-direction:column;position:relative;background:var(--card);}
+#app{width:100%;max-width:480px;height:100dvh;display:flex;flex-direction:column;position:relative;background:var(--card);}
 
 /* ---------- top bar ---------- */
 .topbar{padding:calc(env(safe-area-inset-top,0px) + 20px) 20px 8px;display:flex;align-items:center;justify-content:space-between;}
@@ -1554,8 +1554,8 @@ const storage = {
     _idbDel(key).catch(err => console.error('IDB del error:', err));
   }
 };
-// migrate on startup
-(async()=>{
+// migrate on startup — восстанавливаем localStorage из IndexedDB если куки сброшены
+const readyPromise = (async()=>{
   try {
     _db = await openDB();
     const lsKeys = Object.keys(localStorage);
@@ -3741,6 +3741,11 @@ function closeSettings(){ document.getElementById('modalBackdrop').classList.rem
 /* ------- PRAYER MODAL ------- */
 let prayerTimer = null;
 function showPrayer(){
+  // Показываем молитву только раз в сутки
+  const lastPrayer = storage.get('prayer_shown_at');
+  const today = new Date().toDateString();
+  if(lastPrayer === today) return;
+  storage.set('prayer_shown_at', today);
   const backdrop = document.getElementById('prayerBackdrop');
   backdrop.classList.add('active');
   if(prayerTimer) clearTimeout(prayerTimer);
@@ -3777,16 +3782,33 @@ async function initStorage(){
   }
   el.textContent = text;
 }
-function exportAllData(){
-  const data = {};
-  const keys = Object.keys(memoryStore);
-  for(const k of keys) data[k] = memoryStore[k];
-  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `chistiy-den-backup-${new Date().toISOString().slice(0,10)}.json`;
-  a.click();
-  URL.revokeObjectURL(a.href);
+async function exportAllData(){
+  try {
+    const data = {};
+    // collect from IDB
+    if(_db){
+      const tx = _db.transaction('data','readonly');
+      const store = tx.objectStore('data');
+      const keys = await new Promise((res,rej)=>{ const r=store.getAllKeys(); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(); });
+      for(const k of keys){
+        const v = await new Promise((res)=>{ const r=store.get(k); r.onsuccess=()=>res(r.result); r.onerror=()=>res(undefined); });
+        if(v !== undefined) data[k] = v;
+      }
+    }
+    // also collect from localStorage
+    const lsKeys = Object.keys(localStorage);
+    for(const k of lsKeys){
+      if(data[k] === undefined) data[k] = localStorage.getItem(k);
+    }
+    const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `chistiy-den-backup-${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  } catch(e){
+    alert('Ошибка при создании бэкапа: ' + e.message);
+  }
 }
 function importAllData(event){
   const file = event.target.files[0];
@@ -3796,7 +3818,7 @@ function importAllData(event){
     try {
       const data = JSON.parse(e.target.result);
       const keys = Object.keys(data);
-      for(const k of keys) storage.set(k, String(data[k]));
+      for(const k of keys) storage.set(k, typeof data[k] === 'string' ? data[k] : JSON.stringify(data[k]));
       renderHome();
       closeSettings();
       alert('✅ Данные восстановлены!');
@@ -4362,11 +4384,13 @@ if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{ navigator.serviceWorker.register('sw.js').catch(e=>console.error('SW register error:', e)); });
 }
 
+readyPromise.then(()=>{
 renderHome();
 showPrayer();
 renderJft();
 checkSvcReminders();
 checkPlanReminder();
+});
 
 /* ------- donate banner: 3rd launch, then weekly ------- */
 try {
