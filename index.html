@@ -339,6 +339,18 @@ body{
 .diary-stat-card .v{font-size:22px;font-weight:800;color:var(--na-blue);}
 .diary-stat-card .l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
 .search-bar{width:100%;padding:10px 12px;border-radius:var(--radius-sm);border:1px solid var(--line);font-size:14px;font-family:var(--font-body);background:var(--card-2);color:var(--cream);margin-bottom:12px;box-sizing:border-box;}
+.diary-intensity-slider{width:100%;-webkit-appearance:none;appearance:none;height:6px;border-radius:3px;background:var(--line);outline:none;transition:opacity .2s;}
+.diary-intensity-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:24px;height:24px;border-radius:50%;background:var(--na-blue);cursor:pointer;border:2px solid var(--card);box-shadow:0 1px 4px rgba(0,0,0,.2);}
+.diary-intensity-bar{height:6px;border-radius:3px;margin-top:4px;transition:background .2s,width .1s;}
+.diary-result-chip.selected{background:var(--accent);color:var(--cream);border-color:var(--accent);}
+.diary-stat-tab{padding:6px 12px;border-radius:20px;border:1px solid var(--line);font-size:11px;font-weight:700;cursor:pointer;background:transparent;color:var(--muted);transition:all .15s;white-space:nowrap;flex:0 0 auto;}
+.diary-stat-tab.active{background:var(--na-blue);color:#fff;border-color:var(--na-blue);}
+.diary-stat-tab:active{transform:scale(.95);}
+.diary-chart-container{background:var(--card-2);border-radius:var(--radius-sm);padding:10px;margin-bottom:10px;overflow-x:auto;}
+.diary-chart-title{font-size:11px;font-weight:700;color:var(--na-blue);margin-bottom:6px;}
+.diary-heatmap{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.diary-heatmap-cell{aspect-ratio:1;border-radius:3px;font-size:8px;display:flex;align-items:center;justify-content:center;color:transparent;min-height:18px;}
+.diary-heatmap-cell.has-data{color:var(--cream);font-weight:600;}
 /* ---------- steps workbook ---------- */
 .home-steps-card{display:flex;align-items:center;gap:12px;background:var(--card);border:2px solid var(--accent);border-radius:var(--radius-lg);padding:14px;margin:0 0 6px;cursor:pointer;transition:transform .15s,box-shadow .15s;}
 .home-steps-card:active{transform:scale(.98);}
@@ -710,12 +722,26 @@ body{
     <div id="diaryForm" style="display:none;">
       <div class="diary-form-group">
         <label>Когда началось?</label>
-        <input type="datetime-local" id="diaryStartTime">
+        <input type="datetime-local" id="diaryStartTime" oninput="updateDurationDisplay()">
       </div>
       <div class="diary-form-group">
         <label>Когда закончилось?</label>
-        <input type="datetime-local" id="diaryEndTime">
-        <div style="font-size:11px;color:var(--muted);margin-top:2px;">Если тяга уже прошла</div>
+        <input type="datetime-local" id="diaryEndTime" oninput="updateDurationDisplay()">
+        <div id="diaryDurationDisplay" style="font-size:11px;color:var(--accent);font-weight:600;margin-top:2px;"></div>
+      </div>
+      <div class="diary-form-group">
+        <label>Интенсивность</label>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <input type="range" class="diary-intensity-slider" id="diaryIntensity" min="0" max="10" value="0" oninput="updateIntensityUI(this.value)">
+          <span id="diaryIntensityValue" style="font-size:18px;font-weight:800;min-width:30px;text-align:center;color:var(--na-blue);">0</span>
+        </div>
+        <div class="diary-intensity-bar" id="diaryIntensityBar" style="width:0%;background:#3DDC84;"></div>
+        <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:2px;">
+          <span>слабая 1-3</span>
+          <span>средняя 4-6</span>
+          <span>сильная 7-8</span>
+          <span>критическая 9-10</span>
+        </div>
       </div>
       <div class="diary-form-group">
         <label>Ситуация (где, с кем, что делал?)</label>
@@ -726,18 +752,34 @@ body{
         <textarea id="diaryThoughts" rows="2" placeholder="Какие мысли были в голове?"></textarea>
       </div>
       <div class="diary-form-group">
-        <label>Чувства</label>
-        <div class="diary-chips" id="diaryFeelings"></div>
-        <input type="text" id="diaryFeelingsOther" placeholder="Другое..." style="width:100%;padding:8px;border-radius:var(--radius-sm);border:1px solid var(--line);font-size:13px;background:var(--card-2);color:var(--cream);margin-top:6px;box-sizing:border-box;">
+        <label>Эмоции</label>
+        <div class="diary-chips" id="diaryEmotionsChips"></div>
+        <input type="text" id="diaryEmotionsOther" placeholder="Другое..." style="display:none;width:100%;padding:8px;border-radius:var(--radius-sm);border:1px solid var(--line);font-size:13px;background:var(--card-2);color:var(--cream);margin-top:6px;box-sizing:border-box;">
       </div>
       <div class="diary-form-group">
         <label>Триггер (что спровоцировало?)</label>
-        <textarea id="diaryTrigger" rows="2" placeholder="Что именно вызвало тягу?"></textarea>
+        <div class="diary-chips" id="diaryTriggerChips"></div>
+        <input type="text" id="diaryTriggerDetail" placeholder="Другое..." style="display:none;width:100%;padding:8px;border-radius:var(--radius-sm);border:1px solid var(--line);font-size:13px;background:var(--card-2);color:var(--cream);margin-top:6px;box-sizing:border-box;">
       </div>
       <div class="diary-form-group">
-        <label>Инструменты (что помогло / пробовал?)</label>
-        <div id="diaryToolsList"></div>
-        <button class="diary-add-tool" onclick="diaryAddTool()">+ Инструмент</button>
+        <label>Инструменты (что попробовал?)</label>
+        <div class="diary-chips" id="diaryToolsChips"></div>
+        <div id="diaryToolsWorked" style="margin-top:4px;"></div>
+        <input type="text" id="diaryToolsOther" placeholder="Другое..." style="display:none;width:100%;padding:8px;border-radius:var(--radius-sm);border:1px solid var(--line);font-size:13px;background:var(--card-2);color:var(--cream);margin-top:6px;box-sizing:border-box;">
+      </div>
+      <div class="diary-form-group">
+        <label>Результат</label>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          <label class="diary-result-chip" style="cursor:pointer;padding:6px 14px;border-radius:20px;border:1px solid var(--line);font-size:12px;transition:all .15s;display:flex;align-items:center;gap:4px;">
+            <input type="radio" name="diaryResult" value="passed" onchange="this.closest('.diary-result-chip').classList.toggle('selected',this.checked)" style="display:none;"> Тяга прошла сама
+          </label>
+          <label class="diary-result-chip" style="cursor:pointer;padding:6px 14px;border-radius:20px;border:1px solid var(--line);font-size:12px;transition:all .15s;display:flex;align-items:center;gap:4px;">
+            <input type="radio" name="diaryResult" value="helped" onchange="this.closest('.diary-result-chip').classList.toggle('selected',this.checked)" style="display:none;"> Помог инструмент
+          </label>
+          <label class="diary-result-chip" style="cursor:pointer;padding:6px 14px;border-radius:20px;border:1px solid var(--line);font-size:12px;transition:all .15s;display:flex;align-items:center;gap:4px;">
+            <input type="radio" name="diaryResult" value="needed_support" onchange="this.closest('.diary-result-chip').classList.toggle('selected',this.checked)" style="display:none;"> Нужна была поддержка
+          </label>
+        </div>
       </div>
       <div class="diary-form-group">
         <label>Чем закончилось?</label>
@@ -761,16 +803,18 @@ body{
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
         <span>Назад</span>
       </button>
-      <div style="font-size:15px;font-weight:800;color:var(--na-blue);margin-bottom:8px;">📊 Общая статистика</div>
-      <div class="diary-stats-grid">
-        <div class="diary-stat-card"><div class="v" id="diaryStatCount">0</div><div class="l">Всего записей</div></div>
-        <div class="diary-stat-card"><div class="v" id="diaryStatAvg">-</div><div class="l">Сред. длит.</div></div>
-        <div class="diary-stat-card"><div class="v" id="diaryStatMax">-</div><div class="l">Макс. длит.</div></div>
-        <div class="diary-stat-card"><div class="v" id="diaryStatMin">-</div><div class="l">Мин. длит.</div></div>
+      <div id="diaryStatsTabs" style="display:flex;gap:4px;margin-bottom:10px;overflow-x:auto;white-space:nowrap;padding-bottom:4px;-webkit-overflow-scrolling:touch;">
+        <button class="diary-stat-tab active" data-tab="overview" onclick="switchStatsTab('overview')">Обзор</button>
+        <button class="diary-stat-tab" data-tab="strength" onclick="switchStatsTab('strength')">Сила</button>
+        <button class="diary-stat-tab" data-tab="duration" onclick="switchStatsTab('duration')">Длительность</button>
+        <button class="diary-stat-tab" data-tab="triggers" onclick="switchStatsTab('triggers')">Триггеры</button>
+        <button class="diary-stat-tab" data-tab="tools" onclick="switchStatsTab('tools')">Инструменты</button>
+        <button class="diary-stat-tab" data-tab="time" onclick="switchStatsTab('time')">Время</button>
       </div>
-      <div id="diaryTrendStats" style="margin-top:12px;"></div>
-      <div style="font-size:13px;color:var(--na-blue);font-weight:700;margin:12px 0 4px;">🧰 Частые инструменты</div>
-      <div id="diaryStatTools"></div>
+      <div id="diaryStatsContent"></div>
+      <button class="diary-action-btn secondary" onclick="diaryGenerateReport()" style="margin-top:10px;width:100%;">
+        <span>📄 Сформировать месячный отчёт</span>
+      </button>
     </div>
   </div>
 
@@ -1967,46 +2011,123 @@ function loadNotifySettings(){
 }
 
 /* ===================== CRAVING DIARY ===================== */
-const FEELINGS = ['Злость','Грусть','Страх','Одиночество','Стыд','Вина','Надежда','Радость','Усталость','Тревога','Пустота','Благодарность','Спокойствие','Уверенность','Вдохновение','Любовь','Интерес','Гордость','Смятение','Раздражение','Бессилие','Отчаяние','Тоска','Апатия','Беспокойство','Паника','Обида','Разочарование','Зависть','Ревность','Сожаление','Прощение','Принятие','Свобода','Облегчение','Умиротворение','Достоинство','Сила','Смирение','Восторг','Теплота','Доверие','Безопасность','Цельность','Нежность','Забота','Доброта','Щедрость','Мужество','Терпение','Искренность','Честность'];
+const EMOTIONS = ['Тревога','Злость','Одиночество','Скука','Страх','Усталость','Обида','Стресс','Другое'];
+const TRIGGERS = ['Конфликт','Воспоминание','Место','Человек','Усталость','Деньги','Стресс','Сон','Другое'];
+const TOOL_NAMES = ['Молитва','Звонок','Группа','Дыхание','Спорт','Прогулка','Разговор','Медитация','Чтение','Другое'];
 let diaryEditingId = null;
-let diaryToolCount = 0;
+let diaryToolsState = {}; // { toolName: { worked: bool } }
 
 function diaryNew(){
   diaryEditingId = null;
+  diaryToolsState = {};
   document.getElementById('diaryView').style.display='none';
   document.getElementById('diaryForm').style.display='block';
   document.getElementById('diaryStats').style.display='none';
-  document.getElementById('diaryStartTime').value = new Date().toISOString().slice(0,16);
+  const now = new Date();
+  document.getElementById('diaryStartTime').value = now.toISOString().slice(0,16);
   document.getElementById('diaryEndTime').value = '';
+  document.getElementById('diaryDurationDisplay').textContent = '';
+  document.getElementById('diaryIntensity').value = 0;
+  updateIntensityUI(0);
   document.getElementById('diarySituation').value='';
   document.getElementById('diaryThoughts').value='';
-  document.getElementById('diaryTrigger').value='';
   document.getElementById('diarySummary').value='';
-  document.getElementById('diaryFeelingsOther').value='';
+  document.getElementById('diaryEmotionsOther').value='';
+  document.getElementById('diaryEmotionsOther').style.display='none';
+  document.getElementById('diaryTriggerDetail').value='';
+  document.getElementById('diaryTriggerDetail').style.display='none';
+  document.getElementById('diaryToolsOther').value='';
+  document.getElementById('diaryToolsOther').style.display='none';
   document.getElementById('diaryTimeline').style.display='none';
-  diaryToolCount=0;
-  document.getElementById('diaryToolsList').innerHTML='';
-  renderFeelingChips();
+  renderEmotionChips();
+  renderTriggerChips();
+  renderToolsChips();
+  // reset result radio
+  document.querySelectorAll('[name="diaryResult"]').forEach(r=>{ r.checked=false; r.closest('.diary-result-chip').classList.remove('selected'); });
 }
 
-function renderFeelingChips(){
-  const c=document.getElementById('diaryFeelings');
-  c.innerHTML='';
-  FEELINGS.forEach(f=>{
-    const b=document.createElement('button');
-    b.className='diary-chip';
-    b.textContent=f;
-    b.onclick=()=>b.classList.toggle('selected');
+function renderEmotionChips(){
+  const c = document.getElementById('diaryEmotionsChips');
+  c.innerHTML = '';
+  EMOTIONS.forEach(f => {
+    const b = document.createElement('button');
+    b.className = 'diary-chip';
+    b.textContent = f;
+    b.onclick = () => {
+      b.classList.toggle('selected');
+      const other = document.getElementById('diaryEmotionsOther');
+      if(f === 'Другое') other.style.display = b.classList.contains('selected') ? 'block' : 'none';
+    };
     c.appendChild(b);
   });
 }
 
-function diaryAddTool(){
-  const div=document.createElement('div');
-  div.className='diary-tool-row';
-  div.id='dtool_'+ (++diaryToolCount);
-  div.innerHTML='<input type="text" placeholder="Название инструмента"><input type="text" placeholder="Комментарий" style="flex:0.6;"><button class="icon-btn" onclick="this.parentElement.remove()">✕</button>';
-  document.getElementById('diaryToolsList').appendChild(div);
+function renderTriggerChips(){
+  const c = document.getElementById('diaryTriggerChips');
+  c.innerHTML = '';
+  TRIGGERS.forEach(t => {
+    const b = document.createElement('button');
+    b.className = 'diary-chip';
+    b.textContent = t;
+    b.onclick = () => {
+      document.querySelectorAll('#diaryTriggerChips .diary-chip').forEach(x => x.classList.remove('selected'));
+      b.classList.add('selected');
+      const other = document.getElementById('diaryTriggerDetail');
+      if(t === 'Другое') other.style.display = 'block'; else other.style.display = 'none';
+    };
+    c.appendChild(b);
+  });
+}
+
+function renderToolsChips(){
+  const c = document.getElementById('diaryToolsChips');
+  c.innerHTML = '';
+  TOOL_NAMES.forEach(t => {
+    const b = document.createElement('button');
+    b.className = 'diary-chip';
+    b.textContent = t;
+    b.onclick = () => {
+      b.classList.toggle('selected');
+      const other = document.getElementById('diaryToolsOther');
+      if(t === 'Другое') other.style.display = b.classList.contains('selected') ? 'block' : 'none';
+      renderToolsWorked();
+    };
+    c.appendChild(b);
+  });
+}
+
+function renderToolsWorked(){
+  const sel = [...document.querySelectorAll('#diaryToolsChips .diary-chip.selected')].map(b => b.textContent);
+  const container = document.getElementById('diaryToolsWorked');
+  if(!sel.length){ container.innerHTML = ''; return; }
+  container.innerHTML = sel.filter(t => t !== 'Другое').map(t => {
+    const w = diaryToolsState[t] === true;
+    return '<label style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--cream);cursor:pointer;margin-right:10px;"><input type="checkbox" '+(w?'checked':'')+' onchange="diaryToolsState[\''+t+'\']=this.checked" style="accent-color:var(--accent);"> '+t+' помог</label>';
+  }).join('');
+}
+
+function updateIntensityUI(val){
+  const v = parseInt(val);
+  document.getElementById('diaryIntensityValue').textContent = v;
+  const bar = document.getElementById('diaryIntensityBar');
+  const pct = (v / 10) * 100;
+  bar.style.width = pct + '%';
+  let color = '#3DDC84';
+  if(v >= 4 && v <= 6) color = '#F0C040';
+  else if(v >= 7 && v <= 8) color = '#E89040';
+  else if(v >= 9) color = '#E04040';
+  bar.style.background = color;
+}
+
+function updateDurationDisplay(){
+  const start = document.getElementById('diaryStartTime').value;
+  const end = document.getElementById('diaryEndTime').value;
+  const el = document.getElementById('diaryDurationDisplay');
+  if(start && end){
+    const dur = Math.round((new Date(end).getTime() - new Date(start).getTime()) / 60000);
+    if(dur > 0) el.textContent = '⏱ Длительность: ' + formatDuration(dur);
+    else el.textContent = '';
+  } else el.textContent = '';
 }
 
 function diaryCancel(){
@@ -2017,27 +2138,38 @@ function diaryCancel(){
 function diarySave(){
   const startTime = document.getElementById('diaryStartTime').value;
   const endTime = document.getElementById('diaryEndTime').value;
+  if(!startTime){ showToast('Укажи время начала'); return; }
+  const intensity = parseInt(document.getElementById('diaryIntensity').value) || 0;
   const situation = document.getElementById('diarySituation').value.trim();
   const thoughts = document.getElementById('diaryThoughts').value.trim();
-  const trigger = document.getElementById('diaryTrigger').value.trim();
   const summary = document.getElementById('diarySummary').value.trim();
-  const feelings = [...document.querySelectorAll('#diaryFeelings .diary-chip.selected')].map(b=>b.textContent);
-  const feelingsOther = document.getElementById('diaryFeelingsOther').value.trim();
-  if(feelingsOther && !feelings.includes(feelingsOther)) feelings.push(feelingsOther);
-  const tools = [];
-  document.querySelectorAll('#diaryToolsList .diary-tool-row').forEach(row=>{
-    const inputs=row.querySelectorAll('input');
-    if(inputs[0]&&inputs[0].value.trim()) tools.push({ name: inputs[0].value.trim(), comment: inputs[1]?inputs[1].value.trim():'' });
-  });
-  if(!startTime){ showToast('Укажи время начала'); return; }
+  const emotions = [...document.querySelectorAll('#diaryEmotionsChips .diary-chip.selected')].map(b=>b.textContent);
+  const emotionsOther = document.getElementById('diaryEmotionsOther').value.trim();
+  if(emotionsOther && !emotions.includes(emotionsOther)) emotions.push(emotionsOther);
+  const triggerEl = document.querySelector('#diaryTriggerChips .diary-chip.selected');
+  const trigger = triggerEl ? triggerEl.textContent : '';
+  const triggerDetail = trigger === 'Другое' ? document.getElementById('diaryTriggerDetail').value.trim() : '';
+  const tools = [...document.querySelectorAll('#diaryToolsChips .diary-chip.selected')].map(b => {
+    const name = b.textContent;
+    const isOther = name === 'Другое';
+    const otherVal = isOther ? document.getElementById('diaryToolsOther').value.trim() : '';
+    return { name: isOther ? otherVal : name, worked: !!diaryToolsState[name] };
+  }).filter(t => t.name);
+  const resultRadio = document.querySelector('[name="diaryResult"]:checked');
+  const result = resultRadio ? resultRadio.value : null;
+  let category = null;
+  if(intensity >= 1 && intensity <= 3) category = 'weak';
+  else if(intensity >= 4 && intensity <= 6) category = 'medium';
+  else if(intensity >= 7 && intensity <= 8) category = 'strong';
+  else if(intensity >= 9) category = 'critical';
   const entry = {
     id: diaryEditingId || Date.now(),
     startTime: new Date(startTime).getTime(),
     endTime: endTime ? new Date(endTime).getTime() : null,
     duration: endTime ? Math.round((new Date(endTime).getTime() - new Date(startTime).getTime()) / 60000) : null,
-    situation, thoughts, feelings, trigger, summary,
-    tools, events: [],
-    isCompleted: !!(summary || endTime),
+    intensity, category, situation, thoughts, emotions, trigger, triggerDetail, tools, result, summary,
+    events: [],
+    isCompleted: !!(summary || endTime || intensity > 0),
     createdAt: diaryEditingId ? (JSON.parse(storage.get('diary_entries')||'[]').find(e=>e.id===diaryEditingId)?.createdAt||Date.now()) : Date.now(),
     updatedAt: Date.now()
   };
@@ -2056,20 +2188,22 @@ function diaryRenderList(){
   all.sort((a,b)=>b.createdAt - a.createdAt);
   const list = document.getElementById('diaryList');
   list.innerHTML='';
-  const filtered = q ? all.filter(e=>(e.situation+' '+e.thoughts+' '+e.trigger+' '+e.summary).toLowerCase().includes(q)) : all;
+  const filtered = q ? all.filter(e=>(e.situation+' '+e.thoughts+' '+e.emotions+' '+e.trigger+' '+e.summary).toLowerCase().includes(q)) : all;
   if(filtered.length===0){ list.innerHTML='<div style="font-size:13px;color:var(--muted);padding:20px;text-align:center;">Записей пока нет</div>'; return; }
   filtered.forEach(e=>{
     const d=new Date(e.createdAt);
     const dateStr = d.toLocaleDateString('ru-RU', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
-    const feelingsStr = e.feelings?.length ? e.feelings.join(', ') : '';
+    const emoStr = e.emotions?.length ? e.emotions.join(', ') : (e.feelings?.length ? e.feelings.join(', ') : '');
     const toolsStr = e.tools?.length ? e.tools.map(t=>t.name).join(', ') : '';
     const durStr = e.duration ? formatDuration(e.duration) : '';
+    const intStr = e.intensity ? '<span style="font-weight:800;color:'+intensityColor(e.intensity)+';">' + e.intensity + '/10</span>' : '';
     const div=document.createElement('div');
     div.className='diary-entry';
     div.innerHTML=`
-      <div class="date">${dateStr} ${e.isCompleted?'✅':''} ${durStr?'<span style="color:var(--accent);font-weight:700;">⏱ '+durStr+'</span>':''}</div>
+      <div class="date">${dateStr} ${intStr} ${e.isCompleted?'✅':''} ${durStr?'<span style="color:var(--accent);font-weight:700;">⏱ '+durStr+'</span>':''}</div>
       ${e.situation?'<div class="situation">'+esc(e.situation)+'</div>':''}
-      ${feelingsStr?'<div class="feel">'+esc(feelingsStr)+'</div>':''}
+      ${emoStr?'<div class="feel">'+esc(emoStr)+'</div>':''}
+      ${e.trigger?'<div style="font-size:11px;color:var(--muted);">🔗 '+esc(e.trigger)+'</div>':''}
       ${toolsStr?'<div class="tools">🧰 '+esc(toolsStr)+'</div>':''}
       <div style="display:flex;gap:6px;margin-top:6px;">
         <button class="diary-mini-btn" onclick="diaryEdit(${e.id})" title="Редактировать"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
@@ -2079,40 +2213,80 @@ function diaryRenderList(){
   });
 }
 
+function intensityColor(v){
+  if(v <= 3) return '#3DDC84';
+  if(v <= 6) return '#F0C040';
+  if(v <= 8) return '#E89040';
+  return '#E04040';
+}
+
 function diaryEdit(id){
   const all = JSON.parse(storage.get('diary_entries')||'[]');
   const e = all.find(x=>x.id===id);
   if(!e) return;
   diaryEditingId = id;
+  diaryToolsState = {};
   document.getElementById('diaryView').style.display='none';
   document.getElementById('diaryForm').style.display='block';
   document.getElementById('diaryStats').style.display='none';
   document.getElementById('diaryStartTime').value = new Date(e.startTime).toISOString().slice(0,16);
   document.getElementById('diaryEndTime').value = e.endTime ? new Date(e.endTime).toISOString().slice(0,16) : '';
+  updateDurationDisplay();
+  document.getElementById('diaryIntensity').value = e.intensity || 0;
+  updateIntensityUI(e.intensity || 0);
   document.getElementById('diarySituation').value = e.situation||'';
   document.getElementById('diaryThoughts').value = e.thoughts||'';
-  document.getElementById('diaryTrigger').value = e.trigger||'';
   document.getElementById('diarySummary').value = e.summary||'';
-  document.getElementById('diaryFeelingsOther').value = '';
-  renderFeelingChips();
-  if(e.feelings){
-    document.querySelectorAll('#diaryFeelings .diary-chip').forEach(b=>{
-      if(e.feelings.includes(b.textContent)) b.classList.add('selected');
+  document.getElementById('diaryEmotionsOther').value = '';
+  document.getElementById('diaryEmotionsOther').style.display='none';
+  document.getElementById('diaryTriggerDetail').value = '';
+  document.getElementById('diaryTriggerDetail').style.display='none';
+  document.getElementById('diaryToolsOther').value = '';
+  document.getElementById('diaryToolsOther').style.display='none';
+  // Emotions
+  renderEmotionChips();
+  const emoList = e.emotions || e.feelings || [];
+  if(emoList.length){
+    document.querySelectorAll('#diaryEmotionsChips .diary-chip').forEach(b=>{
+      if(emoList.includes(b.textContent)){
+        b.classList.add('selected');
+        if(b.textContent === 'Другое') document.getElementById('diaryEmotionsOther').style.display = 'block';
+      }
     });
   }
-  diaryToolCount=0;
-  const tl = document.getElementById('diaryToolsList');
-  tl.innerHTML='';
-  if(e.tools) e.tools.forEach(t=>{
-    const div=document.createElement('div');
-    div.className='diary-tool-row';
-    div.id='dtool_'+ (++diaryToolCount);
-    div.innerHTML='<input type="text" value="'+esc(t.name)+'"><input type="text" value="'+esc(t.comment||'')+'" style="flex:0.6;"><button class="icon-btn" onclick="this.parentElement.remove()">✕</button>';
-    tl.appendChild(div);
+  // Trigger
+  renderTriggerChips();
+  if(e.trigger){
+    document.querySelectorAll('#diaryTriggerChips .diary-chip').forEach(b=>{
+      if(b.textContent === e.trigger){
+        b.classList.add('selected');
+        if(e.trigger === 'Другое'){ document.getElementById('diaryTriggerDetail').value = e.triggerDetail||''; document.getElementById('diaryTriggerDetail').style.display = 'block'; }
+      }
+    });
+  }
+  // Tools
+  renderToolsChips();
+  if(e.tools && e.tools.length){
+    const toolNames = e.tools.map(t => t.name);
+    const toolWorked = e.tools.filter(t => t.worked).map(t => t.name);
+    document.querySelectorAll('#diaryToolsChips .diary-chip').forEach(b => {
+      if(toolNames.includes(b.textContent)){
+        b.classList.add('selected');
+        diaryToolsState[b.textContent] = toolWorked.includes(b.textContent);
+        if(b.textContent === 'Другое') document.getElementById('diaryToolsOther').style.display = 'block';
+      }
+    });
+    renderToolsWorked();
+  }
+  // Result
+  document.querySelectorAll('[name="diaryResult"]').forEach(r => {
+    r.checked = r.value === e.result;
+    r.closest('.diary-result-chip').classList.toggle('selected', r.checked);
   });
+  // Timeline
   const timeline = document.getElementById('diaryTimeline');
-  timeline.style.display='block';
-  timeline.innerHTML='<div style="font-size:12px;font-weight:700;color:var(--na-blue);margin-bottom:6px;">Хронология</div>';
+  timeline.style.display = 'block';
+  timeline.innerHTML = '<div style="font-size:12px;font-weight:700;color:var(--na-blue);margin-bottom:6px;">Хронология</div>';
   if(e.events) e.events.forEach(ev=>{
     const t=new Date(ev.timestamp);
     const ts=t.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
@@ -2143,125 +2317,194 @@ function diaryShowStats(){
   document.getElementById('diaryView').style.display='none';
   document.getElementById('diaryForm').style.display='none';
   document.getElementById('diaryStats').style.display='block';
+  document.querySelectorAll('.diary-stat-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector('.diary-stat-tab[data-tab="overview"]').classList.add('active');
+  switchStatsTab('overview');
+}
+
+function switchStatsTab(tab){
+  document.querySelectorAll('.diary-stat-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
   const all = JSON.parse(storage.get('diary_entries')||'[]');
-  const completed = all.filter(e=>e.isCompleted);
-  document.getElementById('diaryStatCount').textContent = all.length;
-  let totalMin=0, cnt=0, maxMin=0, minMin=Infinity;
-  completed.forEach(e=>{
-    if(e.endTime && e.startTime){
-      const dur = Math.round((e.endTime - e.startTime)/60000);
-      if(dur>0){ totalMin+=dur; cnt++; maxMin=Math.max(maxMin,dur); minMin=Math.min(minMin,dur); }
-    }
-  });
-  document.getElementById('diaryStatAvg').textContent = cnt ? formatDuration(Math.round(totalMin/cnt)) : '-';
-  document.getElementById('diaryStatMax').textContent = maxMin ? formatDuration(maxMin) : '-';
-  document.getElementById('diaryStatMin').textContent = minMin<Infinity ? formatDuration(minMin) : '-';
+  const container = document.getElementById('diaryStatsContent');
+  if(tab === 'overview') renderStatsOverview(all, container);
+  else if(tab === 'strength') renderStatsStrength(all, container);
+  else if(tab === 'duration') renderStatsDuration(all, container);
+  else if(tab === 'triggers') renderStatsTriggers(all, container);
+  else if(tab === 'tools') renderStatsTools(all, container);
+  else if(tab === 'time') renderStatsTime(all, container);
+}
 
-  // Tool frequency
-  const toolFreq = {};
-  all.forEach(e=>{ if(e.tools) e.tools.forEach(t=>{ toolFreq[t.name]=(toolFreq[t.name]||0)+1; }); });
-  const sorted = Object.entries(toolFreq).sort((a,b)=>b[1]-a[1]);
-  const tc = document.getElementById('diaryStatTools');
-  tc.innerHTML = sorted.length ? sorted.map(([n,c])=>'<span style="display:inline-block;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:3px 10px;font-size:11px;margin:2px;">'+esc(n)+' ('+c+')</span>').join(' ') : '<div style="font-size:12px;color:var(--muted);">Нет данных</div>';
+function filterPeriod(all, days){
+  const cutoff = Date.now() - days * 86400000;
+  return all.filter(e => e.createdAt >= cutoff);
+}
 
-  // Trend analysis by time periods
-  if(all.length === 0){
-    document.getElementById('diaryTrendStats').innerHTML = '<div style="font-size:12px;color:var(--muted);padding:10px;text-align:center;">Нет данных для анализа динамики</div>';
-    return;
-  }
+function renderStatsOverview(all, container){
+  if(!all.length){ container.innerHTML = '<div style="font-size:13px;color:var(--muted);padding:20px;text-align:center;">Нет данных</div>'; return; }
   const now = Date.now();
-  const periods = [
-    { label:'Последняя неделя', days:7 },
-    { label:'Последний месяц', days:30 },
-    { label:'Последние 2 месяца', days:60 }
-  ];
-  // Annual cycle: 6 months, 9 months, 1 year, 2 years...
-  for(let y=1; y<=3; y++){
-    periods.push({ label: y===1?'6 месяцев':(y*6+' месяцев'), days: y*182.5 });
-    periods.push({ label: y===1?'9 месяцев':(y*9+' месяцев'), days: y*274 });
-    periods.push({ label: y===1?'1 год':(y+' года'), days: y*365 });
+  const today = filterPeriod(all, 1);
+  const thisWeek = filterPeriod(all, 7);
+  const thisMonth = filterPeriod(all, 30);
+  const lastMonth = all.filter(e => e.createdAt >= now - 60*86400000 && e.createdAt < now - 30*86400000);
+  const cmCount = thisMonth.length, lmCount = lastMonth.length;
+  const cmAvgInt = thisMonth.filter(e=>e.intensity).reduce((s,e,i,a)=>s+(e.intensity||0)/a.length,0);
+  const lmAvgInt = lastMonth.filter(e=>e.intensity).reduce((s,e,i,a)=>s+(e.intensity||0)/a.length,0);
+  const cmAvgDur = thisMonth.filter(e=>e.duration).reduce((s,e,i,a)=>s+(e.duration||0)/a.length,0);
+  const lmAvgDur = lastMonth.filter(e=>e.duration).reduce((s,e,i,a)=>s+(e.duration||0)/a.length,0);
+  const freqChange = lmCount ? Math.round((cmCount-lmCount)/lmCount*100) : 0;
+  const intChange = lmAvgInt ? Math.round((cmAvgInt-lmAvgInt)/lmAvgInt*100) : 0;
+  const durChange = lmAvgDur ? Math.round((cmAvgDur-lmAvgDur)/lmAvgDur*100) : 0;
+  let html = '<div class="diary-stats-grid"><div class="diary-stat-card"><div class="v">'+all.length+'</div><div class="l">Всего</div></div><div class="diary-stat-card"><div class="v">'+today.length+'</div><div class="l">Сегодня</div></div><div class="diary-stat-card"><div class="v">'+thisWeek.length+'</div><div class="l">Неделя</div></div><div class="diary-stat-card"><div class="v">'+cmCount+'</div><div class="l">Месяц</div></div></div>';
+  if(lmCount){
+    const isPos = freqChange < 0;
+    html += '<div style="background:var(--card);border:1px solid var(--line);border-radius:var(--radius-md);padding:12px;margin:10px 0;font-size:13px;line-height:1.7;color:var(--cream);"><div style="font-weight:700;color:var(--na-blue);margin-bottom:4px;">📊 Сравнение периодов</div><div style="font-size:12px;">В этом месяце: <strong>'+cmCount+'</strong> эпизодов</div><div style="font-size:12px;">В прошлом месяце: <strong>'+lmCount+'</strong> эпизодов</div><div style="font-size:13px;font-weight:700;margin-top:4px;color:'+(isPos?'#3DDC84':'#E88A7A')+';">'+(isPos?'↓ ':'↑ ')+' '+Math.abs(freqChange)+'% '+(isPos?'улучшение':'ухудшение')+'</div>';
+    if(intChange) html += '<div style="font-size:11px;color:var(--muted);margin-top:2px;">Средняя интенсивность '+(intChange<0?'снизилась':'выросла')+' с '+lmAvgInt.toFixed(1)+' до '+cmAvgInt.toFixed(1)+'</div>';
+    if(durChange) html += '<div style="font-size:11px;color:var(--muted);">Средняя длительность '+(durChange<0?'снизилась':'выросла')+' на '+Math.abs(durChange)+'%</div>';
+    html += '</div>';
   }
+  html += '<div style="margin-top:12px;"><div style="font-weight:700;font-size:13px;color:var(--na-blue);margin-bottom:6px;">📈 Количество тяг по дням</div>'+renderDailyChart(all,14)+'<div style="font-weight:700;font-size:13px;color:var(--na-blue);margin:10px 0 6px;">📅 Календарь тяги (28 дней)</div>'+renderCalendarHeatmap(all)+'</div>';
+  container.innerHTML = html;
+}
 
-  let trendHTML = '<div style="font-size:14px;font-weight:700;color:var(--na-blue);margin-bottom:6px;">📈 Динамика тяги по периодам</div>';
-  trendHTML += '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:11px;">';
-  trendHTML += '<tr style="background:var(--card-2);"><th style="padding:6px 8px;text-align:left;color:var(--muted);font-weight:600;">Период</th>';
-  trendHTML += '<th style="padding:6px 8px;text-align:center;color:var(--muted);font-weight:600;">Кол-во</th>';
-  trendHTML += '<th style="padding:6px 8px;text-align:center;color:var(--muted);font-weight:600;">Сред. длит.</th>';
-  trendHTML += '<th style="padding:6px 8px;text-align:center;color:var(--muted);font-weight:600;">В день</th>';
-  trendHTML += '<th style="padding:6px 8px;text-align:center;color:var(--muted);font-weight:600;">Тренд</th></tr>';
+function renderDailyChart(all, days){
+  const data = [];
+  for(let i = days-1; i>=0; i--){
+    const d = new Date(Date.now()-i*86400000);
+    const dayStart = new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime();
+    const count = all.filter(e => e.createdAt>=dayStart && e.createdAt<dayStart+86400000).length;
+    data.push({ label:d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'}), count });
+  }
+  const max = Math.max(...data.map(d=>d.count), 1);
+  let html = '<div style="display:flex;align-items:end;gap:3px;height:80px;padding:4px 0;">';
+  data.forEach(d => {
+    const h = Math.max(4, (d.count/max)*70);
+    html += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;"><div style="width:100%;height:'+h+'px;background:var(--accent);border-radius:3px 3px 0 0;opacity:'+(d.count?.9:.15)+';min-height:4px;"></div><span style="font-size:7px;color:var(--muted);writing-mode:vertical-lr;transform:rotate(180deg);">'+d.label+'</span></div>';
+  });
+  return html+'</div>';
+}
 
-  let prevFreq = null, prevDur = null;
-  for(let pi=0; pi<periods.length; pi++){
-    const p = periods[pi];
-    const cutoff = now - p.days * 86400000;
-    const periodEntries = completed.filter(e => e.createdAt >= cutoff && e.endTime && e.startTime);
-    if(periodEntries.length === 0) continue;
-    const daysInPeriod = p.days;
-    const freqPerDay = (periodEntries.length / daysInPeriod).toFixed(2);
-    let durSum = 0, durCnt = 0;
-    periodEntries.forEach(e => {
-      const dur = Math.round((e.endTime - e.startTime)/60000);
-      if(dur>0){ durSum+=dur; durCnt++; }
-    });
-    const avgDur = durCnt ? Math.round(durSum/durCnt) : 0;
-    let trend = '—';
-    if(pi > 0 && prevFreq !== null){
-      const freqChange = ((freqPerDay - prevFreq) / prevFreq * 100).toFixed(0);
-      const durChange = ((avgDur - prevDur) / prevDur * 100).toFixed(0);
-      const freqArrow = freqChange > 5 ? '🔴' : freqChange < -5 ? '🟢' : '⚪';
-      const durArrow = durChange > 5 ? '🔴' : durChange < -5 ? '🟢' : '⚪';
-      trend = freqArrow + ' ' + freqChange + '% / ' + durArrow + ' ' + durChange + '%';
+function renderCalendarHeatmap(all){
+  const colors = {none:'var(--card-2)',weak:'#3DDC84',medium:'#F0C040',strong:'#E89040',critical:'#E04040'};
+  let html = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;max-width:280px;">';
+  for(let i=27; i>=0; i--){
+    const d = new Date(Date.now()-i*86400000);
+    const dayStart = new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime();
+    const dayEntries = all.filter(e => e.createdAt>=dayStart && e.createdAt<dayStart+86400000);
+    let color = colors.none;
+    if(dayEntries.length){
+      const maxInt = Math.max(...dayEntries.map(e=>e.intensity||0));
+      if(maxInt>=9) color=colors.critical; else if(maxInt>=7) color=colors.strong; else if(maxInt>=4) color=colors.medium; else if(maxInt>=1) color=colors.weak;
     }
-    prevFreq = parseFloat(freqPerDay);
-    prevDur = avgDur;
-
-    trendHTML += '<tr style="border-bottom:1px solid var(--line);">';
-    trendHTML += '<td style="padding:6px 8px;font-weight:600;color:var(--na-blue);">'+p.label+'</td>';
-    trendHTML += '<td style="padding:6px 8px;text-align:center;">'+periodEntries.length+'</td>';
-    trendHTML += '<td style="padding:6px 8px;text-align:center;">'+formatDuration(avgDur)+'</td>';
-    trendHTML += '<td style="padding:6px 8px;text-align:center;">'+freqPerDay+'</td>';
-    trendHTML += '<td style="padding:6px 8px;text-align:center;font-size:10px;">'+trend+'</td></tr>';
+    html += '<div style="aspect-ratio:1;border-radius:4px;background:'+color+';opacity:.85;" title="'+d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'})+': '+dayEntries.length+' эп.'+'"></div>';
   }
-  trendHTML += '</table></div>';
+  html += '</div><div style="display:flex;gap:6px;font-size:9px;color:var(--muted);margin-top:4px;align-items:center;"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--card-2);"></span> нет<span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#3DDC84;"></span> слаб.<span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#F0C040;"></span> сред.<span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#E89040;"></span> сильн.<span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#E04040;"></span> крит.</div>';
+  return html;
+}
 
-  // Summary trend
-  if(all.length >= 2){
-    const sorted = [...all].filter(e=>e.endTime&&e.startTime).sort((a,b)=>a.createdAt-b.createdAt);
-    if(sorted.length >= 2){
-      const half = Math.floor(sorted.length/2);
-      const firstHalf = sorted.slice(0, half);
-      const secondHalf = sorted.slice(half);
-      const firstAvg = firstHalf.reduce((s,e)=>s+Math.round((e.endTime-e.startTime)/60000),0)/firstHalf.length;
-      const secondAvg = secondHalf.reduce((s,e)=>s+Math.round((e.endTime-e.startTime)/60000),0)/secondHalf.length;
-      const firstFreq = firstHalf.length / ((firstHalf[firstHalf.length-1].createdAt - firstHalf[0].createdAt) / 86400000) || 0;
-      const secondFreq = secondHalf.length / ((secondHalf[secondHalf.length-1].createdAt - secondHalf[0].createdAt) / 86400000) || 0;
-      const durChange = firstAvg > 0 ? Math.round((secondAvg - firstAvg)/firstAvg*100) : 0;
-      const freqChange = firstFreq > 0 ? Math.round((secondFreq - firstFreq)/firstFreq*100) : 0;
+function renderStatsStrength(all, container){
+  const w = all.filter(e=>e.intensity&&e.intensity>0);
+  if(!w.length){ container.innerHTML = '<div style="font-size:13px;color:var(--muted);padding:20px;text-align:center;">Нет данных об интенсивности</div>'; return; }
+  const now=Date.now(), m=w.filter(e=>e.createdAt>=now-30*86400000), lm=w.filter(e=>e.createdAt>=now-60*86400000&&e.createdAt<now-30*86400000);
+  const a=m.length?m.reduce((s,e)=>s+e.intensity,0)/m.length:0, la=lm.length?lm.reduce((s,e)=>s+e.intensity,0)/lm.length:0;
+  const s=w.reduce((a,b)=>a.intensity>=b.intensity?a:b), sc=w.filter(e=>e.intensity>=7).length;
+  const tr = la>0?a-la:0; let tt='без изменений',tc='var(--muted)';
+  if(tr<-0.5){tt='снижается';tc='#3DDC84';}else if(tr>0.5){tt='растёт';tc='#E88A7A';}
+  let html='<div class="diary-stats-grid"><div class="diary-stat-card"><div class="v">'+a.toFixed(1)+'</div><div class="l">Средняя сила</div></div><div class="diary-stat-card"><div class="v">'+sc+'</div><div class="l">Сильных (7-10)</div></div><div class="diary-stat-card"><div class="v" style="color:'+tc+';">'+tt+'</div><div class="l">Динамика</div></div><div class="diary-stat-card"><div class="v">'+(s.intensity||0)+'/10</div><div class="l">Максимум</div></div></div>';
+  if(la>0) html+='<div style="background:var(--card);border:1px solid var(--line);border-radius:var(--radius-md);padding:12px;margin:10px 0;font-size:12px;line-height:1.7;color:var(--cream);"><div style="font-weight:700;color:var(--na-blue);margin-bottom:4px;">📉 Анализ силы тяги</div>Средняя интенсивность '+(a<la?'снизилась':'выросла')+' с <strong>'+la.toFixed(1)+'</strong> до <strong>'+a.toFixed(1)+'</strong><br>Самая сильная тяга: <strong>'+(s.intensity||0)+'/10</strong> — '+new Date(s.createdAt).toLocaleDateString('ru-RU',{day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'})+(s.situation?'<br>Обстоятельства: '+esc(s.situation):'')+'</div>';
+  const l15=w.slice(-15);
+  html+='<div style="margin-top:12px;"><div style="font-weight:700;font-size:13px;color:var(--na-blue);margin-bottom:6px;">📊 Интенсивность (последние 15)</div><div style="display:flex;align-items:end;gap:4px;height:80px;padding:4px 0;">';
+  l15.forEach(e=>{const h=Math.max(4,((e.intensity||0)/10)*70);html+='<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;"><div style="width:100%;height:'+h+'px;background:'+intensityColor(e.intensity||0)+';border-radius:3px 3px 0 0;min-height:4px;"></div></div>';});
+  html+='</div></div>'; container.innerHTML=html;
+}
 
-      let summary = '<div style="background:var(--card);border:1px solid var(--line);border-radius:var(--radius-md);padding:12px;margin-top:10px;">';
-      summary += '<div style="font-size:13px;font-weight:700;color:var(--na-blue);margin-bottom:4px;">📋 Общая динамика</div>';
-      summary += '<div style="font-size:12px;color:var(--cream);line-height:1.6;">';
-      if(durChange !== 0){
-        summary += '⏱ Тяга стала ' + (durChange < 0 ? '<span style="color:#3DDC84;">проходить быстрее на '+Math.abs(durChange)+'%</span>' : '<span style="color:#E88A7A;">длиться дольше на '+Math.abs(durChange)+'%</span>');
-        summary += ' (с ' + formatDuration(Math.round(firstAvg)) + ' до ' + formatDuration(Math.round(secondAvg)) + ')<br>';
-      }
-      if(freqChange !== 0){
-        summary += '📊 Появляется ' + (freqChange < 0 ? '<span style="color:#3DDC84;">реже на '+Math.abs(freqChange)+'%</span>' : '<span style="color:#E88A7A;">чаще на '+Math.abs(freqChange)+'%</span>');
-        summary += ' (было ' + firstFreq.toFixed(2) + ' раз/день, стало ' + secondFreq.toFixed(2) + ' раз/день)';
-      }
-      if(firstHalf.length >= 3 && secondHalf.length >= 3){
-        const minDur1 = Math.min(...firstHalf.map(e=>Math.round((e.endTime-e.startTime)/60000)).filter(d=>d>0));
-        const minDur2 = Math.min(...secondHalf.map(e=>Math.round((e.endTime-e.startTime)/60000)).filter(d=>d>0));
-        if(minDur1 > 0 && minDur2 > 0){
-          summary += '<br>⚡ Самая короткая тяга: была ' + formatDuration(minDur1) + ' → стала ' + formatDuration(minDur2);
-        }
-      }
-      summary += '</div></div>';
-      trendHTML += summary;
-    }
-  }
+function renderStatsDuration(all, container){
+  const w=all.filter(e=>e.duration&&e.duration>0);
+  if(!w.length){ container.innerHTML='<div style="font-size:13px;color:var(--muted);padding:20px;text-align:center;">Нет данных о длительности</div>'; return; }
+  const now=Date.now(), m=w.filter(e=>e.createdAt>=now-30*86400000), lm=w.filter(e=>e.createdAt>=now-60*86400000&&e.createdAt<now-30*86400000);
+  const a=m.length?m.reduce((s,e)=>s+e.duration,0)/m.length:0, la=lm.length?lm.reduce((s,e)=>s+e.duration,0)/lm.length:0;
+  const lo=w.reduce((a,b)=>a.duration>=b.duration?a:b), sh=w.reduce((a,b)=>a.duration<=b.duration?a:b);
+  const dc=la>0?Math.round(a-la):0;
+  let html='<div class="diary-stats-grid"><div class="diary-stat-card"><div class="v">'+formatDuration(Math.round(a))+'</div><div class="l">Средняя</div></div><div class="diary-stat-card"><div class="v">'+formatDuration(lo.duration)+'</div><div class="l">Самая длинная</div></div><div class="diary-stat-card"><div class="v">'+formatDuration(sh.duration)+'</div><div class="l">Самая короткая</div></div><div class="diary-stat-card"><div class="v">'+w.length+'</div><div class="l">Эпизодов</div></div></div>';
+  if(la>0) html+='<div style="background:var(--card);border:1px solid var(--line);border-radius:var(--radius-md);padding:12px;margin:10px 0;font-size:12px;line-height:1.7;color:var(--cream);"><div style="font-weight:700;color:var(--na-blue);margin-bottom:4px;">⏱ Анализ длительности</div>'+(dc<0?'Средняя продолжительность снизилась на <strong>'+Math.abs(dc)+' мин</strong>':dc>0?'Средняя продолжительность выросла на <strong>'+dc+' мин</strong>':'Средняя продолжительность не изменилась')+'<br>Прошлый месяц: <strong>'+formatDuration(Math.round(la))+'</strong> → Текущий: <strong>'+formatDuration(Math.round(a))+'</strong><br>Самая длинная тяга: '+formatDuration(lo.duration)+' — '+new Date(lo.createdAt).toLocaleDateString('ru-RU',{day:'numeric',month:'long'})+(lo.situation?'<br><span style="color:var(--muted);font-size:11px;">'+esc(lo.situation)+'</span>':'')+'</div>';
+  const l15=w.slice(-15);
+  html+='<div style="margin-top:12px;"><div style="font-weight:700;font-size:13px;color:var(--na-blue);margin-bottom:6px;">⏱ Длительность (последние 15)</div><div style="display:flex;align-items:end;gap:4px;height:80px;padding:4px 0;">';
+  const mx=Math.max(...l15.map(e=>e.duration),1);
+  l15.forEach(e=>{const h=Math.max(4,(e.duration/mx)*70);html+='<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;"><div style="width:100%;height:'+h+'px;background:var(--na-blue);border-radius:3px 3px 0 0;min-height:4px;opacity:.8;"></div></div>';});
+  html+='</div></div>'; container.innerHTML=html;
+}
 
-  document.getElementById('diaryTrendStats').innerHTML = trendHTML;
+function renderStatsTriggers(all, container){
+  const w=all.filter(e=>e.trigger);
+  if(!w.length){ container.innerHTML='<div style="font-size:13px;color:var(--muted);padding:20px;text-align:center;">Нет данных о триггерах</div>'; return; }
+  const f={}; w.forEach(e=>{const t=e.trigger;f[t]=(f[t]||0)+1;});
+  const s=Object.entries(f).sort((a,b)=>b[1]-a[1]), total=w.length, top=s.slice(0,5);
+  let html='<div style="font-size:13px;font-weight:700;color:var(--na-blue);margin-bottom:6px;">🔗 Главные причины тяги</div><div style="background:var(--card);border:1px solid var(--line);border-radius:var(--radius-md);padding:12px;font-size:12px;line-height:1.8;color:var(--cream);">';
+  top.forEach(([t,c],i)=>{const p=Math.round(c/total*100);html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;"><span style="font-weight:700;min-width:20px;">'+(i+1)+'.</span><span style="flex:1;">'+esc(t)+'</span><div style="flex:0 0 80px;height:6px;border-radius:3px;background:var(--line);overflow:hidden;"><div style="width:'+p+'%;height:100%;background:var(--accent);border-radius:3px;"></div></div><span style="font-weight:700;min-width:40px;text-align:right;">'+p+'%</span></div>';});
+  if(top.length) html+='<div style="margin-top:6px;font-size:12px;"><strong>Основной фактор риска</strong> — <strong style="color:var(--accent);">'+esc(top[0][0])+'</strong> ('+Math.round(top[0][1]/total*100)+'%)</div>';
+  html+='</div><div style="margin-top:12px;"><div style="font-weight:700;font-size:13px;color:var(--na-blue);margin-bottom:6px;">📊 Распределение триггеров</div>';
+  s.forEach(([t,c])=>{const p=c/total*100;html+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;font-size:11px;"><span style="width:80px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--cream);">'+esc(t)+'</span><div style="flex:1;height:8px;border-radius:4px;background:var(--line);overflow:hidden;"><div style="width:'+p+'%;height:100%;background:'+(p>25?'#E04040':p>15?'#E89040':'#3DDC84')+';border-radius:4px;"></div></div><span style="min-width:30px;text-align:right;color:var(--muted);">'+Math.round(p)+'%</span></div>';});
+  html+='</div>'; container.innerHTML=html;
+}
+
+function renderStatsTools(all, container){
+  const w=all.filter(e=>e.tools&&e.tools.length);
+  if(!w.length){ container.innerHTML='<div style="font-size:13px;color:var(--muted);padding:20px;text-align:center;">Нет данных об инструментах</div>'; return; }
+  const st={}; w.forEach(e=>e.tools.forEach(t=>{if(!st[t.name])st[t.name]={used:0,worked:0};st[t.name].used++;if(t.worked)st[t.name].worked++;}));
+  const s=Object.entries(st).sort((a,b)=>b[1].used-a[1].used);
+  let html='<div style="font-size:13px;font-weight:700;color:var(--na-blue);margin-bottom:6px;">🧰 Эффективность инструментов</div><div style="background:var(--card);border:1px solid var(--line);border-radius:var(--radius-md);padding:12px;font-size:12px;color:var(--cream);">';
+  s.forEach(([n,st])=>{const r=st.used?Math.round(st.worked/st.used*100):0;html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><span style="flex:1;font-weight:600;">'+esc(n)+'</span><span style="font-size:11px;color:var(--muted);">'+st.used+' примен.</span><div style="width:40px;height:6px;border-radius:3px;background:var(--line);overflow:hidden;"><div style="width:'+r+'%;height:100%;background:'+(r>=80?'#3DDC84':r>=50?'#F0C040':'#E88A7A')+';border-radius:3px;"></div></div><span style="font-weight:700;min-width:38px;text-align:right;color:'+(r>=80?'#3DDC84':r>=50?'#F0C040':'#E88A7A')+';">'+r+'%</span></div>';});
+  const best=s.reduce((a,b)=>(b[1].worked/b[1].used)>(a[1].worked/a[1].used)?b:a,s[0]);
+  if(best) html+='<div style="margin-top:6px;font-size:12px;">Лучшая стратегия: <strong style="color:var(--accent);">'+esc(best[0])+'</strong> ('+Math.round(best[1].worked/best[1].used*100)+'% успеха)</div>';
+  html+='</div><div style="margin-top:12px;"><div style="font-weight:700;font-size:13px;color:var(--na-blue);margin-bottom:6px;">📊 Применение инструментов</div>';
+  s.forEach(([n,st]) => {const p=st.used/s[0][1].used*100;html+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;font-size:11px;"><span style="width:80px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--cream);">'+esc(n)+'</span><div style="flex:1;height:8px;border-radius:4px;background:var(--line);overflow:hidden;"><div style="width:'+p+'%;height:100%;background:var(--accent);border-radius:4px;opacity:.8;"></div></div><span style="min-width:30px;text-align:right;color:var(--muted);">'+st.used+'</span></div>';});
+  html+='</div>'; container.innerHTML=html;
+}
+
+function renderStatsTime(all, container){
+  if(!all.length){ container.innerHTML='<div style="font-size:13px;color:var(--muted);padding:20px;text-align:center;">Нет данных</div>'; return; }
+  const p={morning:0,afternoon:0,evening:0,night:0};
+  all.forEach(e=>{const h=new Date(e.startTime||e.createdAt).getHours();if(h>=6&&h<12)p.morning++;else if(h>=12&&h<18)p.afternoon++;else if(h>=18&&h<24)p.evening++;else p.night++;});
+  const total=all.length, labels={morning:'🌅 Утро (6-12)',afternoon:'☀️ День (12-18)',evening:'🌆 Вечер (18-24)',night:'🌙 Ночь (0-6)'};
+  const keys=['morning','afternoon','evening','night'], maxP=keys.reduce((a,b)=>p[a]>=p[b]?a:b);
+  const ranges={morning:'6:00–12:00',afternoon:'12:00–18:00',evening:'18:00–24:00',night:'0:00–6:00'};
+  let html='<div style="font-size:13px;font-weight:700;color:var(--na-blue);margin-bottom:6px;">🕐 Распределение по времени</div><div style="background:var(--card);border:1px solid var(--line);border-radius:var(--radius-md);padding:12px;font-size:12px;color:var(--cream);">';
+  keys.forEach(k=>{const pct=Math.round(p[k]/total*100);html+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;"><span style="width:120px;">'+labels[k]+'</span><div style="flex:1;height:8px;border-radius:4px;background:var(--line);overflow:hidden;"><div style="width:'+pct+'%;height:100%;background:'+(k===maxP?'var(--accent)':'var(--na-blue)')+';border-radius:4px;opacity:.7;"></div></div><span style="min-width:30px;text-align:right;font-weight:700;">'+pct+'%</span></div>';});
+  html+='<div style="margin-top:6px;font-size:12px;"><strong>Наиболее опасный период:</strong> <span style="color:var(--accent);font-weight:700;">'+ranges[maxP]+'</span> ('+p[maxP]+' эпизодов)</div></div>';
+  const hh={}; for(let h=0;h<24;h++)hh[h]=0;
+  all.forEach(e=>{hh[new Date(e.startTime||e.createdAt).getHours()]++;});
+  const mx=Math.max(...Object.values(hh),1), peak=Math.max(...Object.values(hh));
+  html+='<div style="margin-top:12px;"><div style="font-weight:700;font-size:13px;color:var(--na-blue);margin-bottom:6px;">📊 Часы пик</div><div style="display:flex;align-items:end;gap:2px;height:60px;">';
+  for(let h=0;h<24;h++){const ht=Math.max(2,(hh[h]/mx)*55);html+='<div style="flex:1;display:flex;flex-direction:column;align-items:center;"><div style="width:100%;height:'+ht+'px;background:'+(hh[h]===peak?'var(--accent)':'var(--na-blue)')+';border-radius:2px 2px 0 0;opacity:'+(hh[h]?.5:.15)+';min-height:2px;"></div></div>';}
+  html+='</div><div style="display:flex;justify-content:space-between;font-size:7px;color:var(--muted);margin-top:2px;">';
+  for(let h=0;h<24;h+=3)html+='<span>'+(h<10?'0':'')+h+':00</span>';
+  html+='</div></div>'; container.innerHTML=html;
+}
+
+function diaryGenerateReport(){
+  const all = JSON.parse(storage.get('diary_entries')||'[]');
+  const month = filterPeriod(all,30), prev = all.filter(e=>e.createdAt>=Date.now()-60*86400000&&e.createdAt<Date.now()-30*86400000);
+  if(!month.length){ showToast('Нет данных за месяц'); return; }
+  const avI=month.filter(e=>e.intensity).reduce((s,e,i,a)=>s+(e.intensity||0)/a.length,0);
+  const avD=month.filter(e=>e.duration).reduce((s,e,i,a)=>s+(e.duration||0)/a.length,0);
+  const fCh=prev.length?Math.round((month.length-prev.length)/prev.length*100):0;
+  const dCh=prev.filter(e=>e.duration).length?Math.round(avD-prev.filter(e=>e.duration).reduce((s,e,i,a)=>s+(e.duration||0)/a.length,0)):0;
+  const ts={}; month.filter(e=>e.tools).forEach(e=>e.tools.forEach(t=>{if(!ts[t.name])ts[t.name]={used:0,worked:0};ts[t.name].used++;if(t.worked)ts[t.name].worked++;}));
+  const bt=Object.entries(ts).sort((a,b)=>b[1].worked/b[1].used-a[1].worked/a[1].used)[0];
+  const tf={}; month.filter(e=>e.trigger).forEach(e=>{tf[e.trigger]=(tf[e.trigger]||0)+1;});
+  const tt=Object.entries(tf).sort((a,b)=>b[1]-a[1])[0];
+  let r='📋 ОТЧЁТ ЗА МЕСЯЦ\n━━━━━━━━━━━━━━━━━━━━━━\nКоличество эпизодов: '+month.length+'\nСредняя интенсивность: '+avI.toFixed(1)+'/10\nСредняя длительность: '+formatDuration(Math.round(avD))+'\n';
+  if(fCh) r+='Изменение частоты: '+(fCh<0?'↓ ':'↑ ')+Math.abs(fCh)+'%\n';
+  if(dCh) r+='Изменение длительности: '+(dCh<0?'снизилась на '+Math.abs(dCh):'выросла на '+dCh)+' мин\n';
+  if(bt) r+='Лучший инструмент: '+bt[0]+' ('+Math.round(bt[1].worked/bt[1].used*100)+'% успеха)\n';
+  if(tt) r+='Основной триггер: '+tt[0]+' ('+tt[1]+' раз)\n';
+  r+='━━━━━━━━━━━━━━━━━━━━━━\n';
+  if(fCh<0||dCh<0){r+='✅ Положительная динамика!';if(fCh<0)r+=' Эпизодов меньше на '+Math.abs(fCh)+'%.';if(dCh<0)r+=' Время тяги уменьшилось на '+Math.abs(dCh)+' мин.';}
+  else if(fCh>0||dCh>0) r+='⚠️ Количество или длительность эпизодов увеличивается.';
+  else r+='➡️ Ситуация стабильна. Продолжай применять инструменты.';
+  showToast('Отчёт скопирован в буфер');
+  if(navigator.clipboard) navigator.clipboard.writeText(r);
+  else{ const ta=document.createElement('textarea'); ta.value=r; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+  alert(r);
 }
 
 function diaryBackToList(){
