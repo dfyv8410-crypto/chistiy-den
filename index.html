@@ -77,7 +77,17 @@ body{
 .stat-card .l{font-size:10px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.5px;}
 .reset-link{margin-top:16px;text-align:center;font-size:13px;color:var(--na-blue);font-weight:700;cursor:pointer;background:var(--card);border:1.5px dashed var(--accent);border-radius:var(--radius-md);padding:10px;transition:transform .15s,background .2s;}
 .reset-link:active{transform:scale(0.97);background:var(--card-2);}
-.prayer-text{margin:20px 16px 0;padding:16px 14px;background:var(--card-2);border-radius:var(--radius-md);border-left:3px solid var(--accent);font-family:'Fraunces',Georgia,serif;font-style:italic;font-size:13.5px;line-height:1.7;color:var(--muted);text-align:center;letter-spacing:.2px;}
+/* ---------- prayer modal ---------- */
+.prayer-modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.92);width:calc(100% - 48px);max-width:340px;background:var(--card);border:2px solid var(--accent);border-radius:var(--radius-lg);padding:40px 24px 24px;z-index:60;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;transition:transform .4s cubic-bezier(.22,1,.36,1),opacity .4s ease;opacity:0;pointer-events:none;}
+#prayerBackdrop.active .prayer-modal{transform:translate(-50%,-50%) scale(1);opacity:1;pointer-events:auto;}
+.prayer-close{position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;padding:0;}
+.prayer-close:hover{background:var(--card-2);color:var(--cream);border-color:var(--accent);}
+.prayer-close svg{width:16px;height:16px;stroke:currentColor;}
+.prayer-cross{font-size:36px;color:var(--accent);line-height:1;font-family:Georgia,serif;}
+.prayer-title{font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--na-blue);}
+.prayer-body{font-family:'Fraunces',Georgia,serif;font-style:italic;font-size:14px;line-height:1.7;color:var(--cream);}
+.prayer-btn{width:100%;padding:14px;border-radius:var(--radius-md);border:none;background:var(--accent);color:#fff;font-weight:800;font-size:15px;font-family:var(--font-body);cursor:pointer;transition:transform .15s;margin-top:4px;}
+.prayer-btn:active{transform:scale(.97);}
 
 /* ---------- JFT ---------- */
 .jft-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-lg);padding:20px 18px;margin-top:6px;}
@@ -667,12 +677,6 @@ body{
       </div>
     </div>
 
-    <div class="prayer-text">
-      Боже, дай мне разум и душевный покой принять то, что я не в силах изменить,<br>
-      мужество изменить то, что могу,<br>
-      и мудрость отличить одно от другого.
-    </div>
-
     <div class="reset-link" onclick="openSettings()">Изменить дату отсчёта</div>
   </div>
 
@@ -1064,6 +1068,24 @@ body{
     </div>
   </div>
 
+  <!-- PRAYER MODAL -->
+  <div class="modal-backdrop" id="prayerBackdrop">
+    <div class="prayer-modal">
+      <button class="prayer-close" onclick="closePrayer()" aria-label="Закрыть">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <div class="prayer-cross">✝</div>
+      <div class="prayer-title">Молитва</div>
+      <div class="prayer-body">
+        Боже, дай мне разум и душевный покой<br>
+        принять то, что я не в силах изменить,<br>
+        мужество изменить то, что могу,<br>
+        и мудрость отличить одно от другого.
+      </div>
+      <button class="prayer-btn" onclick="closePrayer()">Продолжить</button>
+    </div>
+  </div>
+
   <!-- TABBAR + STUDIO -->
   <div class="tabbar">
     <div class="tabbar-tabs">
@@ -1115,7 +1137,7 @@ body{
     <div class="modal" style="max-height:80vh;overflow-y:auto;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
         <h3 style="margin:0;">Настройки</h3>
-        <button class="icon-btn" onclick="closeSettings()" aria-label="Закрыть" style="width:32px;height:32px;border:none;box-shadow:none;">
+        <button class="prayer-close" onclick="closeSettings()" aria-label="Закрыть" style="position:static;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
@@ -3281,6 +3303,21 @@ function openSettings(){
   loadNotifySettings();
 }
 function closeSettings(){ document.getElementById('modalBackdrop').classList.remove('active'); }
+
+/* ------- PRAYER MODAL ------- */
+let prayerTimer = null;
+function showPrayer(){
+  const backdrop = document.getElementById('prayerBackdrop');
+  backdrop.classList.add('active');
+  if(prayerTimer) clearTimeout(prayerTimer);
+  prayerTimer = setTimeout(() => {
+    backdrop.classList.remove('active');
+  }, 3000);
+}
+function closePrayer(){
+  document.getElementById('prayerBackdrop').classList.remove('active');
+  if(prayerTimer) clearTimeout(prayerTimer);
+}
 function saveStartDate(){
   const v=document.getElementById('startDateInput').value;
   if(v){ storage.set('startDate', v); }
@@ -3837,6 +3874,7 @@ if('serviceWorker' in navigator){
 }
 
 renderHome();
+showPrayer();
 renderJft();
 checkSvcReminders();
 checkPlanReminder();
