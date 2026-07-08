@@ -1647,14 +1647,57 @@ function setPlanReminder(){
 }
 /* ------- NOTIFICATIONS ------- */
 let notifyPerm = Notification.permission;
+function updateNotifyStatus(){
+  const ns=document.getElementById('notifyStatus');
+  if(!ns) return;
+  if(Notification.permission==='granted') ns.textContent='✅ Уведомления разрешены';
+  else if(Notification.permission==='denied') ns.textContent='⛔ Уведомления запрещены — измени в настройках браузера';
+  else ns.textContent='❓ Уведомления не запрашивались';
+}
 function requestNotifyPerm(){
-  if(notifyPerm === 'default'){
-    Notification.requestPermission().then(p => {
-      notifyPerm = p;
-      if(p === 'granted') console.log('Уведомления разрешены');
-      else console.warn('Уведомления запрещены пользователем');
-    }).catch(e => console.error('Ошибка запроса уведомлений:', e));
-  }
+  Notification.requestPermission().then(p => {
+    notifyPerm = p;
+    updateNotifyStatus();
+    if(p === 'granted') {
+      showToast('✅ Уведомления разрешены');
+      playSound(storage.get('notify_sound_type') || 'default');
+    }
+  }).catch(e => console.error('Ошибка запроса уведомлений:', e));
+}
+function playSound(type){
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    gain.gain.value = 0.15;
+    const freqs = { default: 440, gentle: 528, standard: 660, urgent: 880 };
+    const freq = freqs[type] || 440;
+    if(type === 'urgent'){
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      osc.frequency.setValueAtTime(freq*1.5, ctx.currentTime + 0.15);
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + 0.3);
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.setValueAtTime(0.15, ctx.currentTime + 0.35);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.5);
+    } else if(type === 'gentle'){
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.8);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.8);
+    } else {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.4);
+    }
+  } catch(e) { console.warn('Audio not available:', e.message); }
 }
 function saveNotifySettings(){
   storage.set('notify_vibrate', document.getElementById('notifyVibrate').checked ? '1' : '0');
@@ -1678,7 +1721,7 @@ function loadNotifySettings(){
 }
 
 /* ===================== CRAVING DIARY ===================== */
-const FEELINGS = ['Злость','Грусть','Страх','Одиночество','Стыд','Вина','Надежда','Радость','Усталость','Тревога','Пустота','Благодарность'];
+const FEELINGS = ['Злость','Грусть','Страх','Одиночество','Стыд','Вина','Надежда','Радость','Усталость','Тревога','Пустота','Благодарность','Спокойствие','Уверенность','Вдохновение','Любовь','Интерес','Гордость','Смятение','Раздражение','Бессилие','Отчаяние','Тоска','Апатия','Беспокойство','Паника','Обида','Разочарование','Зависть','Ревность','Сожаление','Прощение','Принятие','Свобода','Облегчение','Умиротворение','Достоинство','Сила','Смирение','Восторг','Теплота','Доверие','Безопасность','Цельность','Нежность','Забота','Доброта','Щедрость','Мужество','Терпение','Искренность','Честность'];
 let diaryEditingId = null;
 let diaryToolCount = 0;
 
@@ -1874,15 +1917,17 @@ function vibratePattern(pattern){
 }
 function notify(body, icon, silent){
   const ico = icon || 'icons/icon-192.svg';
+  const useVibrate = storage.get('notify_vibrate') !== '0';
+  const useSound = silent !== true && storage.get('notify_sound') !== '0';
+  const soundType = storage.get('notify_sound_type') || 'default';
+  const vibPattern = storage.get('notify_vibrate_pattern') || 'default';
+  if(useVibrate && navigator.vibrate) { try { navigator.vibrate(vibratePattern(vibPattern)); } catch(e) {} }
+  if(useSound) playSound(soundType);
   if(notifyPerm === 'granted'){
-    const useVibrate = storage.get('notify_vibrate') !== '0';
-    const useSound = silent !== true && storage.get('notify_sound') !== '0';
-    const vibPattern = storage.get('notify_vibrate_pattern') || 'default';
-    if(useVibrate && navigator.vibrate) { try { navigator.vibrate(vibratePattern(vibPattern)); } catch(e) {} }
     try {
       new Notification('Чистый день', {
         body, icon:ico, requireInteraction:true,
-        silent: !useSound
+        silent: false
       });
       return;
     } catch(e) { console.error('Notification error:', e); }
@@ -2946,11 +2991,7 @@ function openSettings(){
   const startStr=storage.get('startDate');
   document.getElementById('startDateInput').value = startStr || new Date().toISOString().slice(0,10);
   document.getElementById('modalBackdrop').classList.add('active');
-  loadNotifySettings();
-  const ns=document.getElementById('notifyStatus');
-  if(Notification.permission==='granted') ns.textContent='✅ Уведомления разрешены';
-  else if(Notification.permission==='denied') ns.textContent='⛔ Уведомления запрещены (измени в настройках браузера)';
-  else ns.textContent='❓ Уведомления не запрашивались';
+  updateNotifyStatus();
   loadNotifySettings();
 }
 function closeSettings(){ document.getElementById('modalBackdrop').classList.remove('active'); }
