@@ -309,6 +309,13 @@ body{
 .diary-mini-btn{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;padding:0;}
 .diary-mini-btn svg{width:14px;height:14px;}
 .diary-mini-btn:active{transform:scale(.9);}
+.diary-stats-table{width:100%;border-collapse:collapse;font-size:11px;margin-top:6px;}
+.diary-stats-table th{padding:6px 8px;text-align:left;color:var(--muted);font-weight:600;background:var(--card-2);border-bottom:1px solid var(--line);}
+.diary-stats-table td{padding:6px 8px;border-bottom:1px solid var(--line);color:var(--cream);}
+.diary-stats-table td.num{text-align:center;}
+.diary-trend-up{color:#E88A7A;}
+.diary-trend-down{color:#3DDC84;}
+.diary-trend-stable{color:var(--muted);}
 .diary-header{display:flex;align-items:center;gap:10px;margin:12px 0 0;}
 .diary-back-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--na-blue);cursor:pointer;display:flex;align-items:center;justify-content:center;flex:0 0 auto;transition:transform .15s;padding:0;}
 .diary-back-btn:active{transform:scale(.9);}
@@ -702,6 +709,11 @@ body{
         <input type="datetime-local" id="diaryStartTime">
       </div>
       <div class="diary-form-group">
+        <label>Когда закончилось?</label>
+        <input type="datetime-local" id="diaryEndTime">
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">Если тяга уже прошла</div>
+      </div>
+      <div class="diary-form-group">
         <label>Ситуация (где, с кем, что делал?)</label>
         <textarea id="diarySituation" rows="2" placeholder="Где ты был? С кем? Что делал перед тем, как почувствовал тягу?"></textarea>
       </div>
@@ -745,13 +757,15 @@ body{
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
         <span>Назад</span>
       </button>
+      <div style="font-size:15px;font-weight:800;color:var(--na-blue);margin-bottom:8px;">📊 Общая статистика</div>
       <div class="diary-stats-grid">
-        <div class="diary-stat-card"><div class="v" id="diaryStatCount">0</div><div class="l">Записей</div></div>
-        <div class="diary-stat-card"><div class="v" id="diaryStatAvg">-</div><div class="l">Средняя длит.</div></div>
+        <div class="diary-stat-card"><div class="v" id="diaryStatCount">0</div><div class="l">Всего записей</div></div>
+        <div class="diary-stat-card"><div class="v" id="diaryStatAvg">-</div><div class="l">Сред. длит.</div></div>
         <div class="diary-stat-card"><div class="v" id="diaryStatMax">-</div><div class="l">Макс. длит.</div></div>
         <div class="diary-stat-card"><div class="v" id="diaryStatMin">-</div><div class="l">Мин. длит.</div></div>
       </div>
-      <div style="font-size:13px;color:var(--na-blue);font-weight:700;margin:8px 0 4px;">Частые инструменты</div>
+      <div id="diaryTrendStats" style="margin-top:12px;"></div>
+      <div style="font-size:13px;color:var(--na-blue);font-weight:700;margin:12px 0 4px;">🧰 Частые инструменты</div>
       <div id="diaryStatTools"></div>
     </div>
   </div>
@@ -1889,6 +1903,7 @@ function diaryNew(){
   document.getElementById('diaryForm').style.display='block';
   document.getElementById('diaryStats').style.display='none';
   document.getElementById('diaryStartTime').value = new Date().toISOString().slice(0,16);
+  document.getElementById('diaryEndTime').value = '';
   document.getElementById('diarySituation').value='';
   document.getElementById('diaryThoughts').value='';
   document.getElementById('diaryTrigger').value='';
@@ -1927,6 +1942,7 @@ function diaryCancel(){
 
 function diarySave(){
   const startTime = document.getElementById('diaryStartTime').value;
+  const endTime = document.getElementById('diaryEndTime').value;
   const situation = document.getElementById('diarySituation').value.trim();
   const thoughts = document.getElementById('diaryThoughts').value.trim();
   const trigger = document.getElementById('diaryTrigger').value.trim();
@@ -1943,10 +1959,11 @@ function diarySave(){
   const entry = {
     id: diaryEditingId || Date.now(),
     startTime: new Date(startTime).getTime(),
-    endTime: null,
+    endTime: endTime ? new Date(endTime).getTime() : null,
+    duration: endTime ? Math.round((new Date(endTime).getTime() - new Date(startTime).getTime()) / 60000) : null,
     situation, thoughts, feelings, trigger, summary,
     tools, events: [],
-    isCompleted: !!summary,
+    isCompleted: !!(summary || endTime),
     createdAt: diaryEditingId ? (JSON.parse(storage.get('diary_entries')||'[]').find(e=>e.id===diaryEditingId)?.createdAt||Date.now()) : Date.now(),
     updatedAt: Date.now()
   };
@@ -1972,10 +1989,11 @@ function diaryRenderList(){
     const dateStr = d.toLocaleDateString('ru-RU', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
     const feelingsStr = e.feelings?.length ? e.feelings.join(', ') : '';
     const toolsStr = e.tools?.length ? e.tools.map(t=>t.name).join(', ') : '';
+    const durStr = e.duration ? formatDuration(e.duration) : '';
     const div=document.createElement('div');
     div.className='diary-entry';
     div.innerHTML=`
-      <div class="date">${dateStr} ${e.isCompleted?'✅':''}</div>
+      <div class="date">${dateStr} ${e.isCompleted?'✅':''} ${durStr?'<span style="color:var(--accent);font-weight:700;">⏱ '+durStr+'</span>':''}</div>
       ${e.situation?'<div class="situation">'+esc(e.situation)+'</div>':''}
       ${feelingsStr?'<div class="feel">'+esc(feelingsStr)+'</div>':''}
       ${toolsStr?'<div class="tools">🧰 '+esc(toolsStr)+'</div>':''}
@@ -1996,6 +2014,7 @@ function diaryEdit(id){
   document.getElementById('diaryForm').style.display='block';
   document.getElementById('diaryStats').style.display='none';
   document.getElementById('diaryStartTime').value = new Date(e.startTime).toISOString().slice(0,16);
+  document.getElementById('diaryEndTime').value = e.endTime ? new Date(e.endTime).toISOString().slice(0,16) : '';
   document.getElementById('diarySituation').value = e.situation||'';
   document.getElementById('diaryThoughts').value = e.thoughts||'';
   document.getElementById('diaryTrigger').value = e.trigger||'';
@@ -2038,6 +2057,14 @@ function diaryDelete(id){
   diaryRenderList();
 }
 
+function formatDuration(min){
+  if(!min || min <= 0) return '';
+  if(min < 60) return min + ' мин';
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return h + ' ч ' + m + ' мин';
+}
+
 function diaryShowStats(){
   document.getElementById('diaryView').style.display='none';
   document.getElementById('diaryForm').style.display='none';
@@ -2052,14 +2079,115 @@ function diaryShowStats(){
       if(dur>0){ totalMin+=dur; cnt++; maxMin=Math.max(maxMin,dur); minMin=Math.min(minMin,dur); }
     }
   });
-  document.getElementById('diaryStatAvg').textContent = cnt ? Math.round(totalMin/cnt)+' мин' : '-';
-  document.getElementById('diaryStatMax').textContent = maxMin ? maxMin+' мин' : '-';
-  document.getElementById('diaryStatMin').textContent = minMin<Infinity ? minMin+' мин' : '-';
+  document.getElementById('diaryStatAvg').textContent = cnt ? formatDuration(Math.round(totalMin/cnt)) : '-';
+  document.getElementById('diaryStatMax').textContent = maxMin ? formatDuration(maxMin) : '-';
+  document.getElementById('diaryStatMin').textContent = minMin<Infinity ? formatDuration(minMin) : '-';
+
+  // Tool frequency
   const toolFreq = {};
   all.forEach(e=>{ if(e.tools) e.tools.forEach(t=>{ toolFreq[t.name]=(toolFreq[t.name]||0)+1; }); });
   const sorted = Object.entries(toolFreq).sort((a,b)=>b[1]-a[1]);
   const tc = document.getElementById('diaryStatTools');
   tc.innerHTML = sorted.length ? sorted.map(([n,c])=>'<span style="display:inline-block;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:3px 10px;font-size:11px;margin:2px;">'+esc(n)+' ('+c+')</span>').join(' ') : '<div style="font-size:12px;color:var(--muted);">Нет данных</div>';
+
+  // Trend analysis by time periods
+  if(all.length === 0){
+    document.getElementById('diaryTrendStats').innerHTML = '<div style="font-size:12px;color:var(--muted);padding:10px;text-align:center;">Нет данных для анализа динамики</div>';
+    return;
+  }
+  const now = Date.now();
+  const periods = [
+    { label:'Последняя неделя', days:7 },
+    { label:'Последний месяц', days:30 },
+    { label:'Последние 2 месяца', days:60 }
+  ];
+  // Annual cycle: 6 months, 9 months, 1 year, 2 years...
+  for(let y=1; y<=3; y++){
+    periods.push({ label: y===1?'6 месяцев':(y*6+' месяцев'), days: y*182.5 });
+    periods.push({ label: y===1?'9 месяцев':(y*9+' месяцев'), days: y*274 });
+    periods.push({ label: y===1?'1 год':(y+' года'), days: y*365 });
+  }
+
+  let trendHTML = '<div style="font-size:14px;font-weight:700;color:var(--na-blue);margin-bottom:6px;">📈 Динамика тяги по периодам</div>';
+  trendHTML += '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:11px;">';
+  trendHTML += '<tr style="background:var(--card-2);"><th style="padding:6px 8px;text-align:left;color:var(--muted);font-weight:600;">Период</th>';
+  trendHTML += '<th style="padding:6px 8px;text-align:center;color:var(--muted);font-weight:600;">Кол-во</th>';
+  trendHTML += '<th style="padding:6px 8px;text-align:center;color:var(--muted);font-weight:600;">Сред. длит.</th>';
+  trendHTML += '<th style="padding:6px 8px;text-align:center;color:var(--muted);font-weight:600;">В день</th>';
+  trendHTML += '<th style="padding:6px 8px;text-align:center;color:var(--muted);font-weight:600;">Тренд</th></tr>';
+
+  let prevFreq = null, prevDur = null;
+  for(let pi=0; pi<periods.length; pi++){
+    const p = periods[pi];
+    const cutoff = now - p.days * 86400000;
+    const periodEntries = completed.filter(e => e.createdAt >= cutoff && e.endTime && e.startTime);
+    if(periodEntries.length === 0) continue;
+    const daysInPeriod = p.days;
+    const freqPerDay = (periodEntries.length / daysInPeriod).toFixed(2);
+    let durSum = 0, durCnt = 0;
+    periodEntries.forEach(e => {
+      const dur = Math.round((e.endTime - e.startTime)/60000);
+      if(dur>0){ durSum+=dur; durCnt++; }
+    });
+    const avgDur = durCnt ? Math.round(durSum/durCnt) : 0;
+    let trend = '—';
+    if(pi > 0 && prevFreq !== null){
+      const freqChange = ((freqPerDay - prevFreq) / prevFreq * 100).toFixed(0);
+      const durChange = ((avgDur - prevDur) / prevDur * 100).toFixed(0);
+      const freqArrow = freqChange > 5 ? '🔴' : freqChange < -5 ? '🟢' : '⚪';
+      const durArrow = durChange > 5 ? '🔴' : durChange < -5 ? '🟢' : '⚪';
+      trend = freqArrow + ' ' + freqChange + '% / ' + durArrow + ' ' + durChange + '%';
+    }
+    prevFreq = parseFloat(freqPerDay);
+    prevDur = avgDur;
+
+    trendHTML += '<tr style="border-bottom:1px solid var(--line);">';
+    trendHTML += '<td style="padding:6px 8px;font-weight:600;color:var(--na-blue);">'+p.label+'</td>';
+    trendHTML += '<td style="padding:6px 8px;text-align:center;">'+periodEntries.length+'</td>';
+    trendHTML += '<td style="padding:6px 8px;text-align:center;">'+formatDuration(avgDur)+'</td>';
+    trendHTML += '<td style="padding:6px 8px;text-align:center;">'+freqPerDay+'</td>';
+    trendHTML += '<td style="padding:6px 8px;text-align:center;font-size:10px;">'+trend+'</td></tr>';
+  }
+  trendHTML += '</table></div>';
+
+  // Summary trend
+  if(all.length >= 2){
+    const sorted = [...all].filter(e=>e.endTime&&e.startTime).sort((a,b)=>a.createdAt-b.createdAt);
+    if(sorted.length >= 2){
+      const half = Math.floor(sorted.length/2);
+      const firstHalf = sorted.slice(0, half);
+      const secondHalf = sorted.slice(half);
+      const firstAvg = firstHalf.reduce((s,e)=>s+Math.round((e.endTime-e.startTime)/60000),0)/firstHalf.length;
+      const secondAvg = secondHalf.reduce((s,e)=>s+Math.round((e.endTime-e.startTime)/60000),0)/secondHalf.length;
+      const firstFreq = firstHalf.length / ((firstHalf[firstHalf.length-1].createdAt - firstHalf[0].createdAt) / 86400000) || 0;
+      const secondFreq = secondHalf.length / ((secondHalf[secondHalf.length-1].createdAt - secondHalf[0].createdAt) / 86400000) || 0;
+      const durChange = firstAvg > 0 ? Math.round((secondAvg - firstAvg)/firstAvg*100) : 0;
+      const freqChange = firstFreq > 0 ? Math.round((secondFreq - firstFreq)/firstFreq*100) : 0;
+
+      let summary = '<div style="background:var(--card);border:1px solid var(--line);border-radius:var(--radius-md);padding:12px;margin-top:10px;">';
+      summary += '<div style="font-size:13px;font-weight:700;color:var(--na-blue);margin-bottom:4px;">📋 Общая динамика</div>';
+      summary += '<div style="font-size:12px;color:var(--cream);line-height:1.6;">';
+      if(durChange !== 0){
+        summary += '⏱ Тяга стала ' + (durChange < 0 ? '<span style="color:#3DDC84;">проходить быстрее на '+Math.abs(durChange)+'%</span>' : '<span style="color:#E88A7A;">длиться дольше на '+Math.abs(durChange)+'%</span>');
+        summary += ' (с ' + formatDuration(Math.round(firstAvg)) + ' до ' + formatDuration(Math.round(secondAvg)) + ')<br>';
+      }
+      if(freqChange !== 0){
+        summary += '📊 Появляется ' + (freqChange < 0 ? '<span style="color:#3DDC84;">реже на '+Math.abs(freqChange)+'%</span>' : '<span style="color:#E88A7A;">чаще на '+Math.abs(freqChange)+'%</span>');
+        summary += ' (было ' + firstFreq.toFixed(2) + ' раз/день, стало ' + secondFreq.toFixed(2) + ' раз/день)';
+      }
+      if(firstHalf.length >= 3 && secondHalf.length >= 3){
+        const minDur1 = Math.min(...firstHalf.map(e=>Math.round((e.endTime-e.startTime)/60000)).filter(d=>d>0));
+        const minDur2 = Math.min(...secondHalf.map(e=>Math.round((e.endTime-e.startTime)/60000)).filter(d=>d>0));
+        if(minDur1 > 0 && minDur2 > 0){
+          summary += '<br>⚡ Самая короткая тяга: была ' + formatDuration(minDur1) + ' → стала ' + formatDuration(minDur2);
+        }
+      }
+      summary += '</div></div>';
+      trendHTML += summary;
+    }
+  }
+
+  document.getElementById('diaryTrendStats').innerHTML = trendHTML;
 }
 
 function diaryBackToList(){
