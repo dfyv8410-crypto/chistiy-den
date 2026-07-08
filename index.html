@@ -1257,12 +1257,7 @@ body{
         <h4>💾 Хранилище</h4>
         <div class="settings-card">
           <p style="font-size:12px;color:var(--cream);margin:0 0 6px;" id="storageStatus">Проверка...</p>
-          <div style="display:flex;gap:8px;margin-top:8px;">
-            <button onclick="exportAllData()" style="flex:1;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--card);color:var(--na-blue);font-weight:700;font-size:12px;cursor:pointer;font-family:var(--font-body);">📤 Резервная копия</button>
-            <button onclick="document.getElementById('importFileInput').click()" style="flex:1;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--card);color:var(--na-blue);font-weight:700;font-size:12px;cursor:pointer;font-family:var(--font-body);">📥 Восстановить</button>
-            <input type="file" id="importFileInput" accept=".json" style="display:none;" onchange="importAllData(event)">
-          </div>
-          <p style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.4;">Все данные хранятся локально на устройстве. Резервная копия — JSON файл, который можно сохранить в любое место.</p>
+          <p style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.4;">Все данные хранятся локально на устройстве. Используется трёхуровневое хранилище: IndexedDB → localStorage → память.</p>
         </div>
       </div>
 
@@ -1275,6 +1270,19 @@ body{
             <button id="folderUnlinkBtn" onclick="unlinkDataFolder()" style="display:none;flex:1;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--card);color:#E88A7A;font-weight:700;font-size:12px;cursor:pointer;font-family:var(--font-body);">🔗 Отвязать</button>
           </div>
           <p style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.4;">Привяжите папку — и все данные будут храниться в ней, а не в браузере. Очистка куков больше не страшна. При переустановке или сбое — просто выберите ту же папку. Работает в Chrome / Edge / Samsung Internet.</p>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h4>🛡️ Безопасность данных</h4>
+        <div class="settings-card">
+          <p style="font-size:12px;color:var(--cream);margin:0 0 6px;" id="backupInfo">Проверка резервной копии...</p>
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <button onclick="BackupManager.exportBackup()" style="flex:1;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--card);color:var(--na-blue);font-weight:700;font-size:12px;cursor:pointer;font-family:var(--font-body);">📤 Скачать backup</button>
+            <button onclick="document.getElementById('importFileInput').click()" style="flex:1;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--card);color:var(--na-blue);font-weight:700;font-size:12px;cursor:pointer;font-family:var(--font-body);">📥 Восстановить из файла</button>
+            <input type="file" id="importFileInput" accept=".json" style="display:none;" onchange="importAllData(event)">
+          </div>
+          <p style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.4;">Данные хранятся в IndexedDB (основное хранилище) + localStorage (кэш). При привязанной папке — дублируются туда. Версия схемы: <span id="storageVersion">2.0</span>.</p>
         </div>
       </div>
 
@@ -1489,16 +1497,28 @@ body{
 
 
 <script>
-/* ------- STORAGE: IndexedDB > localStorage > memoryStore ------- */
+/* ===================== STORAGE SERVICE V2 ===================== */
+// Архитектура: IndexedDB (основное) → localStorage (кэш) → memoryStore (горячий кэш)
+// Резервное копирование: папка на устройстве через File System Access API
+// Версия схемы: 2.0 — подготовлено для замены на SQLite при переходе в Android Native
+
+const STORAGE_VERSION = '2.0';
+const DB_NAME = 'chistiy_den';
+const DB_SCHEMA_VERSION = 2;
+
 const memoryStore = {};
 let _db = null;
+
+// --- Database Adapter Layer (заменить на SQLite при портировании в Android) ---
+
 function openDB(){
   return new Promise((resolve,reject)=>{
     try {
-      const req = indexedDB.open('chistiy_den',1);
+      const req = indexedDB.open(DB_NAME, DB_SCHEMA_VERSION);
       req.onupgradeneeded = e => {
         const db = e.target.result;
         if(!db.objectStoreNames.contains('data')) db.createObjectStore('data');
+        // будущая миграция: здесь добавить store для версионирования
       };
       req.onsuccess = e => resolve(e.target.result);
       req.onerror = e => reject(e.target.error);
@@ -1549,34 +1569,50 @@ async function _idbGetAllKeys(){
     } catch(e){ reject(e); }
   });
 }
+
+// --- StorageService (обратно совместимый интерфейс) ---
+
 const storage = {
   get(key){
-    try{ const v = localStorage.getItem(key); return v===null?undefined:v; }
-    catch(e){ return memoryStore[key]; }
+    const v = memoryStore[key];
+    if(v !== undefined) return v;
+    try{ const lv = localStorage.getItem(key); if(lv !== null){ memoryStore[key]=lv; return lv; } }
+    catch(e){}
+    return undefined;
   },
   set(key,val){
-    try{ localStorage.setItem(key,val); }catch(e){ console.warn('localStorage set error:', e.message); }
     memoryStore[key]=val;
+    try{ localStorage.setItem(key,val); }catch(e){ console.warn('localStorage set error:', e.message); }
     _idbSet(key,val).catch(err => console.error('IDB set error:', err));
-    saveToFolder(); // сразу дублируем в папку
+    BackupManager.scheduleBackup();
   },
   remove(key){
-    try{ localStorage.removeItem(key); }catch(e){ console.warn('localStorage remove error:', e.message); }
     delete memoryStore[key];
+    try{ localStorage.removeItem(key); }catch(e){ console.warn('localStorage remove error:', e.message); }
     _idbDel(key).catch(err => console.error('IDB del error:', err));
-    saveToFolder();
+    BackupManager.scheduleBackup();
   }
 };
-// migrate on startup — восстанавливаем localStorage из IndexedDB если куки сброшены
-const readyPromise = (async()=>{
+
+// --- Миграция данных V1 → V2 ---
+
+async function _runStartupMigration(){
   try {
     _db = await openDB();
-    const lsKeys = Object.keys(localStorage);
-    for(const k of lsKeys){
-      const v = localStorage.getItem(k);
-      if(v !== null) await _idbSet(k, v).catch(()=>{});
+    // проверяем версию хранилища
+    const ver = await _idbGet('__storage_version').catch(()=>null);
+    if(!ver){
+      // V1 → V2: переносим данные из localStorage в IDB
+      const lsKeys = Object.keys(localStorage);
+      for(const k of lsKeys){
+        const v = localStorage.getItem(k);
+        if(v !== null && k !== '__storage_version') await _idbSet(k, v).catch(()=>{});
+      }
+      await _idbSet('__storage_version', STORAGE_VERSION);
     }
-    const idbKeys = await _idbGetAllKeys().catch(()=>[]);
+    // восстанавливаем localStorage из IDB если первый пуст
+    const lsKeys = Object.keys(localStorage);
+    const idbKeys = (await _idbGetAllKeys().catch(()=>[])).filter(k => !k.startsWith('__'));
     if(lsKeys.length === 0 && idbKeys.length > 0){
       for(const k of idbKeys){
         const v = await _idbGet(k).catch(()=>undefined);
@@ -1587,9 +1623,284 @@ const readyPromise = (async()=>{
         }
       }
     }
-  } catch(e){ console.warn('IndexedDB unavailable, using localStorage:', e.message); }
-})();
+  } catch(e){ console.warn('Migration error:', e.message); }
+}
 
+// --- BackupManager (резервное копирование в папку на устройстве) ---
+
+const BackupManager = {
+  _handle: null,
+  _timer: null,
+
+  // получить handle папки
+  async getHandle(){
+    if(this._handle) return this._handle;
+    try {
+      const h = await _idbGet('_folder_handle');
+      if(h && h.queryPermission){
+        if((await h.queryPermission({mode:'readwrite'})) === 'granted'){ this._handle = h; return h; }
+        if((await h.requestPermission({mode:'readwrite'})) === 'granted'){ this._handle = h; return h; }
+      }
+    } catch(e){}
+    return null;
+  },
+
+  // собрать все данные из IDB + localStorage
+  async collectAll(){
+    const data = {};
+    if(_db){
+      const tx = _db.transaction('data','readonly');
+      const store = tx.objectStore('data');
+      const keys = await new Promise((r)=>{ const x=store.getAllKeys(); x.onsuccess=()=>r(x.result); x.onerror=()=>r([]); });
+      for(const k of keys){
+        if(k.startsWith('__')) continue;
+        const v = await new Promise((r)=>{ const x=store.get(k); x.onsuccess=()=>r(x.result); x.onerror=()=>r(undefined); });
+        if(v !== undefined) data[k] = v;
+      }
+    }
+    for(const k of Object.keys(localStorage)){
+      if(k.startsWith('__')) continue;
+      if(data[k] === undefined) data[k] = localStorage.getItem(k);
+    }
+    return data;
+  },
+
+  // записать backup в папку
+  async createBackup(){
+    const h = await this.getHandle();
+    if(!h) return false;
+    try {
+      const data = await this.collectAll();
+      const backup = {
+        version: STORAGE_VERSION,
+        created: new Date().toISOString(),
+        app: 'chistiy-den',
+        data: data
+      };
+      const fh = await h.getFileHandle('chistiy-den.json', {create:true});
+      const w = await fh.createWritable();
+      await w.write(JSON.stringify(backup, null, 2));
+      await w.close();
+      return true;
+    } catch(e){ console.warn('Backup error:', e.message); return false; }
+  },
+
+  // восстановить из папки
+  async restoreFromBackup(){
+    const h = await this.getHandle();
+    if(!h) return false;
+    try {
+      let fh;
+      try { fh = await h.getFileHandle('chistiy-den.json'); }
+      catch(e) { return false; }
+      const backup = JSON.parse(await (await fh.getFile()).text());
+      if(!backup || !backup.data || typeof backup.data !== 'object') return false;
+      const entries = Object.entries(backup.data);
+      for(const [key, val] of entries){
+        if(key.startsWith('__')) continue;
+        const str = typeof val === 'string' ? val : JSON.stringify(val);
+        await _idbSet(key, val).catch(()=>{});
+        try{ localStorage.setItem(key, str); }catch(e){}
+        memoryStore[key] = str;
+      }
+      // сохраняем версию
+      await _idbSet('__storage_version', backup.version || STORAGE_VERSION);
+      console.log('Restored', entries.length, 'keys from backup');
+      return true;
+    } catch(e){ console.warn('Restore error:', e.message); return false; }
+  },
+
+  // проверка целостности: если localStorage пуст — восстанавливаем
+  async verify(){
+    const lsKeys = Object.keys(localStorage).filter(k => !k.startsWith('__'));
+    if(lsKeys.length > 0){
+      // данные есть — синхронизируем в папку если привязана
+      this.scheduleBackup();
+      return true;
+    }
+    // localStorage пуст — пробуем IDB
+    try {
+      const idbKeys = (await _idbGetAllKeys().catch(()=>[])).filter(k => !k.startsWith('__'));
+      if(idbKeys.length > 0){
+        for(const k of idbKeys){
+          const v = await _idbGet(k).catch(()=>undefined);
+          if(v !== undefined){
+            const str = typeof v === 'string' ? v : JSON.stringify(v);
+            try{ localStorage.setItem(k, str); }catch(e){}
+            memoryStore[k] = str;
+          }
+        }
+        console.log('Restored', idbKeys.length, 'keys from IDB');
+        return true;
+      }
+    } catch(e){}
+    // IDB пуст — пробуем папку
+    return await this.restoreFromBackup();
+  },
+
+  // получить информацию о backup
+  async getInfo(){
+    const h = await this.getHandle();
+    if(!h) return null;
+    try {
+      let fh;
+      try { fh = await h.getFileHandle('chistiy-den.json'); }
+      catch(e) { return null; }
+      const file = await fh.getFile();
+      const backup = JSON.parse(await file.text());
+      return {
+        version: backup.version || 'unknown',
+        created: backup.created || 'unknown',
+        size: file.size,
+        keys: backup.data ? Object.keys(backup.data).length : 0
+      };
+    } catch(e){ return null; }
+  },
+
+  // экспорт backup как скачиваемый файл
+  async exportBackup(){
+    const data = await this.collectAll();
+    const backup = {
+      version: STORAGE_VERSION,
+      created: new Date().toISOString(),
+      app: 'chistiy-den',
+      data: data
+    };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `chistiy-den-backup-${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  },
+
+  // запланировать отложенный backup (не дёргаем файл при каждом set)
+  scheduleBackup(){
+    if(this._timer) clearTimeout(this._timer);
+    this._timer = setTimeout(() => { this._timer = null; this.createBackup(); }, 2000);
+  }
+};
+
+// --- Старые функции backup для обратной совместимости ---
+
+async function saveToFolder(){ BackupManager.createBackup(); }
+async function restoreFromFolder(){ return BackupManager.restoreFromBackup(); }
+async function _verifyIntegrity(){ return BackupManager.verify(); }
+async function pickDataFolder(){
+  if(!window.showDirectoryPicker){
+    alert('Ваш браузер не поддерживает выбор папки. Попробуйте Chrome, Edge или Samsung Internet.');
+    return;
+  }
+  try {
+    const handle = await window.showDirectoryPicker();
+    const perm = await handle.requestPermission({mode:'readwrite'});
+    if(perm !== 'granted'){ alert('❌ Нет доступа к папке'); return; }
+    BackupManager._handle = handle;
+    await _idbSet('_folder_handle', handle).catch(()=>{});
+    await BackupManager.createBackup();
+    updateFolderUI();
+    showToast('✅ Папка привязана — все данные сохраняются туда');
+  } catch(e){
+    if(e.name !== 'AbortError' && e.name !== 'SecurityError') alert('Ошибка: ' + e.message);
+  }
+}
+async function unlinkDataFolder(){
+  if(!confirm('Отвязать папку? Файл chistiy-den.json останется на месте, но новые данные перестанут в него записываться.')) return;
+  BackupManager._handle = null;
+  await _idbDel('_folder_handle').catch(()=>{});
+  updateFolderUI();
+  showToast('Папка отвязана');
+}
+async function updateFolderUI(){
+  const el=document.getElementById('folderStatus'), btn=document.getElementById('folderPickBtn'), unl=document.getElementById('folderUnlinkBtn');
+  if(!el) return;
+  if(await BackupManager.getHandle()){
+    el.innerHTML = '✅ Папка привязана — <b>все данные хранятся в ней</b>. Очистка куков браузера не страшна.';
+    el.style.color = '#3DDC84';
+    if(btn) btn.textContent = '📂 Выбрать другую папку';
+    if(unl) unl.style.display = 'flex';
+  } else {
+    el.innerHTML = '❌ Папка не привязана. Данные хранятся только в браузере и <b>пропадут при очистке куков</b>. Настоятельно рекомендуется привязать папку.';
+    el.style.color = 'var(--muted)';
+    if(btn) btn.textContent = '📂 Привязать папку на устройстве';
+    if(unl) unl.style.display = 'none';
+  }
+}
+// обновить UI статуса в настройках
+async function updateBackupInfoUI(){
+  const info = await BackupManager.getInfo();
+  const el = document.getElementById('backupInfo');
+  if(!el) return;
+  if(info){
+    el.innerHTML = '✅ Последний backup: ' + (info.created !== 'unknown' ? new Date(info.created).toLocaleDateString('ru-RU') : '—') + '<br>Записей: ' + info.keys + ', версия: ' + info.version;
+    el.style.color = '#3DDC84';
+  } else {
+    el.innerHTML = '❌ Backup не найден. Привяжите папку и создайте копию.';
+    el.style.color = 'var(--muted)';
+  }
+}
+
+// --- Старые функции export/import для обратной совместимости ---
+
+async function exportAllData(){
+  try {
+    const data = await BackupManager.collectAll();
+    const blob = new Blob([JSON.stringify({version:STORAGE_VERSION,data:data},null,2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `chistiy-den-backup-${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  } catch(e){ alert('Ошибка при создании бэкапа: ' + e.message); }
+}
+function importAllData(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try {
+      const json = JSON.parse(e.target.result);
+      const data = json.data || json; // поддерживаем старый и новый формат
+      const keys = Object.keys(data);
+      for(const k of keys){
+        if(k.startsWith('__')) continue;
+        storage.set(k, typeof data[k] === 'string' ? data[k] : JSON.stringify(data[k]));
+      }
+      renderHome();
+      closeSettings();
+      alert('✅ Данные восстановлены!');
+    } catch(err){ alert('❌ Ошибка: неверный формат файла'); }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// --- Persistent Storage (защита от удаления браузером) ---
+
+async function initStorage(){
+  const el = document.getElementById('storageStatus');
+  let text = '', persisted = false;
+  try {
+    if(navigator.storage && navigator.storage.persist){
+      persisted = await navigator.storage.persisted();
+      if(!persisted){
+        const granted = await navigator.storage.persist();
+        persisted = granted;
+      }
+    }
+    if ('storage' in navigator && 'estimate' in navigator.storage) {
+      const est = await navigator.storage.estimate();
+      const used = est.usage ? (est.usage / 1024 / 1024).toFixed(1) : '?';
+      const quota = est.quota ? (est.quota / 1024 / 1024).toFixed(1) : '?';
+      text = `📀 Использовано ${used} МБ из ${quota} МБ`;
+    }
+    text += persisted ? ' 🔒 Данные защищены' : ' ⚠️ Данные могут быть удалены браузером';
+  } catch(e){
+    text = '⚠️ Стандартное хранилище браузера';
+  }
+  el.textContent = text;
+  updateBackupInfoUI();
+}
 const MILESTONES = [
   { days:0,    key:'white',  name:'Белая',     hex:'#F0EDE8', desc:'Первый день или готовность начать заново' },
   { days:30,   key:'orange', name:'Оранжевая', hex:'#E8924A', desc:'30 дней' },
@@ -3776,208 +4087,9 @@ function closePrayer(){
   if(prayerTimer) clearTimeout(prayerTimer);
 }
 
-/* ------- FOLDER BINDING (File System Access API) ------- */
-let _folderHandle = null; // handle выбранной пользователем папки
 
-// получение handle папки (проверяет разрешение)
-async function getFolderHandle(){
-  if(_folderHandle) return _folderHandle;
-  try {
-    const handle = await _idbGet('_folder_handle');
-    if(handle && handle.queryPermission){
-      const perm = await handle.queryPermission({mode:'readwrite'});
-      if(perm === 'granted'){ _folderHandle = handle; return handle; }
-      const req = await handle.requestPermission({mode:'readwrite'});
-      if(req === 'granted'){ _folderHandle = handle; return handle; }
-    }
-  } catch(e){ /* нет handle */ }
-  return null;
-}
 
-// запись JSON-файла в папку
-async function _writeFolder(handle, data){
-  const fh = await handle.getFileHandle('chistiy-den.json', {create:true});
-  const w = await fh.createWritable();
-  await w.write(JSON.stringify(data, null, 2));
-  await w.close();
-}
-// чтение JSON-файла из папки
-async function _readFolder(handle){
-  let fh;
-  try { fh = await handle.getFileHandle('chistiy-den.json'); }
-  catch(e) { return null; }
-  return JSON.parse(await (await fh.getFile()).text());
-}
 
-// сбор данных из localStorage (+ IDB если есть)
-async function _gatherAll(){
-  const data = {};
-  if(_db){
-    const tx = _db.transaction('data','readonly');
-    const store = tx.objectStore('data');
-    const keys = await new Promise((r)=>{ const x=store.getAllKeys(); x.onsuccess=()=>r(x.result); x.onerror=()=>r([]); });
-    for(const k of keys){
-      const v = await new Promise((r)=>{ const x=store.get(k); x.onsuccess=()=>r(x.result); x.onerror=()=>r(undefined); });
-      if(v !== undefined) data[k] = v;
-    }
-  }
-  for(const k of Object.keys(localStorage)) if(data[k]===undefined) data[k]=localStorage.getItem(k);
-  return data;
-}
-
-// записать всё в папку
-async function saveToFolder(){
-  const h = await getFolderHandle();
-  if(!h) return;
-  try {
-    await _writeFolder(h, await _gatherAll());
-  } catch(e){ console.warn('saveToFolder error:', e.message); }
-}
-
-// восстановить из папки (заменяет localStorage + IDB + memoryStore)
-async function restoreFromFolder(){
-  const h = await getFolderHandle();
-  if(!h) return false;
-  try {
-    const data = await _readFolder(h);
-    if(!data || typeof data !== 'object') return false;
-    let count = 0;
-    for(const [key, val] of Object.entries(data)){
-      const str = typeof val === 'string' ? val : JSON.stringify(val);
-      await _idbSet(key, val).catch(()=>{});
-      try{ localStorage.setItem(key, str); }catch(e){}
-      memoryStore[key] = str;
-      count++;
-    }
-    console.log('Restored', count, 'keys from folder');
-    return true;
-  } catch(e){ console.warn('restoreFromFolder error:', e.message); return false; }
-}
-
-// выбор папки пользователем
-async function pickDataFolder(){
-  if(!window.showDirectoryPicker){
-    alert('Ваш браузер не поддерживает выбор папки. Попробуйте Chrome, Edge или Samsung Internet.');
-    return;
-  }
-  try {
-    const handle = await window.showDirectoryPicker();
-    const perm = await handle.requestPermission({mode:'readwrite'});
-    if(perm !== 'granted'){ alert('❌ Нет доступа к папке'); return; }
-    _folderHandle = handle;
-    await _idbSet('_folder_handle', handle).catch(()=>{});
-    await saveToFolder();
-    updateFolderUI();
-    showToast('✅ Папка привязана — все данные сохраняются туда');
-  } catch(e){
-    if(e.name !== 'AbortError' && e.name !== 'SecurityError') alert('Ошибка: ' + e.message);
-  }
-}
-
-async function unlinkDataFolder(){
-  if(!confirm('Отвязать папку? Файл chistiy-den.json останется на месте, но новые данные перестанут в него записываться.')) return;
-  _folderHandle = null;
-  await _idbDel('_folder_handle').catch(()=>{});
-  updateFolderUI();
-  showToast('Папка отвязана');
-}
-
-async function updateFolderUI(){
-  const el=document.getElementById('folderStatus'), btn=document.getElementById('folderPickBtn'), unl=document.getElementById('folderUnlinkBtn');
-  if(!el) return;
-  if(await getFolderHandle()){
-    el.innerHTML = '✅ Папка привязана — <b>все данные хранятся в ней</b>. Очистка куков браузера не страшна.';
-    el.style.color = '#3DDC84';
-    if(btn) btn.textContent = '📂 Выбрать другую папку';
-    if(unl) unl.style.display = 'flex';
-  } else {
-    el.innerHTML = '❌ Папка не привязана. Данные хранятся только в браузере и <b>пропадут при очистке куков</b>. Настоятельно рекомендуется привязать папку.';
-    el.style.color = 'var(--muted)';
-    if(btn) btn.textContent = '📂 Привязать папку на устройстве';
-    if(unl) unl.style.display = 'none';
-  }
-}
-
-// проверка целостности: если localStorage пуст — пробуем папку
-async function _verifyIntegrity(){
-  if(Object.keys(localStorage).length > 0){
-    // данные есть — синхронизируем в папку если привязана
-    saveToFolder();
-    return;
-  }
-  // localStorage пуст — пробуем папку
-  await restoreFromFolder();
-}
-async function initStorage(){
-  const el = document.getElementById('storageStatus');
-  let text = '', persisted = false;
-  try {
-    if(navigator.storage && navigator.storage.persist){
-      persisted = await navigator.storage.persisted();
-      if(!persisted){
-        const granted = await navigator.storage.persist();
-        persisted = granted;
-      }
-    }
-    if ('storage' in navigator && 'estimate' in navigator.storage) {
-      const est = await navigator.storage.estimate();
-      const used = est.usage ? (est.usage / 1024 / 1024).toFixed(1) : '?';
-      const quota = est.quota ? (est.quota / 1024 / 1024).toFixed(1) : '?';
-      text = `📀 Использовано ${used} МБ из ${quota} МБ`;
-    }
-    text += persisted ? ' 🔒 Данные защищены' : ' ⚠️ Данные могут быть удалены браузером';
-  } catch(e){
-    text = '⚠️ Стандартное хранилище браузера';
-  }
-  el.textContent = text;
-}
-async function exportAllData(){
-  try {
-    const data = {};
-    // collect from IDB
-    if(_db){
-      const tx = _db.transaction('data','readonly');
-      const store = tx.objectStore('data');
-      const keys = await new Promise((res,rej)=>{ const r=store.getAllKeys(); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(); });
-      for(const k of keys){
-        const v = await new Promise((res)=>{ const r=store.get(k); r.onsuccess=()=>res(r.result); r.onerror=()=>res(undefined); });
-        if(v !== undefined) data[k] = v;
-      }
-    }
-    // also collect from localStorage
-    const lsKeys = Object.keys(localStorage);
-    for(const k of lsKeys){
-      if(data[k] === undefined) data[k] = localStorage.getItem(k);
-    }
-    const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `chistiy-den-backup-${new Date().toISOString().slice(0,10)}.json`;
-    a.click();
-    URL.revokeObjectURL(a.href);
-  } catch(e){
-    alert('Ошибка при создании бэкапа: ' + e.message);
-  }
-}
-function importAllData(event){
-  const file = event.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = function(e){
-    try {
-      const data = JSON.parse(e.target.result);
-      const keys = Object.keys(data);
-      for(const k of keys) storage.set(k, typeof data[k] === 'string' ? data[k] : JSON.stringify(data[k]));
-      renderHome();
-      closeSettings();
-      alert('✅ Данные восстановлены!');
-    } catch(err){
-      alert('❌ Ошибка: неверный формат файла');
-    }
-  };
-  reader.readAsText(file);
-  event.target.value = '';
-}
 function saveStartDate(){
   const v=document.getElementById('startDateInput').value;
   if(v){ storage.set('startDate', v); }
@@ -4533,14 +4645,14 @@ if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{ navigator.serviceWorker.register('sw.js').catch(e=>console.error('SW register error:', e)); });
 }
 
+const readyPromise = _runStartupMigration();
 readyPromise.then(async ()=>{
-// восстанавливаем из папки если localStorage пуст (очистка куков)
-await _verifyIntegrity();
-renderHome();
-showPrayer();
-renderJft();
-checkSvcReminders();
-checkPlanReminder();
+  await _verifyIntegrity();
+  renderHome();
+  showPrayer();
+  renderJft();
+  checkSvcReminders();
+  checkPlanReminder();
 });
 
 /* ------- donate banner: 3rd launch, then weekly ------- */
