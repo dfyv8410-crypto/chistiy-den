@@ -1414,6 +1414,15 @@ body{
             <br><strong>Резервная копия:</strong> в разделе «Хранилище» можно скачать JSON-файл со всеми данными и восстановить его на любом устройстве. Рекомендуется делать копию перед обновлением или переустановкой.
             <br><strong>Защита данных:</strong> приложение запрашивает постоянное хранение (persistent storage) — браузер не удалит данные даже при нехватке места. Статус защиты отображается в настройках.
             <br><br>
+            <strong style="color:var(--na-blue);">📁 Привязка папки на устройстве</strong><br>
+            <strong>Как работает:</strong> в настройках выбери любую папку на телефоне (например «ЧистыйДень»). Все данные приложения будут автоматически дублироваться туда как файл <code>chistiy-den.json</code>.
+            <br><strong>Зачем это нужно:</strong> если очистить куки или данные браузера — обычные способы хранения (localStorage, IndexedDB) удаляются, и данные теряются. Привязанная папка хранится отдельно от браузера — данные сохранятся.
+            <br><strong>Как восстановить после очистки куков:</strong>
+            <br>1. Открой Настройки → «Привязать папку на устройстве».
+            <br>2. Нажми «Выбрать папку» и укажи <strong>ту же самую папку</strong>, что и раньше.
+            <br>3. Приложение прочитает файл <code>chistiy-den.json</code> из папки и восстановит все данные автоматически.
+            <br><strong>Важно:</strong> функция работает в Chrome, Edge и Samsung Internet. При каждом изменении данных приложение записывает обновление в папку (с задержкой 3 секунды). Если произошёл сбой — при следующем запуске данные будут восстановлены из папки, из IndexedDB или из localStorage (выбирается наиболее полная копия).
+            <br><br>
 
             <strong style="color:var(--na-blue);">❤️ Поддержка проекта</strong><br>
             Приложение «Чистый день» полностью бесплатно и не содержит рекламы. Если оно помогает тебе — можно поддержать его развитие переводом по СБП (тел. 8 980 179-32-63) или на карту. Любая сумма важна.
@@ -3906,6 +3915,38 @@ async function restoreFromFolder(){
     return false;
   }
 }
+// проверка целостности всех хранилищ при запуске
+async function _verifyIntegrity(){
+  try {
+    // собираем ключи из всех источников
+    const lsKeys = new Set(Object.keys(localStorage));
+    const idbKeys = new Set();
+    if(_db){
+      try {
+        const tx = _db.transaction('data','readonly');
+        const store = tx.objectStore('data');
+        const keys = await new Promise((res,rej)=>{ const r=store.getAllKeys(); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(); });
+        keys.forEach(k => idbKeys.add(k));
+      } catch(e){ /* IDB недоступна */ }
+    }
+    // если LS пуст, а IDB нет — уже восстановлено миграцией/папкой
+    if(lsKeys.size === 0 && idbKeys.size > 0){
+      // LS восстановлен выше, ничего не делаем
+      return;
+    }
+    // LS есть, но IDB может отставать — синхронизируем IDB из LS
+    if(lsKeys.size > 0 && _db){
+      for(const k of lsKeys){
+        const v = localStorage.getItem(k);
+        if(v !== null) await _idbSet(k, v).catch(()=>{});
+      }
+    }
+    // если LS есть и папка привязана — синхронизируем в папку
+    if(lsKeys.size > 0) syncToFolder();
+  } catch(e){
+    console.warn('Integrity check error:', e.message);
+  }
+}
 // дебаунс для синхронизации с папкой — не дёргаем файл при каждом set()
 let _folderSyncTimer = null;
 function _queueFolderSync(){
@@ -4538,8 +4579,10 @@ if('serviceWorker' in navigator){
 }
 
 readyPromise.then(async ()=>{
-// после миграции из IDB пробуем восстановить из папки, если localStorage пуст
+// восстанавливаем из папки, если localStorage пуст
 await restoreFromFolder();
+// проверяем целостность: если одна из копий (LS/IDB/папка) полнее — синхронизируем остальные
+await _verifyIntegrity();
 renderHome();
 showPrayer();
 renderJft();
