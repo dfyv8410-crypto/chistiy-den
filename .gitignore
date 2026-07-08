@@ -3,3 +3,6 @@ package-lock.json
 package.json
 .gradle/
 *.log
+*.aab
+*.apk
+app/keystore.jks

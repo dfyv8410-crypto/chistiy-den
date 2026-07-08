@@ -11,8 +11,8 @@ android {
         applicationId = "com.chistiyen.app"
         minSdk = 26
         targetSdk = 29
-        versionCode = 10
-        versionName = "1.2.0"
+        versionCode = 11
+        versionName = "11.0.3.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -20,6 +20,15 @@ android {
         release {
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.getByName("release")
+        }
+    }
+    signingConfigs {
+        create("release") {
+            storeFile = file("keystore.jks")
+            storePassword = "chistiy123"
+            keyAlias = "chistiy-den"
+            keyPassword = "chistiy123"
         }
     }
     compileOptions {
