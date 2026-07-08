@@ -277,6 +277,15 @@ body{
 .theme-opt.active{background:var(--card);color:var(--na-blue);}
 
 /* ---------- craving diary ---------- */
+.home-diary-card{display:flex;align-items:center;gap:12px;background:var(--card);border:2px solid var(--accent);border-radius:var(--radius-lg);padding:14px;margin:14px 0 6px;cursor:pointer;transition:transform .15s,box-shadow .15s;}
+.home-diary-card:active{transform:scale(.98);}
+.home-diary-icon{width:40px;height:40px;border-radius:12px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
+.home-diary-icon svg{width:22px;height:22px;}
+.home-diary-text{flex:1;min-width:0;}
+.home-diary-title{font-weight:800;font-size:15px;color:var(--na-blue);}
+.home-diary-desc{font-size:11px;color:var(--muted);margin-top:1px;}
+.home-diary-arrow{width:20px;height:20px;color:var(--accent);flex:0 0 auto;}
+.home-diary-arrow svg{width:100%;height:100%;}
 .diary-entry{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-md);padding:14px;margin-bottom:10px;}
 .diary-entry .date{font-size:11px;color:var(--muted);}
 .diary-entry .situation{font-size:13px;color:var(--cream);margin:4px 0;}
@@ -291,6 +300,19 @@ body{
 .diary-tool-row{display:flex;gap:8px;align-items:center;margin-bottom:6px;}
 .diary-tool-row input[type="text"]{flex:1;padding:8px;border-radius:var(--radius-sm);border:1px solid var(--line);font-size:13px;background:var(--card-2);color:var(--cream);}
 .diary-tool-row .icon-btn{width:28px;height:28px;}
+.diary-action-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 14px;border-radius:var(--radius-md);border:none;font-weight:800;font-size:13px;font-family:var(--font-body);cursor:pointer;transition:transform .15s;background:var(--accent);color:#fff;}
+.diary-action-btn:active{transform:scale(.97);}
+.diary-action-btn.secondary{background:var(--card);color:var(--na-blue);border:2px solid var(--na-blue)!important;}
+.diary-action-btn svg{width:18px;height:18px;flex:0 0 auto;}
+.diary-add-tool{width:100%;padding:10px;border-radius:var(--radius-sm);border:2px dashed var(--line);background:transparent;color:var(--muted);font-size:13px;font-weight:600;font-family:var(--font-body);cursor:pointer;margin-top:4px;transition:all .15s;}
+.diary-add-tool:hover{border-color:var(--accent);color:var(--accent);}
+.diary-mini-btn{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;padding:0;}
+.diary-mini-btn svg{width:14px;height:14px;}
+.diary-mini-btn:active{transform:scale(.9);}
+.diary-header{display:flex;align-items:center;gap:10px;margin:12px 0 0;}
+.diary-back-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--na-blue);cursor:pointer;display:flex;align-items:center;justify-content:center;flex:0 0 auto;transition:transform .15s;padding:0;}
+.diary-back-btn:active{transform:scale(.9);}
+.diary-back-btn svg{width:18px;height:18px;}
 .diary-timeline{border-left:2px solid var(--accent);padding-left:14px;margin:10px 0;}
 .diary-timeline-item{position:relative;padding:4px 0 4px 10px;font-size:12px;color:var(--cream);}
 .diary-timeline-item::before{content:'';position:absolute;left:-6px;top:8px;width:10px;height:10px;border-radius:50%;background:var(--accent);}
@@ -534,7 +556,24 @@ body{
       <div class="stat-card"><div class="v" id="statHours">0</div><div class="l">Часов</div></div>
     </div>
 
-    <button class="btn-primary" onclick="showScreen('diary')" style="width:100%;margin:14px 0 6px;">📓 Дневник тяги</button>
+    <div class="home-diary-card" onclick="showScreen('diary')">
+      <div class="home-diary-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
+      </div>
+      <div class="home-diary-text">
+        <div class="home-diary-title">Дневник тяги</div>
+        <div class="home-diary-desc">Отслеживай состояния, триггеры и инструменты</div>
+      </div>
+      <div class="home-diary-arrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </div>
 
     <div class="prayer-text">
       Боже, дай мне разум и душевный покой принять то, что я не в силах изменить,<br>
@@ -547,16 +586,26 @@ body{
 
   <!-- DIARY / Дневник тяги -->
   <div class="screen" id="screen-diary">
-    <div style="display:flex;align-items:center;gap:8px;margin:12px 0 4px;">
-      <button class="icon-btn" onclick="showScreen('home')" aria-label="Назад"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
-      <div class="screen-title" style="margin:0;">Дневник тяги</div>
+    <div class="diary-header">
+      <button class="diary-back-btn" onclick="showScreen('home')" aria-label="Назад">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <div>
+        <div class="screen-title" style="margin:0;">Дневник тяги</div>
+        <div class="screen-sub">Отслеживай свои состояния, триггеры и инструменты</div>
+      </div>
     </div>
-    <div class="screen-sub">Отслеживай свои состояния, триггеры и инструменты</div>
 
     <div id="diaryView" style="display:block;">
-      <div style="display:flex;gap:8px;margin-bottom:8px;">
-        <button class="btn-primary" onclick="diaryNew()" style="flex:1;">➕ Новая запись</button>
-        <button class="btn-secondary" onclick="diaryShowStats()" style="flex:1;">📊 Статистика</button>
+      <div style="display:flex;gap:8px;margin-bottom:10px;">
+        <button class="diary-action-btn" onclick="diaryNew()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span>Новая запись</span>
+        </button>
+        <button class="diary-action-btn secondary" onclick="diaryShowStats()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+          <span>Статистика</span>
+        </button>
       </div>
       <input class="search-bar" id="diarySearch" type="text" placeholder="Поиск по записям..." oninput="diaryRenderList()">
       <div id="diaryList"></div>
@@ -587,21 +636,30 @@ body{
       <div class="diary-form-group">
         <label>Инструменты (что помогло / пробовал?)</label>
         <div id="diaryToolsList"></div>
-        <button class="btn-secondary" onclick="diaryAddTool()" style="width:100%;margin-top:4px;font-size:12px;">+ Инструмент</button>
+        <button class="diary-add-tool" onclick="diaryAddTool()">+ Инструмент</button>
       </div>
       <div class="diary-form-group">
         <label>Чем закончилось?</label>
         <textarea id="diarySummary" rows="2" placeholder="Удалось сохранить чистоту? Что помогло? Как себя чувствуешь?"></textarea>
       </div>
       <div style="display:flex;gap:8px;margin-top:4px;">
-        <button class="btn-primary" onclick="diarySave()" style="flex:1;">💾 Сохранить</button>
-        <button class="btn-secondary" onclick="diaryCancel()" style="flex:1;">Отмена</button>
+        <button class="diary-action-btn" onclick="diarySave()" style="flex:1;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          <span>Сохранить</span>
+        </button>
+        <button class="diary-action-btn secondary" onclick="diaryCancel()" style="flex:1;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <span>Отмена</span>
+        </button>
       </div>
       <div id="diaryTimeline" class="diary-timeline" style="display:none;margin-top:14px;"></div>
     </div>
 
     <div id="diaryStats" style="display:none;">
-      <button class="btn-secondary" onclick="diaryBackToList()" style="margin-bottom:10px;">← Назад к списку</button>
+      <button class="diary-action-btn secondary" onclick="diaryBackToList()" style="margin-bottom:10px;padding:8px 16px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        <span>Назад</span>
+      </button>
       <div class="diary-stats-grid">
         <div class="diary-stat-card"><div class="v" id="diaryStatCount">0</div><div class="l">Записей</div></div>
         <div class="diary-stat-card"><div class="v" id="diaryStatAvg">-</div><div class="l">Средняя длит.</div></div>
@@ -1721,8 +1779,8 @@ function diaryRenderList(){
       ${feelingsStr?'<div class="feel">'+esc(feelingsStr)+'</div>':''}
       ${toolsStr?'<div class="tools">🧰 '+esc(toolsStr)+'</div>':''}
       <div style="display:flex;gap:6px;margin-top:6px;">
-        <button class="btn-secondary" style="font-size:11px;padding:4px 10px;" onclick="diaryEdit(${e.id})">✏️</button>
-        <button class="btn-secondary" style="font-size:11px;padding:4px 10px;" onclick="diaryDelete(${e.id})">🗑️</button>
+        <button class="diary-mini-btn" onclick="diaryEdit(${e.id})" title="Редактировать"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <button class="diary-mini-btn" onclick="diaryDelete(${e.id})" title="Удалить"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
       </div>`;
     list.appendChild(div);
   });
