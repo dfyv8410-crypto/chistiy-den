@@ -1503,7 +1503,7 @@ body{
 // Backup-менеджер: снапшоты, ретраи, контроль целостности, приоритеты
 // Cloud-ready: SyncProvider-абстракция для будущего Firebase/Supabase
 
-const STORAGE_VERSION = '3.0';
+const STORAGE_VERSION = '4.0';
 const SNAPSHOT_MAX = 5;
 const DB_NAME = 'chistiy_den';
 const DB_SCHEMA_VERSION = 3;
@@ -1586,6 +1586,9 @@ const storage = {
     try{ localStorage.setItem(key,val); }catch(e){ console.warn('localStorage set error:', e.message); }
     _idbSet(key,val).catch(err => console.error('IDB set error:', err));
     PriorityManager.onDataChanged(key);
+    LocalBackup.scheduleBackup();
+    ChangeLog.add(key,'update').catch(()=>{});
+    try{ localStorage.setItem('__last_write',new Date().toISOString()); }catch(e){}
     BackupManager.scheduleBackup();
   },
   remove(key){
@@ -1593,6 +1596,9 @@ const storage = {
     try{ localStorage.removeItem(key); }catch(e){ console.warn('localStorage remove error:', e.message); }
     _idbDel(key).catch(err => console.error('IDB del error:', err));
     PriorityManager.onDataChanged(key);
+    LocalBackup.scheduleBackup();
+    ChangeLog.add(key,'delete').catch(()=>{});
+    try{ localStorage.setItem('__last_write',new Date().toISOString()); }catch(e){}
     BackupManager.scheduleBackup();
   }
 };
@@ -2020,6 +2026,31 @@ const RecoverySystem = {
     } catch(e){}
     return null;
   },
+  async smartRecovery(){
+    const localBackup = await LocalBackup.getLastBackup().catch(()=>null);
+    if(!localBackup || !localBackup.data || !localBackup.checksum) return {restored:0,source:null};
+    const cs = await _checksum(localBackup.data);
+    if(cs !== localBackup.checksum) return {restored:0,source:null};
+    let restored = 0;
+    const sorted = PriorityManager.sortByPriority(Object.keys(localBackup.data));
+    for(const key of sorted){
+      if(key.startsWith('__')) continue;
+      const existing = await _idbGet(key).catch(()=>undefined);
+      if(existing === undefined){
+        const val = localBackup.data[key];
+        const str = typeof val === 'string' ? val : JSON.stringify(val);
+        await _idbSet(key,val).catch(()=>{});
+        try{ localStorage.setItem(key,str); }catch(e){}
+        memoryStore[key] = str;
+        restored++;
+      }
+    }
+    if(restored > 0){
+      const count = parseInt(localStorage.getItem('__recovery_count')||'0') + 1;
+      try{ localStorage.setItem('__recovery_count',String(count)); }catch(e){}
+    }
+    return {restored,source:'local_backup'};
+  },
   async detectEmptyDB(){
     const lsKeys = Object.keys(localStorage).filter(k => !k.startsWith('__'));
     const idbKeys = (await _idbGetAllKeys().catch(()=>[])).filter(k => !k.startsWith('__'));
@@ -2073,6 +2104,8 @@ const SmartImport = {
 
 const HealthMonitor = {
   _errorCount: parseInt(localStorage.getItem('__health_errors')||'0'),
+  _recoveryCount: parseInt(localStorage.getItem('__recovery_count')||'0'),
+  _lastWriteDate: localStorage.getItem('__last_write')||'',
   recordError(){
     this._errorCount++;
     try{ localStorage.setItem('__health_errors', String(this._errorCount)); }catch(e){}
@@ -2082,6 +2115,13 @@ const HealthMonitor = {
     const meta = await DeviceProfile.getMeta().catch(()=>({}));
     const snaps = await SnapshotSystem.list().catch(()=>[]);
     const info = await BackupManager.getInfo().catch(()=>null);
+    const localBackup = await LocalBackup.getLastBackup().catch(()=>null);
+    const hasLocalCache = !!localBackup;
+    const hasFolder = !!(await BackupManager.getInfo().catch(()=>null));
+    const today = new Date();
+    const lastWrite = this._lastWriteDate ? (today - new Date(this._lastWriteDate)) : Infinity;
+    const backupAge = info ? (today - new Date(info.createdAt)) : Infinity;
+    const riskLevel = hasFolder ? 'low' : (hasLocalCache ? (backupAge < 7*86400000 ? 'low' : 'medium') : (this._recoveryCount > 0 ? 'high' : 'medium'));
     return {
       version: STORAGE_VERSION,
       deviceId: meta.deviceId || 'unknown',
@@ -2093,6 +2133,9 @@ const HealthMonitor = {
       snapshots: snaps.length,
       totalRecords: report.layers.reduce((s,l) => l.count !== undefined ? s+l.count : s, 0),
       errorCount: this._errorCount,
+      recoveryCount: this._recoveryCount,
+      lastWriteDate: this._lastWriteDate || null,
+      riskLevel: riskLevel,
       memoryStoreSize: Object.keys(memoryStore).length
     };
   },
@@ -2101,10 +2144,147 @@ const HealthMonitor = {
     this.diagnose().then(d => {
       const s = d.healthy ? 'OK' : 'ERROR';
       const c = d.healthy ? '#3DDC84' : '#E88A7A';
+      const ri = d.riskLevel === 'high' ? '<span style="color:#E88A7A;font-weight:700;"> ⚠</span>' : '';
       el.innerHTML = '<span style="color:'+c+';font-weight:700;">'+s+'</span> | Backup: ' +
         (d.lastBackup ? new Date(d.lastBackup.createdAt).toLocaleDateString('ru-RU') : '—') +
-        ' | Records: ' + d.totalRecords + ' | Errors: ' + d.errorCount;
+        ' | Records: ' + d.totalRecords + ' | Errors: ' + d.errorCount +
+        ' | Risk: ' + d.riskLevel + ri;
     });
+  }
+};
+
+const StorageAdapter = {
+  name:'IndexedDB',
+  async get(key){ return _idbGet(key); },
+  async set(key,val){ return _idbSet(key,val); },
+  async del(key){ return _idbDel(key); },
+  async getAllKeys(){ return _idbGetAllKeys(); },
+  async getSize(){
+    const keys = await _idbGetAllKeys();
+    let size = 0;
+    for(const k of keys){
+      const v = await _idbGet(k);
+      if(v !== undefined) size += new Blob([JSON.stringify(v)]).size;
+    }
+    return size;
+  }
+};
+const SaveQueue = {
+  _queue: new Map(),
+  _timer: null,
+  _processing: false,
+  init(){
+    window.addEventListener('beforeunload',()=>this.flush());
+  },
+  enqueue(key,val){
+    this._queue.set(key,val);
+    if(!this._timer) this._timer = setTimeout(()=>{ this._timer=null; this.flush(); }, 500);
+  },
+  async flush(){
+    if(this._processing || this._queue.size===0) return;
+    this._processing = true;
+    const entries = Array.from(this._queue.entries());
+    this._queue.clear();
+    for(const [key,val] of entries){
+      try {
+        if(val===null || val===undefined) await _idbDel(key);
+        else await _idbSet(key,val);
+      } catch(e){
+        this._queue.set(key,val);
+      }
+    }
+    this._processing = false;
+  }
+};
+SaveQueue.init();
+const LocalBackup = {
+  _timer: null,
+  async createBackup(){
+    try {
+      const last = await _idbGet('__backup_last').catch(()=>null);
+      if(last) await _idbSet('__backup_previous',last).catch(()=>{});
+      const data = {};
+      const keys = (await _idbGetAllKeys().catch(()=>[])).filter(k => !k.startsWith('__'));
+      for(const k of keys){
+        const v = await _idbGet(k).catch(()=>undefined);
+        if(v !== undefined) data[k] = v;
+      }
+      const backup = { version:STORAGE_VERSION, createdAt:new Date().toISOString(), checksum:await _checksum(data), recordsCount:Object.keys(data).length, data };
+      await _idbSet('__backup_last',backup);
+      return true;
+    } catch(e){ console.warn('Local backup error:',e.message); return false; }
+  },
+  scheduleBackup(){
+    if(this._timer) clearTimeout(this._timer);
+    this._timer = setTimeout(()=>{ this._timer=null; this.createBackup(); }, 3000);
+  },
+  async getLastBackup(){ return _idbGet('__backup_last').catch(()=>null); },
+  async getPreviousBackup(){ return _idbGet('__backup_previous').catch(()=>null); },
+  async restoreFromLast(){
+    const backup = await _idbGet('__backup_last').catch(()=>null);
+    if(!backup || !backup.data || !backup.checksum) return false;
+    const cs = await _checksum(backup.data);
+    if(cs !== backup.checksum) return false;
+    const sorted = PriorityManager.sortByPriority(Object.keys(backup.data));
+    for(const key of sorted){
+      if(key.startsWith('__')) continue;
+      const val = backup.data[key];
+      const str = typeof val === 'string' ? val : JSON.stringify(val);
+      await _idbSet(key,val).catch(()=>{});
+      try{ localStorage.setItem(key,str); }catch(e){}
+      memoryStore[key] = str;
+    }
+    return true;
+  }
+};
+const CryptoService = {
+  _key: null,
+  async _getKey(){
+    if(this._key) return this._key;
+    const deviceId = await DeviceProfile.getDeviceId();
+    const salt = 'chistiy-den-v4-salt';
+    const material = await crypto.subtle.importKey('raw',new TextEncoder().encode(deviceId+salt),{name:'PBKDF2'},false,['deriveKey']);
+    this._key = await crypto.subtle.deriveKey({name:'PBKDF2',salt:new TextEncoder().encode(salt),iterations:100000,hash:'SHA-256'},material,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+    return this._key;
+  },
+  async encrypt(data){
+    try {
+      const key = await this._getKey();
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const encoded = new TextEncoder().encode(typeof data === 'string' ? data : JSON.stringify(data));
+      const ciphertext = await crypto.subtle.encrypt({name:'AES-GCM',iv},key,encoded);
+      return {iv:Array.from(iv),ciphertext:Array.from(new Uint8Array(ciphertext))};
+    } catch(e){ return null; }
+  },
+  async decrypt(pkg){
+    try {
+      const key = await this._getKey();
+      const iv = new Uint8Array(pkg.iv);
+      const ct = new Uint8Array(pkg.ciphertext);
+      const dec = await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ct);
+      return new TextDecoder().decode(dec);
+    } catch(e){ return null; }
+  }
+};
+const CHANGELOG_MAX = 100;
+const ChangeLog = {
+  async add(key,action){
+    try {
+      const log = await _idbGet('__changelog').catch(()=>[]);
+      log.unshift({timestamp:new Date().toISOString(),action,dataType:key,recordId:key});
+      if(log.length > CHANGELOG_MAX) log.length = CHANGELOG_MAX;
+      await _idbSet('__changelog',log);
+    } catch(e){}
+  },
+  async getRecent(limit){
+    const log = await _idbGet('__changelog').catch(()=>[]);
+    return log.slice(0,limit||20);
+  },
+  async getStats(){
+    const log = await _idbGet('__changelog').catch(()=>[]);
+    const today = new Date().toISOString().slice(0,10);
+    const todayCount = log.filter(e=>e.timestamp.startsWith(today)).length;
+    return {totalChanges:log.length,todayCount,lastChange:log.length>0?log[0].timestamp:null};
   }
 };
 
@@ -2137,6 +2317,14 @@ async function _runStartupMigration(){
       }
     }
     await DeviceProfile.getDeviceId();
+    // V4: data loss detection — device_id exists but LS empty after cookie clear
+    const hasLS = Object.keys(localStorage).some(k => !k.startsWith('__'));
+    const hasIDB = (await _idbGetAllKeys().catch(()=>[])).some(k => !k.startsWith('__'));
+    if(!hasLS && !hasIDB){
+      const restored = await LocalBackup.restoreFromLast();
+      if(restored) console.log('V4: data restored from local backup after loss');
+      try{ localStorage.setItem('__last_write',new Date().toISOString()); }catch(e){}
+    }
   } catch(e){ console.warn('Migration error:', e.message); }
 }
 
@@ -4996,6 +5184,7 @@ readyPromise.then(async ()=>{
   }
   // ежедневный backup при наличии папки
   BackupManager.dailyBackupCheck().catch(()=>{});
+  RecoverySystem.smartRecovery().then(r => { if(r.restored > 0) console.log('Smart recovery restored', r.restored, 'records'); }).catch(()=>{});
   renderHome();
   showPrayer();
   renderJft();
