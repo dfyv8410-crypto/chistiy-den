@@ -6219,7 +6219,11 @@ function aiSetStatus(ok){
   aiReady = ok;
   const el = document.getElementById('aiStatus');
   if(!el) return;
-  if(ok){
+  const saved = JSON.parse(localStorage.getItem('ai_profile')||'{}');
+  if(ok && saved.gemini_key){
+    el.className = 'ai-status connected';
+    el.innerHTML = '🟢 Gemini';
+  }else if(ok){
     el.className = 'ai-status connected';
     el.innerHTML = '🟢 Подключено';
   }else{
@@ -6228,8 +6232,12 @@ function aiSetStatus(ok){
   }
 }
 function aiUpdateStatus(){
-  const saved = localStorage.getItem('ai_profile');
-  const server = saved ? (JSON.parse(saved).server || AI_API) : AI_API;
+  const saved = JSON.parse(localStorage.getItem('ai_profile')||'{}');
+  if(saved.gemini_key){
+    aiSetStatus(true);
+    return;
+  }
+  const server = saved.server || AI_API;
   const ctrl = new AbortController();
   const tid = setTimeout(()=>ctrl.abort(), 3000);
   fetch(server+'/health', {signal:ctrl.signal})
@@ -6238,7 +6246,7 @@ function aiUpdateStatus(){
 }
 function aiAutoConnect(){
   if(!localStorage.getItem('ai_profile')){
-    localStorage.setItem('ai_profile', JSON.stringify({ai_name:'', style:'balanced', server:AI_API, user_id:'default'}));
+    localStorage.setItem('ai_profile', JSON.stringify({ai_name:'', style:'balanced', server:AI_API, gemini_key:'', user_id:'default'}));
   }
   aiUpdateStatus();
   setInterval(aiUpdateStatus, 30000);
@@ -6315,6 +6323,61 @@ function buildAIContext(){
 
 function aiCallAI(text){
   aiShowLoading();
+  const profile = JSON.parse(localStorage.getItem('ai_profile')||'{}');
+  if(profile.gemini_key) return aiCallGemini(text, profile);
+  aiCallServer(text);
+}
+function aiBuildSystemPrompt(profile){
+  const ctx = buildAIContext();
+  const style = profile.style||'balanced';
+  const styleDesc = {balanced:'Поддерживающий и понимающий', gentle:'Очень мягкий и заботливый', direct:'Прямой и честный', coach:'Мотивирующий наставник'};
+  let p = 'Ты — персональный помощник восстановления для участников сообщества Анонимные Наркоманы (NA). ';
+  p += 'Твоя задача — поддерживать чистоту и трезвость пользователя, помогать справляться с тягой, ';
+  p += 'давать надежду и напоминать об инструментах программы 12 шагов.\n\n';
+  p += 'Стиль общения: '+styleDesc[style]+'.\n';
+  p += 'Отвечай кратко (2-5 предложений), тепло, на русском языке. ';
+  p += 'Не ставь медицинских диагнозов и не назначай лекарств. ';
+  p += 'Если пользователь в кризисе — предложи обратиться за профессиональной помощью.\n\n';
+  if(ctx.progress.days){
+    p += 'Стаж пользователя: '+ctx.progress.days+' дней чистоты ('+ctx.progress.medal+').\n';
+  }
+  if(ctx.diary.length){
+    p += 'Последние записи дневника тяги:\n';
+    ctx.diary.forEach(e=>{
+      p += '- '+e.date+': интенсивность '+e.intensity+'/10, триггер: '+(e.trigger||'?')+'\n';
+    });
+  }
+  if(ctx.steps) p += 'Проработано шагов: '+ctx.steps+'\n';
+  p += '\nБудь рядом. Ты — поддержка, а не замена профессиональной помощи.';
+  return p;
+}
+function aiCallGemini(text, profile){
+  const key = profile.gemini_key;
+  const system = aiBuildSystemPrompt(profile);
+  const contents = aiHistory.map(m=>({role:m.role==='assistant'?'model':'user', parts:[{text:m.content}]}));
+  contents.push({role:'user', parts:[{text}]});
+  fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+key, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({contents, systemInstruction:{parts:[{text:system}]}})
+  })
+  .then(r=>r.json())
+  .then(data=>{
+    aiRemoveLoading();
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text||'...';
+    aiAddMessage(reply, 'bot');
+    aiHistory.push({role:'assistant', content:reply});
+    const crisisWords = ['кризис','срыв','употребить','плохо','страшно','одиночество','безнадёжно'];
+    if(crisisWords.some(w=>text.toLowerCase().includes(w)||(reply||'').toLowerCase().includes(w))){
+      setTimeout(()=>notify('AI заметил кризис. Открой помощь.', null, true), 1000);
+    }
+  })
+  .catch(err=>{
+    aiRemoveLoading();
+    aiAddMessage('Извини, сейчас я не могу ответить. Проверь API-ключ Gemini. Если нужно срочно — открой раздел "Обратиться за помощью".', 'bot');
+    console.error('Gemini error:', err);
+  });
+}
+function aiCallServer(text){
   const context = buildAIContext();
   const payload = {message:text, context:context, history:aiHistory, user_id:'default'};
   const profile = localStorage.getItem('ai_profile');
@@ -6365,7 +6428,10 @@ function aiShowSettings(){
       <option value="direct" ${saved.style==='direct'?'selected':''}>Прямой</option>
       <option value="coach" ${saved.style==='coach'?'selected':''}>Наставник</option>
     </select>
-    <label>Сервер AI</label>
+    <label style="margin-top:8px;">🔑 Ключ Gemini API (бесплатно)</label>
+    <input id="aiGeminiKey" value="${escHtml(saved.gemini_key||'')}" placeholder="Вставь ключ из aistudio.google.com">
+    <div style="font-size:10px;color:var(--muted);margin:-4px 0 4px;">Получить ключ: <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" style="color:var(--accent);">aistudio.google.com/apikey</a> — бесплатно, нужен Google-аккаунт</div>
+    <label>Сервер AI (если нет ключа Gemini)</label>
     <input id="aiServer" value="${escHtml(saved.server||AI_API)}" placeholder="http://localhost:8000">
     <button class="btn-primary" onclick="aiSaveSettings()" style="padding:10px;border:none;border-radius:999px;font-weight:700;font-size:14px;width:100%;">Сохранить</button>
     <button class="btn-secondary" onclick="aiClearChat()" style="padding:10px;border-radius:999px;font-weight:700;font-size:14px;width:100%;margin-top:4px;background:var(--card);border:1.5px dashed var(--accent);">Очистить историю</button>
@@ -6376,12 +6442,14 @@ function aiSaveSettings(){
   const name = document.getElementById('aiName').value.trim();
   const style = document.getElementById('aiStyle').value;
   const server = document.getElementById('aiServer').value.trim();
-  const profile = {ai_name:name, style:style, server:server||AI_API, user_id:'default'};
+  const gemini_key = document.getElementById('aiGeminiKey').value.trim();
+  const profile = {ai_name:name, style:style, server:server||AI_API, gemini_key:gemini_key, user_id:'default'};
   localStorage.setItem('ai_profile', JSON.stringify(profile));
   const panel = document.getElementById('aiSettingsPanel');
   if(panel) panel.remove();
   aiWelcome();
   aiSendProfile();
+  aiUpdateStatus();
 }
 function aiSendProfile(){
   const saved = JSON.parse(localStorage.getItem('ai_profile')||'{}');
