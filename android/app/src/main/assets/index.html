@@ -226,6 +226,24 @@ body{
 .ai-settings label{font-size:12px;font-weight:700;color:var(--cream);}
 .ai-settings input,.ai-settings select{width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--line);font-size:14px;background:var(--card-2);color:var(--cream);font-family:var(--font-body);}
 
+/* ---------- global search ---------- */
+.search-modal{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;height:100%;background:var(--bg);z-index:60;display:flex;flex-direction:column;animation:searchIn .25s ease;}
+@keyframes searchIn{from{opacity:0;transform:translateX(-50%) translateY(10px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
+.search-header{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line);}
+.search-header input{flex:1;padding:10px 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--card-2);color:var(--cream);font-size:14px;font-family:var(--font-body);outline:none;}
+.search-header input:focus{border-color:var(--accent);}
+.search-close{width:36px;height:36px;border-radius:50%;border:none;background:var(--card);color:var(--cream);cursor:pointer;display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
+.search-close svg{width:18px;height:18px;}
+.search-results{flex:1;overflow-y:auto;padding:8px 16px;}
+.search-result-group{margin-bottom:16px;}
+.search-result-group .group-title{font-size:11px;font-weight:700;color:var(--na-blue);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.search-result-item{padding:10px 12px;border-radius:var(--radius-sm);background:var(--card);margin-bottom:4px;cursor:pointer;transition:background .15s;border:1px solid var(--line);}
+.search-result-item:hover,.search-result-item:active{background:var(--card-2);}
+.search-result-item .title{font-size:13px;font-weight:600;color:var(--cream);margin-bottom:2px;}
+.search-result-item .title mark{background:var(--accent);color:var(--accent-text);border-radius:2px;}
+.search-result-item .preview{font-size:11px;color:var(--muted);line-height:1.4;}
+.search-result-item .preview mark{background:var(--accent);color:var(--accent-text);border-radius:2px;}
+
 /* ---------- bottom nav ---------- */
 .tabbar{
   position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;
@@ -1325,6 +1343,21 @@ body{
     </div>
   </div>
 
+  <!-- SEARCH OVERLAY -->
+  <div class="modal-backdrop" id="searchBackdrop">
+    <div class="search-modal">
+      <div class="search-header">
+        <input type="text" id="searchInput" placeholder="Поиск по дневнику, шагам, библиотеке..." autocomplete="off" oninput="doSearch()">
+        <button class="search-close" onclick="closeSearch()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div style="padding:30px;text-align:center;color:var(--muted);font-size:13px;">Начни вводить текст для поиска</div>
+      </div>
+    </div>
+  </div>
+
   <!-- TABBAR + STUDIO -->
   <div class="tabbar">
     <div class="tabbar-tabs">
@@ -1363,6 +1396,10 @@ body{
       <div class="tab" data-tab="ai" onclick="showScreen('ai')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         <span>AI</span>
+      </div>
+      <div class="tab" data-tab="search" onclick="openSearch()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <span>Поиск</span>
       </div>
     </div>
     <div class="tabbar-brand">
@@ -2786,6 +2823,7 @@ async function exportAllData(){
 function importAllData(event){
   const file = event.target.files[0];
   if(!file) return;
+  if(!confirm('Восстановить данные из файла? Текущие записи будут объединены с данными из файла. При совпадении ID приоритет у импортируемых данных. Продолжить?')){ event.target.value=''; return; }
   SmartImport.fromFile(file, _importMode).then(result => {
     if(!result.ok){ alert('Ошибка импорта: ' + result.error); return; }
     let msg = 'Импортировано: ' + result.imported + ' записей';
@@ -6073,6 +6111,81 @@ setTimeout(()=>{
   if(s) s.classList.add('hide');
 }, 1500);
 
+/* ===================== GLOBAL SEARCH ===================== */
+function openSearch(){
+  document.getElementById('searchBackdrop').classList.add('active');
+  setTimeout(()=>document.getElementById('searchInput').focus(), 200);
+}
+function closeSearch(){
+  document.getElementById('searchBackdrop').classList.remove('active');
+  document.getElementById('searchInput').value='';
+  document.getElementById('searchResults').innerHTML='<div style="padding:30px;text-align:center;color:var(--muted);font-size:13px;">Начни вводить текст для поиска</div>';
+}
+function doSearch(){
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const container = document.getElementById('searchResults');
+  if(!q || q.length < 2){
+    container.innerHTML = '<div style="padding:30px;text-align:center;color:var(--muted);font-size:13px;">Введите минимум 2 символа</div>';
+    return;
+  }
+  const results = [];
+  try{
+    const diary = JSON.parse(storage.get('diary_entries')||'[]');
+    diary.forEach(e => {
+      const fields = [e.situation, e.thoughts, e.summary, e.trigger, (e.emotions||[]).join(' '), (e.tools||[]).map(t=>t.name).join(' ')];
+      const match = fields.find(f => f && f.toLowerCase().includes(q));
+      if(match) results.push({type:'diary', id:e.id, title:new Date(e.createdAt).toLocaleDateString('ru-RU'), preview:snippet(match, q)});
+    });
+  }catch(e){}
+  try{
+    const notes = JSON.parse(storage.get('steps_notes')||'[]');
+    notes.forEach(s => {
+      if((s.text||'').toLowerCase().includes(q)) results.push({type:'step', id:s.stepNum||'?', title:'Шаг '+(s.stepNum||'')+': заметка', preview:snippet(s.text, q)});
+    });
+    const prog = JSON.parse(storage.get('steps_progress')||'{}');
+    Object.keys(prog).forEach(k => {
+      (prog[k].answers||[]).forEach((a,i) => {
+        if((a||'').toLowerCase().includes(q)) results.push({type:'step', id:k, title:'Шаг '+k+', вопрос '+(i+1), preview:snippet(a, q)});
+      });
+    });
+  }catch(e){}
+  try{
+    const lib = JSON.parse(storage.get('lib_notes')||'[]');
+    lib.forEach(n => {
+      if((n.text||'').toLowerCase().includes(q)) results.push({type:'library', id:n.id, title:'Заметка: '+(n.chapter||''), preview:snippet(n.text, q)});
+    });
+  }catch(e){}
+  const groups = {diary:'📔 Дневник', step:'📋 Шаги', library:'📚 Библиотека'};
+  const grouped = {};
+  results.forEach(r => {
+    if(!grouped[r.type]) grouped[r.type]=[];
+    if(grouped[r.type].length < 10) grouped[r.type].push(r);
+  });
+  let html = '';
+  Object.keys(grouped).forEach(type => {
+    html += '<div class="search-result-group"><div class="group-title">'+(groups[type]||type)+'</div>';
+    grouped[type].forEach(r => {
+      const onClick = type==='diary'?'closeSearch();showScreen(\'diary\')':type==='step'?'closeSearch();showScreen(\'steps\')':'closeSearch();showScreen(\'library\')';
+      html += '<div class="search-result-item" onclick="'+onClick+'"><div class="title">'+hl(r.title,q)+'</div>'+(r.preview?'<div class="preview">'+r.preview+'</div>':'')+'</div>';
+    });
+    html += '</div>';
+  });
+  container.innerHTML = html || '<div style="padding:30px;text-align:center;color:var(--muted);font-size:13px;">Ничего не найдено</div>';
+}
+function snippet(text, q, max=80){
+  if(!text) return '';
+  const idx = text.toLowerCase().indexOf(q);
+  if(idx === -1) return esc(text.slice(0, max));
+  const start = Math.max(0, idx - 30), end = Math.min(text.length, idx + q.length + 40);
+  return (start>0?'…':'') + esc(text.slice(start, end)) + (end<text.length?'…':'');
+}
+function hl(text, q){
+  if(!text||!q) return esc(text);
+  const r = new RegExp(escRegex(q), 'gi');
+  return esc(text).replace(r, '<mark>$&</mark>');
+}
+function escRegex(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
 /* ===================== AI COMPANION ===================== */
 const AI_API = 'http://localhost:8000';
 let aiHistory = [];
@@ -6129,9 +6242,37 @@ function aiRemoveLoading(){
   const el = document.getElementById('aiLoading');
   if(el) el.remove();
 }
+function buildAIContext(){
+  const ctx = {diary:[], progress:{}, steps:0, recentEvents:[]};
+  try{
+    const all = JSON.parse(storage.get('diary_entries')||'[]');
+    all.sort((a,b)=>b.createdAt - a.createdAt);
+    ctx.diary = all.slice(0,3).map(e=>({
+      intensity:e.intensity, trigger:e.trigger, situation:e.situation,
+      emotions:e.emotions, tools:e.tools?.filter(t=>t.worked).map(t=>t.name),
+      summary:e.summary, date:new Date(e.createdAt).toLocaleDateString('ru-RU')
+    }));
+  }catch(e){}
+  const startStr = storage.get('startDate');
+  if(startStr){
+    const days = calcDays(startStr);
+    const idx = currentMilestoneIndex(days);
+    ctx.progress = {days:days, medal:MILESTONES[idx]?.name};
+  }
+  try{
+    ctx.steps = parseInt(Object.keys(JSON.parse(storage.get('steps_progress')||'{}')).length||'0');
+  }catch(e){}
+  try{
+    const craving = JSON.parse(localStorage.getItem('_craving_log')||'[]');
+    ctx.recentEvents = craving.slice(-3).map(e=>({type:'craving', time:e.time||'', intensity:e.intensity}));
+  }catch(e){}
+  return ctx;
+}
+
 function aiCallAI(text){
   aiShowLoading();
-  const payload = {message:text, history:aiHistory, user_id:'default'};
+  const context = buildAIContext();
+  const payload = {message:text, context:context, history:aiHistory, user_id:'default'};
   const profile = localStorage.getItem('ai_profile');
   if(profile){
     try{ payload.user_id = JSON.parse(profile).user_id || 'default'; }catch(e){}

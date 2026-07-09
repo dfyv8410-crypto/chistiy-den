@@ -11,6 +11,7 @@ class ChatRequest(BaseModel):
     message: str
     history: list[dict] = []
     user_id: str = "default"
+    context: Optional[dict] = None
 
 
 class ChatResponse(BaseModel):

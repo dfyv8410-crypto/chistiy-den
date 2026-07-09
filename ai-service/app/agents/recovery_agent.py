@@ -37,8 +37,8 @@ class RecoveryAgent:
         text_lower = text.lower()
         return any(kw in text_lower for kw in CRISIS_KEYWORDS)
 
-    def _build_context(self, user_id: str) -> str:
-        """Собирает контекст из памяти для системного промпта."""
+    def _build_context(self, user_id: str, extra: Optional[dict] = None) -> str:
+        """Собирает контекст из памяти + данных пользователя."""
         profile = self.memory.get_profile(user_id)
         facts = self.memory.get_facts(user_id, limit=5)
         parts = []
@@ -49,6 +49,28 @@ class RecoveryAgent:
         if facts:
             fact_texts = [f"- {f['content']}" for f in facts]
             parts.append("Что ты знаешь о пользователе:\n" + "\n".join(fact_texts))
+        if extra:
+            diary = extra.get("diary", [])
+            if diary:
+                lines = []
+                for e in diary:
+                    parts_list = [f"  - Ситуация: {e.get('situation','?')}", f"  - Интенсивность: {e.get('intensity','?')}/10"]
+                    if e.get('trigger'): parts_list.append(f"  - Триггер: {e['trigger']}")
+                    if e.get('emotions'): parts_list.append(f"  - Эмоции: {', '.join(e['emotions'])}")
+                    if e.get('tools'): parts_list.append(f"  - Помогло: {', '.join(e['tools'])}")
+                    if e.get('summary'): parts_list.append(f"  - Вывод: {e['summary']}")
+                    lines.append(f"📅 {e.get('date','?')}:\n" + "\n".join(parts_list))
+                parts.append("Недавние записи дневника пользователя (используй для контекста, НЕ цитируй дословно):\n" + "\n\n".join(lines[-3:]))
+            prog = extra.get("progress", {})
+            if prog.get("days") is not None:
+                parts.append(f"Прогресс: {prog['days']} дней чистоты, медаль — {prog.get('medal','—')}.")
+            steps = extra.get("steps", 0)
+            if steps:
+                parts.append(f"Выполнено шагов: {steps}.")
+            events = extra.get("recentEvents", [])
+            if events:
+                ev_lines = [f"  - {e.get('type','?')} (интенсивность: {e.get('intensity','?')})" for e in events[-2:]]
+                parts.append("Последние события:\n" + "\n".join(ev_lines))
         return "\n".join(parts)
 
     def chat(self, req: ChatRequest) -> ChatResponse:
@@ -70,7 +92,7 @@ class RecoveryAgent:
         style = profile.get("style", "balanced")
         system = self.llm.generate_personality(style)
 
-        context = self._build_context(user_id)
+        context = self._build_context(user_id, extra=req.context)
         if context:
             system = f"{system}\n\nКонтекст:\n{context}"
 
