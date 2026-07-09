@@ -1334,9 +1334,9 @@ body{
   <div class="screen" id="screen-ai">
     <div class="ai-header">
       <div>
-        <div class="screen-title" style="margin:0;">AI-помощник</div>
+        <div class="screen-title" style="margin:0;">Твой личный помощник</div>
         <div class="screen-sub" style="margin:0;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-          <span>Твой спутник восстановления</span>
+          <span>Бро</span>
           <span id="aiStatus" class="ai-status disconnected">⚫ Не подключён</span>
         </div>
       </div>
@@ -1347,7 +1347,7 @@ body{
     <div class="ai-chat" id="aiChat">
       <div class="ai-welcome" id="aiWelcome">
         <div class="ai-welcome-icon">🤖</div>
-        <div class="ai-welcome-text" id="aiWelcomeText">Привет. Я твой помощник восстановления. Расскажи, как у тебя дела.</div>
+        <div class="ai-welcome-text" id="aiWelcomeText">Бро. Я твой помощник восстановления. Расскажи, как у тебя дела.</div>
       </div>
     </div>
     <div class="ai-input-bar">
@@ -6261,7 +6261,7 @@ function aiWelcome(){
       const p = JSON.parse(saved);
       document.getElementById('aiWelcomeText').textContent = p.ai_name
         ? p.ai_name+', я здесь. Расскажи, что происходит.'
-        : 'Привет. Я твой помощник восстановления. Расскажи, как у тебя дела.';
+        : 'Бро. Я твой помощник восстановления. Расскажи, как у тебя дела.';
     }catch(e){}
   }
 }
