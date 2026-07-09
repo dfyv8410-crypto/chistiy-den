@@ -361,6 +361,39 @@ body{
 .home-steps-desc{font-size:11px;color:var(--muted);margin-top:1px;}
 .home-steps-arrow{width:20px;height:20px;color:var(--accent);flex:0 0 auto;}
 .home-steps-arrow svg{width:100%;height:100%;}
+.home-help-card{display:flex;align-items:center;gap:12px;background:var(--card);border:2px solid var(--accent);border-radius:var(--radius-lg);padding:14px;margin:0 0 6px;cursor:pointer;transition:transform .15s,box-shadow .15s;}
+.home-help-card:active{transform:scale(.98);}
+.home-help-icon{width:40px;height:40px;border-radius:12px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
+.home-help-icon svg{width:22px;height:22px;}
+.home-help-text{flex:1;min-width:0;}
+.home-help-title{font-weight:800;font-size:15px;color:var(--na-blue);}
+.home-help-desc{font-size:11px;color:var(--muted);margin-top:1px;}
+.home-help-arrow{width:20px;height:20px;color:var(--accent);flex:0 0 auto;}
+.home-help-arrow svg{width:100%;height:100%;}
+.help-screen{padding:0 0 20px;}
+.help-screen-header{display:flex;align-items:center;gap:10px;margin:12px 0 12px;}
+.help-back-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--na-blue);cursor:pointer;display:flex;align-items:center;justify-content:center;flex:0 0 auto;transition:transform .15s;padding:0;}
+.help-back-btn:active{transform:scale(.9);}
+.help-back-btn svg{width:18px;height:18px;}
+.help-step{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-md);padding:14px;margin:0 0 10px;}
+.help-step-title{font-weight:800;font-size:14px;color:var(--na-blue);margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+.help-step-text{font-size:13px;color:var(--cream);line-height:1.6;margin:0;}
+.help-step-action{margin-top:10px;}
+.help-step-action a,.help-step-action button{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--card-2);color:var(--na-blue);font-weight:700;font-size:13px;cursor:pointer;text-decoration:none;font-family:var(--font-body);transition:background .15s;}
+.help-step-action a:active,.help-step-action button:active{background:var(--line);}
+.help-halt-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0;}
+.help-halt-item{background:var(--card-2);border-radius:var(--radius-sm);padding:12px;text-align:center;}
+.help-halt-item .emoji{font-size:24px;}
+.help-halt-item .label{font-size:11px;color:var(--cream);font-weight:700;margin-top:4px;}
+.help-halt-item .desc{font-size:10px;color:var(--muted);margin-top:2px;}
+.help-urgent{background:#E88A7A22;border:1px solid #E88A7A;border-radius:var(--radius-md);padding:14px;margin:0 0 12px;}
+.help-urgent-title{font-weight:800;font-size:14px;color:#E88A7A;margin-bottom:6px;}
+.help-urgent-text{font-size:13px;color:var(--cream);line-height:1.6;}
+.help-section-header{cursor:pointer;display:flex;align-items:center;gap:8px;user-select:none;}
+.help-section-header .arrow{width:16px;height:16px;transition:transform .2s;color:var(--accent);flex:0 0 auto;}
+.help-section-header .arrow.open{transform:rotate(90deg);}
+.help-section-body{display:none;}
+.help-section-body.open{display:block;}
 .steps-screen-header{display:flex;align-items:center;gap:10px;margin:12px 0 0;}
 .steps-back-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--na-blue);cursor:pointer;display:flex;align-items:center;justify-content:center;flex:0 0 auto;transition:transform .15s;padding:0;}
 .steps-back-btn:active{transform:scale(.9);}
@@ -689,7 +722,37 @@ body{
       </div>
     </div>
 
+    <div class="home-help-card" onclick="showScreen('help')">
+      <div class="home-help-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s-7.5-4.6-10-9.3C.4 8 2 4.5 5.4 4.1c2-.2 3.7 1 4.6 2.6.9-1.6 2.6-2.8 4.6-2.6C18 4.5 19.6 8 20 11.7 17.5 16.4 12 21 12 22Z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+      </div>
+      <div class="home-help-text">
+        <div class="home-help-title">Обратиться за помощью</div>
+        <div class="home-help-desc">Протокол поддержки при тяге и кризисе</div>
+      </div>
+      <div class="home-help-arrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </div>
+
     <div class="reset-link" onclick="openSettings()">Изменить дату отсчёта</div>
+  </div>
+
+  <!-- HELP / Обратиться за помощью -->
+  <div class="screen help-screen" id="screen-help">
+    <div class="help-screen-header">
+      <button class="help-back-btn" onclick="showScreen('home')" aria-label="Назад">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <div>
+        <div class="screen-title" style="margin:0;">Обратиться за помощью</div>
+        <div class="screen-sub">Протокол поддержки при тяге и кризисе</div>
+      </div>
+    </div>
+    <div id="helpContent"></div>
   </div>
 
   <!-- DIARY / Дневник тяги -->
@@ -1294,8 +1357,12 @@ body{
       </div>
 
       <div class="settings-section">
-        <h4>📘 Помощь — все функции приложения</h4>
-        <div class="settings-card">
+        <div class="help-section-header" onclick="this.nextElementSibling.classList.toggle('open');this.querySelector('.arrow').classList.toggle('open');">
+          <svg class="arrow open" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="9 18 15 12 9 6"/></svg>
+          <h4 style="margin:0;">📘 Помощь — все функции приложения</h4>
+        </div>
+        <div class="help-section-body open">
+          <div class="settings-card">
           <div style="font-size:13px;color:var(--cream);line-height:1.7;">
 
             <strong style="color:var(--na-blue);">🏠 Главный экран</strong><br>
@@ -1400,6 +1467,17 @@ body{
             <br>• <strong>Мои контакты:</strong> можно добавить телефон наставника, спонсора, доверенного лица или группы поддержки — всё в одном месте для быстрого звонка.
             <br><br>
 
+            <strong style="color:var(--na-blue);">❤️ Обратиться за помощью — протокол поддержки при тяге и кризисе</strong><br>
+            Отдельный экран с пошаговым протоколом для моментов, когда нужна поддержка.
+            <br>• <strong>Экстренные номера</strong> — 112, АН 8-800-101-42-12, 8-800-100-49-94 — всегда перед глазами.
+            <br>• <strong>HALT</strong> — быстрая самопроверка: голоден, зол, одинок, устал? Помогает понять причину тяги.
+            <br>• <strong>Позвонить наставнику</strong> — один звонок, который может всё изменить. Кнопка ведёт в контакты SOS.
+            <br>• <strong>Дыхательная пауза</strong> — 4-4-4 дыхание для снижения стресса за 30 секунд.
+            <br>• <strong>Дневник тяги</strong> — записать мысли и чувства, чтобы увидеть ситуацию со стороны.
+            <br>• <strong>На главный экран / Библиотека</strong> — напомнить себе, зачем ты начал.
+            <br>Карточка с протоколом находится на главном экране, сразу под Шаговой тетрадью.
+            <br><br>
+
             <strong style="color:var(--na-blue);">✅ План на день</strong><br>
             Список дел на сегодня. Добавляй задачи, отмечай выполненные, удаляй. Можно установить напоминание на определённое время — приложение уведомит, когда пора проверить план.
             <br><br>
@@ -1435,6 +1513,7 @@ body{
 
           </div>
         </div>
+      </div>
       </div>
 
       <div class="settings-section">
@@ -1516,63 +1595,71 @@ const DB_SCHEMA_VERSION = 3;
 
 const memoryStore = {};
 let _db = null;
+let _dbPromise = null;
 
 // --- Database Adapter Layer (заменить на SQLite при портировании в Android) ---
 
 function openDB(){
-  return new Promise((resolve,reject)=>{
+  if(_dbPromise) return _dbPromise;
+  _dbPromise = new Promise((resolve,reject)=>{
     try {
       const req = indexedDB.open(DB_NAME, DB_SCHEMA_VERSION);
       req.onupgradeneeded = e => {
         const db = e.target.result;
         if(!db.objectStoreNames.contains('data')) db.createObjectStore('data');
       };
-      req.onsuccess = e => resolve(e.target.result);
-      req.onerror = e => reject(e.target.error);
-    } catch(e){ reject(e); }
+      req.onsuccess = e => { _db = e.target.result; resolve(_db); };
+      req.onerror = e => { _dbPromise = null; reject(e.target.error); };
+      req.onblocked = () => { _dbPromise = null; reject(new Error('IndexedDB blocked: close other tabs')); };
+    } catch(e){ _dbPromise = null; reject(e); }
   });
+  return _dbPromise;
 }
 async function _idbGet(key){
-  if(!_db) _db = await openDB();
+  const db = _db || await openDB();
   return new Promise((resolve,reject)=>{
     try {
-      const tx = _db.transaction('data','readonly');
+      const tx = db.transaction('data','readonly');
       const req = tx.objectStore('data').get(key);
       req.onsuccess = () => resolve(req.result);
       req.onerror = e => reject(e.target.error);
+      tx.onabort = () => reject(new Error('Transaction aborted'));
     } catch(e){ reject(e); }
   });
 }
 async function _idbSet(key,val){
-  if(!_db) _db = await openDB();
+  const db = _db || await openDB();
   return new Promise((resolve,reject)=>{
     try {
-      const tx = _db.transaction('data','readwrite');
+      const tx = db.transaction('data','readwrite');
       tx.objectStore('data').put(val, key);
       tx.oncomplete = () => resolve();
       tx.onerror = e => reject(e.target.error);
+      tx.onabort = () => reject(new Error('Transaction aborted'));
     } catch(e){ reject(e); }
   });
 }
 async function _idbDel(key){
-  if(!_db) _db = await openDB();
+  const db = _db || await openDB();
   return new Promise((resolve,reject)=>{
     try {
-      const tx = _db.transaction('data','readwrite');
+      const tx = db.transaction('data','readwrite');
       tx.objectStore('data').delete(key);
       tx.oncomplete = () => resolve();
       tx.onerror = e => reject(e.target.error);
+      tx.onabort = () => reject(new Error('Transaction aborted'));
     } catch(e){ reject(e); }
   });
 }
 async function _idbGetAllKeys(){
-  if(!_db) _db = await openDB();
+  const db = _db || await openDB();
   return new Promise((resolve,reject)=>{
     try {
-      const tx = _db.transaction('data','readonly');
+      const tx = db.transaction('data','readonly');
       const req = tx.objectStore('data').getAllKeys();
       req.onsuccess = () => resolve(req.result);
       req.onerror = e => reject(e.target.error);
+      tx.onabort = () => reject(new Error('Transaction aborted'));
     } catch(e){ reject(e); }
   });
 }
@@ -2549,6 +2636,7 @@ function showScreen(name){
   if(name==='diary') diaryRenderList();
   if(name==='steps') stepsRender();
   if(name==='step') stepsRenderDetail(stepDetailNum);
+  if(name==='help') renderHelp();
 }
 
 function setAccent(hex){
@@ -2864,18 +2952,6 @@ function displayGroups(meetings){
               ${extra ? '<span class="groups-type-badge">' + extra + '</span>' : ''}
     </div>
   </div>
-
-  <!-- PROTECTION DIALOG -->
-  <div class="modal-backdrop" id="protectionBackdrop">
-    <div class="modal" style="max-width:360px;text-align:center;">
-      <h3 style="margin:0 0 12px;">🛡️ Защита данных</h3>
-      <p style="font-size:14px;color:var(--cream);line-height:1.6;margin:0 0 16px;">Ваши данные восстановления хранятся на устройстве.<br>Создайте резервную копию для защиты истории.</p>
-      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-        <button onclick="doProtectData()" class="btn-primary" style="padding:12px 24px;font-size:14px;">🛡️ Защитить данные</button>
-        <button onclick="closeProtectionDialog()" style="padding:12px 24px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--card);color:var(--muted);font-weight:700;font-size:14px;cursor:pointer;font-family:var(--font-body);">Позже</button>
-      </div>
-    </div>
-  </div>
         </div>`;
       group.appendChild(item);
     });
@@ -3008,9 +3084,12 @@ function requestNotifyPerm(){
     }
   }).catch(e => console.error('Ошибка запроса уведомлений:', e));
 }
+let _audioCtx = null;
 function playSound(type){
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if(!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if(_audioCtx.state === 'suspended') _audioCtx.resume();
+    const ctx = _audioCtx;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain);
@@ -3069,7 +3148,14 @@ const EMOTIONS = ['Тревога','Злость','Одиночество','Ск
 const TRIGGERS = ['Конфликт','Воспоминание','Место','Человек','Усталость','Деньги','Стресс','Сон','Другое'];
 const TOOL_NAMES = ['Молитва','Звонок','Группа','Дыхание','Спорт','Прогулка','Разговор','Медитация','Чтение','Другое'];
 let diaryEditingId = null;
-let diaryToolsState = {}; // { toolName: { worked: bool } }
+let diaryToolsState = {};
+const PAGE_SIZE = 50;
+let diaryPage = 1;
+let _diarySearchTimer = null;
+function _parseEntries(){
+  try { return JSON.parse(storage.get('diary_entries')||'[]') || []; }
+  catch(e){ console.warn('Corrupted diary_entries, resetting'); storage.set('diary_entries','[]'); return []; }
+}
 
 function diaryNew(){
   diaryEditingId = null;
@@ -3156,8 +3242,13 @@ function renderToolsWorked(){
   if(!sel.length){ container.innerHTML = ''; return; }
   container.innerHTML = sel.filter(t => t !== 'Другое').map(t => {
     const w = diaryToolsState[t] === true;
-    return '<label style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--cream);cursor:pointer;margin-right:10px;"><input type="checkbox" '+(w?'checked':'')+' onchange="diaryToolsState[\''+t+'\']=this.checked" style="accent-color:var(--accent);"> '+t+' помог</label>';
+    const id = '__tw_' + t.replace(/[^a-zа-яё0-9]/gi,'_');
+    return '<label style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--cream);cursor:pointer;margin-right:10px;"><input type="checkbox" id="'+id+'" '+(w?'checked':'')+' style="accent-color:var(--accent);"> '+escHtml(t)+' помог</label>';
   }).join('');
+  container.querySelectorAll('input[type=checkbox]').forEach((cb,i) => {
+    const names = sel.filter(t => t !== 'Другое');
+    cb.onchange = () => { diaryToolsState[names[i]] = cb.checked; };
+  });
 }
 
 function updateIntensityUI(val){
@@ -4051,6 +4142,56 @@ function idbSet(key, val){
     tx.objectStore('data').put(val, key);
   }catch(e){}
 }
+function renderHelp(){
+  const c = document.getElementById('helpContent');
+  if(!c) return;
+  c.innerHTML = `
+    <div class="help-urgent">
+      <div class="help-urgent-title">🚨 Если сейчас опасно</div>
+      <div class="help-urgent-text">Если ты думаешь о самоповреждении или чувствуешь, что не можешь себя контролировать — немедленно звони:</div>
+      <div class="help-step-action" style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+        <a href="tel:112">🚑 112</a>
+        <a href="tel:88001014212">📞 АН 8-800-101-42-12</a>
+        <a href="tel:88001004994">💬 8-800-100-49-94</a>
+      </div>
+    </div>
+    <div class="help-step">
+      <div class="help-step-title">🧘 Остановись и проверь HALT</div>
+      <div class="help-step-text">HALT — это сигнал тела. Остановись и проверь каждую букву.</div>
+      <div class="help-halt-grid">
+        <div class="help-halt-item"><div class="emoji">🍔</div><div class="label">Голоден</div><div class="desc">Съешь что-то</div></div>
+        <div class="help-halt-item"><div class="emoji">😤</div><div class="label">Зол</div><div class="desc">Выдохни, пройдись</div></div>
+        <div class="help-halt-item"><div class="emoji">😔</div><div class="label">Одинок</div><div class="desc">Позвони кому-то</div></div>
+        <div class="help-halt-item"><div class="emoji">😴</div><div class="label">Устал</div><div class="desc">Отдохни, поспи</div></div>
+      </div>
+    </div>
+    <div class="help-step">
+      <div class="help-step-title">📞 Позвони наставнику или другу</div>
+      <div class="help-step-text">Ты не один. Один звонок может всё изменить. Не надо объяснять — просто набери.</div>
+      <div class="help-step-action"><button onclick="showScreen('sos')">📞 Открыть контакты SOS</button></div>
+    </div>
+    <div class="help-step">
+      <div class="help-step-title">🙏 Сделай паузу и подыши</div>
+      <div class="help-step-text">Вдох на 4 счёта — задержка на 4 — выдох на 4. Повтори 5 раз. Это снижает уровень стресса за 30 секунд.</div>
+    </div>
+    <div class="help-step">
+      <div class="help-step-title">📝 Напиши, что чувствуешь</div>
+      <div class="help-step-text">Запиши свои мысли в дневник тяги. Это поможет увидеть ситуацию со стороны.</div>
+      <div class="help-step-action"><button onclick="showScreen('diary')">📝 Открыть дневник тяги</button></div>
+    </div>
+    <div class="help-step">
+      <div class="help-step-title">📖 Вспомни, зачем ты начал</div>
+      <div class="help-step-text">Открой «Базовый текст» или напоминание о твоей дате отсчёта. Ты уже прошёл долгий путь.</div>
+      <div class="help-step-action" style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button onclick="showScreen('home')">🏠 На главный экран</button>
+        <button onclick="showScreen('library')">📖 Открыть библиотеку</button>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);padding:12px;text-align:center;line-height:1.5;">
+      Это приложение — не медицинская помощь. Если тебе или кому-то рядом нужна срочная помощь — звони 112.
+    </div>
+  `;
+}
 function renderLibrary(){
   document.getElementById('libBookPanel').classList.remove('hide');
   document.getElementById('libReaderPanel').classList.remove('active');
@@ -4642,15 +4783,16 @@ function toggleLibFullscreen(){
   const app = document.getElementById('app');
   app.classList.toggle('lib-fullscreen');
 }
-// save scroll position periodically
-setInterval(() => {
+let _scrollTimer = null;
+document.addEventListener('scroll', () => {
   const reader = document.getElementById('libReader');
-  if(reader && reader.style.display !== 'none'){
+  if(!reader || reader.style.display === 'none') return;
+  if(_scrollTimer) clearTimeout(_scrollTimer);
+  _scrollTimer = setTimeout(() => {
     libState.scrollPos = reader.scrollTop;
     saveLibState();
-  }
-}, 2000);
-// init on first page load
+  }, 300);
+}, { passive: true });
 // swipe gesture for chapter navigation
 (function(){
   let sx = 0, sy = 0;
