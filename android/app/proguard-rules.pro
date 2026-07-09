@@ -1,0 +1,2 @@
+-keepclassmembers class com.chestny.den.WebAppInterface { *; }
+-keepattributes JavascriptInterface

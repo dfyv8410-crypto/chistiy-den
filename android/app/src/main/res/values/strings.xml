@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Чистый день</string>
+    <string name="widget_text">День восстановления:</string>
+    <string name="pin_title">Чистый день</string>
+    <string name="pin_hint">Введите пин-код</string>
+    <string name="biometric_title">Биометрическая защита</string>
+    <string name="biometric_subtitle">Подтвердите личность</string>
+    <string name="notification_channel_general">Общие уведомления</string>
+    <string name="notification_channel_reminder">Напоминания</string>
+    <string name="notification_channel_crisis">Кризисная поддержка</string>
+    <string name="shortcut_help">Обратиться за помощью</string>
+    <string name="shortcut_diary">Дневник тяги</string>
+    <string name="shortcut_prayer">Молитва</string>
+    <string name="shortcut_steps">Шаги</string>
+</resources>
