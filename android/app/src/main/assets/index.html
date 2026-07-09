@@ -6220,23 +6220,21 @@ function aiSetStatus(ok){
   const el = document.getElementById('aiStatus');
   if(!el) return;
   const saved = JSON.parse(localStorage.getItem('ai_profile')||'{}');
-  if(ok && saved.gemini_key){
-    el.className = 'ai-status connected';
-    el.innerHTML = '🟢 Gemini';
+  if(ok && saved.ai_provider==='deepseek' && saved.deepseek_key){
+    el.className = 'ai-status connected'; el.innerHTML = '🟢 DeepSeek';
+  }else if(ok && saved.gemini_key){
+    el.className = 'ai-status connected'; el.innerHTML = '🟢 Gemini';
   }else if(ok){
-    el.className = 'ai-status connected';
-    el.innerHTML = '🟢 Подключено';
+    el.className = 'ai-status connected'; el.innerHTML = '🟢 Подключено';
   }else{
-    el.className = 'ai-status disconnected';
-    el.innerHTML = '🔴 Не подключён';
+    el.className = 'ai-status disconnected'; el.innerHTML = '🔴 Не подключён';
   }
 }
 function aiUpdateStatus(){
   const saved = JSON.parse(localStorage.getItem('ai_profile')||'{}');
-  if(saved.gemini_key){
-    aiSetStatus(true);
-    return;
-  }
+  if(saved.ai_provider==='gemini' && saved.gemini_key){ aiSetStatus(true); return; }
+  if(saved.ai_provider==='deepseek' && saved.deepseek_key){ aiSetStatus(true); return; }
+  if(saved.gemini_key || saved.deepseek_key){ aiSetStatus(true); return; }
   const server = saved.server || AI_API;
   const ctrl = new AbortController();
   const tid = setTimeout(()=>ctrl.abort(), 3000);
@@ -6246,7 +6244,7 @@ function aiUpdateStatus(){
 }
 function aiAutoConnect(){
   if(!localStorage.getItem('ai_profile')){
-    localStorage.setItem('ai_profile', JSON.stringify({ai_name:'', style:'balanced', server:AI_API, gemini_key:'', user_id:'default'}));
+    localStorage.setItem('ai_profile', JSON.stringify({ai_name:'', style:'balanced', server:AI_API, gemini_key:'', deepseek_key:'', ai_provider:'deepseek', user_id:'default'}));
   }
   aiUpdateStatus();
   setInterval(aiUpdateStatus, 30000);
@@ -6324,6 +6322,7 @@ function buildAIContext(){
 function aiCallAI(text){
   aiShowLoading();
   const profile = JSON.parse(localStorage.getItem('ai_profile')||'{}');
+  if(profile.ai_provider==='deepseek' && profile.deepseek_key) return aiCallDeepSeek(text, profile);
   if(profile.gemini_key) return aiCallGemini(text, profile);
   aiCallServer(text);
 }
@@ -6377,6 +6376,34 @@ function aiCallGemini(text, profile){
     console.error('Gemini error:', err);
   });
 }
+function aiCallDeepSeek(text, profile){
+  const key = profile.deepseek_key;
+  const system = aiBuildSystemPrompt(profile);
+  const messages = [{role:'system', content:system}];
+  aiHistory.forEach(m => messages.push({role:m.role, content:m.content}));
+  messages.push({role:'user', content:text});
+  fetch('https://api.deepseek.com/v1/chat/completions', {
+    method:'POST',
+    headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+key},
+    body:JSON.stringify({model:'deepseek-chat', messages, max_tokens:512})
+  })
+  .then(r=>r.json())
+  .then(data=>{
+    aiRemoveLoading();
+    const reply = data.choices?.[0]?.message?.content||'...';
+    aiAddMessage(reply, 'bot');
+    aiHistory.push({role:'assistant', content:reply});
+    const crisisWords = ['кризис','срыв','употребить','плохо','страшно','одиночество','безнадёжно'];
+    if(crisisWords.some(w=>text.toLowerCase().includes(w)||(reply||'').toLowerCase().includes(w))){
+      setTimeout(()=>notify('AI заметил кризис. Открой помощь.', null, true), 1000);
+    }
+  })
+  .catch(err=>{
+    aiRemoveLoading();
+    aiAddMessage('Извини, сейчас я не могу ответить. Проверь API-ключ DeepSeek.', 'bot');
+    console.error('DeepSeek error:', err);
+  });
+}
 function aiCallServer(text){
   const context = buildAIContext();
   const payload = {message:text, context:context, history:aiHistory, user_id:'default'};
@@ -6428,10 +6455,23 @@ function aiShowSettings(){
       <option value="direct" ${saved.style==='direct'?'selected':''}>Прямой</option>
       <option value="coach" ${saved.style==='coach'?'selected':''}>Наставник</option>
     </select>
-    <label style="margin-top:8px;">🔑 Ключ Gemini API (бесплатно)</label>
-    <input id="aiGeminiKey" value="${escHtml(saved.gemini_key||'')}" placeholder="Вставь ключ из aistudio.google.com">
-    <div style="font-size:10px;color:var(--muted);margin:-4px 0 4px;">Получить ключ: <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" style="color:var(--accent);">aistudio.google.com/apikey</a> — бесплатно, нужен Google-аккаунт</div>
-    <label>Сервер AI (если нет ключа Gemini)</label>
+    <label style="margin-top:8px;">Провайдер AI</label>
+    <select id="aiProvider" onchange="var v=this.value;document.getElementById('aiGeminiFields').style.display=v==='gemini'?'':'none';document.getElementById('aiDeepSeekFields').style.display=v==='deepseek'?'':'none';">
+      <option value="gemini" ${saved.ai_provider==='gemini'||(!saved.ai_provider&&saved.gemini_key)?'selected':''}>Google Gemini (бесплатно)</option>
+      <option value="deepseek" ${saved.ai_provider==='deepseek'?'selected':''}>DeepSeek (работает в РФ, бесплатно)</option>
+      <option value="server" ${saved.ai_provider==='server'||(!saved.ai_provider&&!saved.gemini_key)?'selected':''}>Локальный сервер</option>
+    </select>
+    <div id="aiGeminiFields" ${(!saved.ai_provider||saved.ai_provider==='gemini')?'':'style="display:none"'}>
+      <label>🔑 Ключ Gemini API</label>
+      <input id="aiGeminiKey" value="${escHtml(saved.gemini_key||'')}" placeholder="Вставь ключ из aistudio.google.com">
+      <div style="font-size:10px;color:var(--muted);margin:-4px 0 4px;">Получить: <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" style="color:var(--accent);">aistudio.google.com/apikey</a></div>
+    </div>
+    <div id="aiDeepSeekFields" ${saved.ai_provider==='deepseek'?'':'style="display:none"'}>
+      <label>🔑 Ключ DeepSeek API</label>
+      <input id="aiDeepSeekKey" value="${escHtml(saved.deepseek_key||'')}" placeholder="Вставь ключ из platform.deepseek.com">
+      <div style="font-size:10px;color:var(--muted);margin:-4px 0 4px;">Получить: <a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener" style="color:var(--accent);">platform.deepseek.com/api_keys</a> — 10M токенов бесплатно</div>
+    </div>
+    <label>Сервер AI (локальный)</label>
     <input id="aiServer" value="${escHtml(saved.server||AI_API)}" placeholder="http://localhost:8000">
     <button class="btn-primary" onclick="aiSaveSettings()" style="padding:10px;border:none;border-radius:999px;font-weight:700;font-size:14px;width:100%;">Сохранить</button>
     <button class="btn-secondary" onclick="aiClearChat()" style="padding:10px;border-radius:999px;font-weight:700;font-size:14px;width:100%;margin-top:4px;background:var(--card);border:1.5px dashed var(--accent);">Очистить историю</button>
@@ -6442,8 +6482,10 @@ function aiSaveSettings(){
   const name = document.getElementById('aiName').value.trim();
   const style = document.getElementById('aiStyle').value;
   const server = document.getElementById('aiServer').value.trim();
+  const ai_provider = document.getElementById('aiProvider').value;
   const gemini_key = document.getElementById('aiGeminiKey').value.trim();
-  const profile = {ai_name:name, style:style, server:server||AI_API, gemini_key:gemini_key, user_id:'default'};
+  const deepseek_key = document.getElementById('aiDeepSeekKey').value.trim();
+  const profile = {ai_name:name, style:style, server:server||AI_API, ai_provider:ai_provider, gemini_key:gemini_key, deepseek_key:deepseek_key, user_id:'default'};
   localStorage.setItem('ai_profile', JSON.stringify(profile));
   const panel = document.getElementById('aiSettingsPanel');
   if(panel) panel.remove();
