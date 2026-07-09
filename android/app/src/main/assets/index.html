@@ -6124,7 +6124,7 @@ setTimeout(()=>{
   if(s) s.classList.add('hide');
 }, 1500);
 
-setTimeout(aiAutoConnect, 2000);
+aiAutoConnect();
 
 /* ===================== GLOBAL SEARCH ===================== */
 function openSearch(){
@@ -6210,6 +6210,7 @@ let aiReady = false;
 function aiInit(){
   const chat = document.getElementById('aiChat');
   if(chat && chat.querySelector('.ai-msg')) return;
+  if(!localStorage.getItem('ai_profile')) aiAutoConnect();
   if(aiHistory.length === 0){
     aiWelcome();
   }
@@ -6249,10 +6250,12 @@ function aiAutoConnect(){
     localStorage.setItem('ai_profile', JSON.stringify(profile));
   }else{
     const p = JSON.parse(localStorage.getItem('ai_profile'));
-    if(!p.deepseek_key) { p.deepseek_key = ''; localStorage.setItem('ai_profile', JSON.stringify(p)); }
+    if(!p.deepseek_key) { p.deepseek_key = ''; }
+    if(!p.ai_provider) { p.ai_provider = 'deepseek'; }
+    localStorage.setItem('ai_profile', JSON.stringify(p));
   }
   aiUpdateStatus();
-  setInterval(aiUpdateStatus, 30000);
+  if(!window._aiInterval) { window._aiInterval = setInterval(aiUpdateStatus, 30000); }
 }
 function aiWelcome(){
   const saved = localStorage.getItem('ai_profile');
@@ -6393,10 +6396,12 @@ function aiCallDeepSeek(text, profile){
   fetch('https://api.deepseek.com/v1/chat/completions', {
     method:'POST',
     headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+key},
-    body:JSON.stringify({model:'deepseek-chat', messages, max_tokens:512})
+    body:JSON.stringify({model:'deepseek-v4-flash', messages, max_tokens:512})
   })
   .then(r=>{
     if(!r.ok && r.status===402) throw new Error('quota_exceeded');
+    if(!r.ok && (r.status===401||r.status===403)) throw new Error('invalid_key');
+    if(!r.ok) throw new Error('http_'+r.status);
     return r.json();
   })
   .then(data=>{
@@ -6413,8 +6418,10 @@ function aiCallDeepSeek(text, profile){
     aiRemoveLoading();
     if(err.message==='quota_exceeded' || (err+'').includes('402')){
       aiAddMessage('🔑 Бесплатные токены DeepSeek закончились. Вот как получить новый ключ бесплатно:\n\n1. Зайди на platform.deepseek.com/api_keys\n2. Войди или зарегистрируйся (почта/пароль)\n3. Нажми "Create API Key"\n4. Скопируй новый ключ\n5. Вставь его в Настройки AI → поле "Ключ DeepSeek"\n\nВсё бесплатно — дают 10 млн токенов.', 'bot');
+    }else if(err.message==='invalid_key'){
+      aiAddMessage('Ключ DeepSeek недействителен. Введи новый ключ в Настройки AI. Получить бесплатный ключ: platform.deepseek.com/api_keys', 'bot');
     }else{
-      aiAddMessage('Извини, сейчас я не могу ответить. Если хочешь — введи свой ключ DeepSeek в настройках AI (бесплатно, 10M токенов).', 'bot');
+      aiAddMessage('Извини, сейчас я не могу ответить. Проверь подключение к интернету. Если хочешь — введи свой ключ DeepSeek в настройках AI (бесплатно, 10M токенов).', 'bot');
     }
     console.error('DeepSeek error:', err);
   });
