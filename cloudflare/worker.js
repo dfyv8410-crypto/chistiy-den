@@ -2,10 +2,13 @@
 // Ключей не нужно: модель крутится на стороне Cloudflare (env.AI).
 // Клиент (GitHub Pages / APK) звонит сюда, а не напрямую к API.
 
-const MODEL = '@cf/deepseek/deepseek-r1-distill-qwen-32b';
-// Альтернативы (бесплатно, на выбор):
-//   '@cf/meta/llama-3.1-8b-instruct'  — быстрее, без рассуждений
-//   '@cf/meta/llama-3.3-70b-instruct' — качественнее (может требовать план)
+// Пробуем модели по очереди, пока не найдём доступную в аккаунте.
+const MODELS = [
+  '@cf/deepseek/deepseek-r1-distill-qwen-32b',
+  '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+  '@cf/meta/llama-3.1-8b-instruct',
+  '@cf/deepseek/deepseek-v3-0324'
+];
 
 function corsHeaders() {
   return {
@@ -43,7 +46,19 @@ export default {
       if (!messages.length) return json({ error: 'No messages' }, 400);
 
       try {
-        const result = await env.AI.run(MODEL, { messages });
+        let result, usedModel;
+        for (const m of MODELS) {
+          try {
+            result = await env.AI.run(m, { messages });
+            usedModel = m;
+            break;
+          } catch (err) {
+            // если модель недоступна — пробуем следующую
+            if (/No such model|5007/.test(err.message || '')) continue;
+            throw err;
+          }
+        }
+        if (!result) return json({ error: 'No available model in this account' }, 500);
         let text = (result && (result.response || result.content || '')) + '';
         // убираем теги рассуждений <think>...</think>, если модель их выдаёт
         text = text.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();

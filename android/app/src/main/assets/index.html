@@ -6204,7 +6204,7 @@ function escRegex(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 /* ===================== AI COMPANION ===================== */
 const AI_API = 'http://localhost:8000';
 const DEEPSEEK_DEFAULT_KEY = 'sk-' + '307718887cf74eb1835735a0c9ae739c';
-const AI_WORKER_URL = ''; // заполните в Настройках AI → «URL Worker», либо здесь
+const AI_WORKER_URL = 'https://rough-mud-49a8.dfyv8410.workers.dev'; // Cloudflare Worker (бесплатно, без ключа)
 let aiHistory = [];
 let aiReady = false;
 
