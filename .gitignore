@@ -6,3 +6,5 @@ package.json
 *.aab
 *.apk
 app/keystore.jks
+__pycache__/
+*.pyc
