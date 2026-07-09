@@ -234,10 +234,10 @@ body{
 .modal button{flex:1;padding:12px;border-radius:999px;border:none;font-weight:800;font-size:14px;font-family:var(--font-body);cursor:pointer;transition:transform .15s;}
 .modal button:active{transform:scale(.97);}
 .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
-.modal-close{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;padding:0;flex:0 0 auto;}
-.modal button.modal-close{flex:0 0 auto;width:36px;height:36px;padding:0;border-radius:50%;font-weight:400;font-size:inherit;}
-.modal-close:hover{background:var(--card-2);color:var(--na-blue);border-color:var(--accent);}
-.modal-close svg{width:18px;height:18px;stroke:currentColor;}
+.modal-close{width:40px;height:40px;border-radius:50%;border:2px solid var(--line);background:var(--card);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;padding:0;flex:0 0 auto;box-shadow:0 0 0 3px var(--card),0 0 0 5px var(--line);}
+.modal button.modal-close{flex:0 0 auto;width:40px;height:40px;padding:0;border-radius:50%;font-weight:400;font-size:inherit;}
+.modal-close:hover{background:var(--card-2);color:var(--na-blue);border-color:var(--accent);box-shadow:0 0 0 3px var(--card),0 0 0 5px var(--accent);}
+.modal-close svg{width:20px;height:20px;stroke:currentColor;}
 .modal-close:active{transform:scale(.9);}
 .btn-primary{background:var(--accent);color:#fff;}
 .btn-secondary{background:var(--card);color:var(--na-blue);border:2px solid var(--na-blue)!important;font-weight:700!important;}
@@ -1433,6 +1433,23 @@ body{
         <div class="help-section-body">
           <div class="settings-card">
           <div style="font-size:13px;color:var(--cream);line-height:1.7;">
+
+            <div style="background:var(--card-2);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:14px;font-size:12px;line-height:1.7;">
+              <strong style="color:var(--na-blue);font-size:13px;">📋 Все возможности приложения:</strong><br>
+              🏠 <strong>Главный экран</strong> — счётчик дней, медали, прогресс<br>
+              🙏 <strong>Молитва</strong> — при запуске на 9 сек<br>
+              📝 <strong>Дневник тяги</strong> — запись эпизодов, триггеры, инструменты, 6 вкладок статистики, месячный отчёт<br>
+              📖 <strong>Шаговая тетрадь</strong> — 12 шагов, блоки, прогресс, наставник, экспорт<br>
+              📚 <strong>Библиотека</strong> — Базовый текст, свои книги, закладки, заметки, поиск<br>
+              🕐 <strong>Расписание</strong> — собрания АН Москвы и МО с na-russia.org<br>
+              🆘 <strong>SOS</strong> — экстренные номера, контакты поддержки<br>
+              ❤️ <strong>Обратиться за помощью</strong> — кризисный помощник с таймером, заземлением, сценариями состояний<br>
+              ✅ <strong>План на день</strong> — дела, напоминания<br>
+              🎖️ <strong>Медали</strong> — 10 цветных медалей за сроки чистоты<br>
+              ⏰ <strong>Напоминания</strong> — уведомления, звук, вибрация<br>
+              🛐 <strong>Служение</strong> — график служений в группах<br>
+              ⚙️ <strong>Настройки</strong> — дата отсчёта, тема, хранилище, backup, донат<br>
+            </div>
 
             <strong style="color:var(--na-blue);">🏠 Главный экран</strong><br>
             Счётчик чистых дней, текущая цветная медаль, прогресс до следующей медали, статистика (недели/месяцы/часы).
