@@ -6246,7 +6246,7 @@ function aiUpdateStatus(){
 }
 function aiAutoConnect(){
   if(!localStorage.getItem('ai_profile')){
-    const profile = {ai_name:'', style:'balanced', server:AI_API, gemini_key:'', deepseek_key:'', ai_provider:'deepseek', user_id:'default'};
+    const profile = {ai_name:'Антон', style:'balanced', server:AI_API, gemini_key:'', deepseek_key:'', ai_provider:'deepseek', user_id:'default'};
     localStorage.setItem('ai_profile', JSON.stringify(profile));
   }else{
     const p = JSON.parse(localStorage.getItem('ai_profile'));
@@ -6263,8 +6263,8 @@ function aiWelcome(){
     try{
       const p = JSON.parse(saved);
       document.getElementById('aiWelcomeText').textContent = p.ai_name
-        ? p.ai_name+', я здесь. Расскажи, что происходит.'
-        : 'Бро. Я твой помощник восстановления. Расскажи, как у тебя дела.';
+        ? p.ai_name+', я — психолог, специалист по восстановлению. Расскажи, что происходит.'
+        : 'Привет, я Антон, психолог. Помогу тебе на пути восстановления.';
     }catch(e){}
   }
 }
@@ -6344,6 +6344,7 @@ function aiBuildSystemPrompt(profile){
   let p = 'Ты — персональный помощник восстановления для участников сообщества Анонимные Наркоманы (NA). ';
   p += 'Твоя задача — поддерживать чистоту и трезвость пользователя, помогать справляться с тягой, ';
   p += 'давать надежду и напоминать об инструментах программы 12 шагов.\n\n';
+  p += 'Тебя зовут Антон, ты профессиональный психолог. Общайся как опытный психолог — тепло, профессионально, с глубоким пониманием зависимости и восстановления.\n\n';
   p += 'Стиль общения: '+styleDesc[style]+'.\n';
   p += 'Отвечай кратко (2-5 предложений), тепло, на русском языке. ';
   p += 'Не ставь медицинских диагнозов и не назначай лекарств. ';
