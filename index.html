@@ -394,6 +394,69 @@ body{
 .help-section-header .arrow.open{transform:rotate(90deg);}
 .help-section-body{display:none;}
 .help-section-body.open{display:block;}
+
+/* --- Help block v2 --- */
+.help-landing{text-align:center;padding:4px 0;}
+.help-landing-title{font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--na-blue);line-height:1.3;margin:0 0 6px;}
+.help-landing-sub{font-size:13px;color:var(--muted);line-height:1.5;margin:0 0 20px;}
+.help-btn-primary, .help-btn-danger, .help-btn-outline, .help-btn-sm{display:block;width:100%;padding:14px;border-radius:var(--radius-md);font-weight:800;font-size:15px;font-family:var(--font-body);cursor:pointer;border:none;text-align:center;transition:transform .15s;text-decoration:none;}
+.help-btn-primary:active,.help-btn-danger:active,.help-btn-outline:active,.help-btn-sm:active{transform:scale(.97);}
+.help-btn-primary{background:var(--accent);color:#fff;}
+.help-btn-danger{background:#E88A7A;color:#fff;}
+.help-btn-outline{background:var(--card);border:2px solid var(--accent);color:var(--na-blue);}
+.help-btn-sm{padding:10px;font-size:13px;font-weight:700;}
+.help-divider{font-size:11px;color:var(--muted);margin:14px 0;text-align:center;position:relative;}
+.help-divider::before,.help-divider::after{content:'';position:absolute;top:50%;width:42%;height:1px;background:var(--line);}
+.help-divider::before{left:0;}
+.help-divider::after{right:0;}
+.help-quick-row{display:flex;gap:8px;margin-top:10px;}
+.help-quick-row .help-btn-sm{flex:1;}
+.help-recovery{text-align:center;padding:12px 0;}
+.help-timer{font-family:var(--font-display);font-size:52px;font-weight:800;color:var(--accent);line-height:1;margin:20px 0;letter-spacing:2px;}
+.help-phrase{font-size:19px;font-weight:700;color:var(--na-blue);line-height:1.5;min-height:60px;display:flex;align-items:center;justify-content:center;transition:opacity .4s;margin:10px 0 24px;}
+.help-phrase.fade{opacity:0;}
+@keyframes helpPulse{0%{transform:scale(1)}50%{transform:scale(1.02)}100%{transform:scale(1)}}
+.help-pulse{animation:helpPulse 3s ease-in-out infinite;}
+.help-recovery-actions{display:flex;flex-direction:column;gap:8px;margin-top:16px;}
+.help-grounding-item{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:6px;cursor:pointer;transition:background .15s;}
+.help-grounding-item:active{background:var(--card-2);}
+.help-grounding-item .cb{width:22px;height:22px;border-radius:50%;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;flex:0 0 auto;transition:all .2s;}
+.help-grounding-item .cb.done{background:var(--accent);}
+.help-grounding-item .cb svg{width:13px;height:13px;stroke:#fff;display:none;}
+.help-grounding-item .cb.done svg{display:block;}
+.help-grounding-item .label{font-size:14px;font-weight:600;color:var(--cream);}
+.help-grounding-item .desc{font-size:11px;color:var(--muted);margin-top:2px;}
+.help-state-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.help-state-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-md);padding:16px 12px;text-align:center;cursor:pointer;transition:transform .15s,box-shadow .15s;}
+.help-state-card:active{transform:scale(.96);}
+.help-state-card .emoji{font-size:28px;display:block;margin-bottom:4px;}
+.help-state-card .label{font-size:12px;font-weight:700;color:var(--cream);}
+.help-scenario{padding:0;}
+.help-scenario-text{font-size:14px;color:var(--cream);line-height:1.7;background:var(--card-2);border-radius:var(--radius-md);padding:14px;margin:0 0 14px;}
+.help-scenario-actions{display:flex;flex-direction:column;gap:8px;}
+.help-rescue-form{display:flex;flex-direction:column;gap:10px;}
+.help-rescue-form label{font-size:12px;font-weight:700;color:var(--na-blue);}
+.help-rescue-form input,.help-rescue-form textarea{width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--card-2);color:var(--cream);font-size:13px;font-family:var(--font-body);resize:vertical;box-sizing:border-box;}
+.help-rescue-form input:focus,.help-rescue-form textarea:focus{outline:none;border-color:var(--accent);}
+.help-rating{text-align:center;}
+.help-rating-value{font-size:48px;font-weight:800;color:var(--accent);margin:10px 0;}
+.help-rating-slider{width:100%;-webkit-appearance:none;height:6px;border-radius:99px;background:linear-gradient(to right,var(--accent),#E88A7A);outline:none;}
+.help-rating-slider::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:var(--card);border:2px solid var(--accent);cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.15);}
+.help-sos-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;}
+.help-sos-title{font-family:var(--font-display);font-size:28px;font-weight:800;color:#E88A7A;margin-bottom:24px;}
+.help-sos-actions{display:flex;flex-direction:column;gap:12px;width:100%;max-width:300px;}
+.help-sos-actions button{display:flex;align-items:center;justify-content:center;gap:8px;padding:16px;border-radius:var(--radius-md);border:none;font-weight:800;font-size:16px;font-family:var(--font-body);cursor:pointer;transition:transform .15s;}
+.help-sos-actions button:active{transform:scale(.96);}
+.help-sos-close{position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.help-stats{font-size:12px;color:var(--muted);padding:12px;text-align:center;line-height:1.5;background:var(--card);border-radius:var(--radius-md);margin-top:10px;}
+.help-chart-bar{display:flex;align-items:center;gap:8px;margin:4px 0;font-size:11px;}
+.help-chart-bar .bar{height:16px;border-radius:4px;background:var(--accent);transition:width .4s;min-width:4px;}
+.help-chart-bar .num{width:24px;text-align:right;color:var(--muted);font-weight:700;}
+.help-back-link{text-align:center;margin-top:14px;}
+.help-back-link button{background:none;border:none;color:var(--accent);font-weight:700;font-size:12px;cursor:pointer;font-family:var(--font-body);padding:4px 8px;}
+.help-section-title{font-weight:800;font-size:15px;color:var(--na-blue);margin-bottom:10px;text-align:center;}
+.help-section-sub{font-size:12px;color:var(--muted);margin-bottom:14px;text-align:center;line-height:1.5;}
+
 .steps-screen-header{display:flex;align-items:center;gap:10px;margin:12px 0 0;}
 .steps-back-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--na-blue);cursor:pointer;display:flex;align-items:center;justify-content:center;flex:0 0 auto;transition:transform .15s;padding:0;}
 .steps-back-btn:active{transform:scale(.9);}
@@ -1358,10 +1421,10 @@ body{
 
       <div class="settings-section">
         <div class="help-section-header" onclick="this.nextElementSibling.classList.toggle('open');this.querySelector('.arrow').classList.toggle('open');">
-          <svg class="arrow open" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="9 18 15 12 9 6"/></svg>
+          <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="9 18 15 12 9 6"/></svg>
           <h4 style="margin:0;">📘 Помощь — все функции приложения</h4>
         </div>
-        <div class="help-section-body open">
+        <div class="help-section-body">
           <div class="settings-card">
           <div style="font-size:13px;color:var(--cream);line-height:1.7;">
 
@@ -2624,6 +2687,7 @@ function currentMilestoneIndex(days){
 }
 
 function showScreen(name){
+  if(name!=='help') _helpCleanup();
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('screen-'+name).classList.add('active');
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===name));
@@ -4143,54 +4207,280 @@ function idbSet(key, val){
   }catch(e){}
 }
 function renderHelp(){
+  _helpCleanup();
+  _helpShowLanding();
+}
+/* --- Help state machine --- */
+let _helpState = 'landing', _helpTimer = null, _helpPhraseTimer = null, _helpRecoveryStart = null, _helpSelState = null, _helpBefore = 0, _helpGroundDone = 0;
+const _helpPhrases = ['Это чувство временное.','Тяга — это сигнал мозга, а не команда.','Мне не нужно действовать прямо сейчас.','Я могу пережить следующие 10 минут.','Мои эмоции сильные, но они пройдут.','Я уже проходил через трудные моменты.','Сейчас моя задача — сохранить себя.','Один момент. Один выбор. Один день.'];
+const _helpStates = [
+  {id:'craving',emoji:'🔥',label:'Сильная тяга',text:'Не нужно побеждать всю жизнь. Нужно пережить ближайшие минуты.',actions:[
+    {label:'Запустить дыхание',click:'_helpBreathing()'},
+    {label:'Открыть дневник тяги',click:"showScreen('diary')"},
+    {label:'Позвонить поддержке',click:"showScreen('sos')"}
+  ]},
+  {id:'anxiety',emoji:'😰',label:'Тревога',text:'Тревога заставляет мозг искать опасность. Сейчас вернём контроль телу.',actions:[
+    {label:'Дышать — 4 вдох / 6 выдох',click:'_helpBreathing()'}
+  ]},
+  {id:'lonely',emoji:'😔',label:'Одиночество',text:'Изоляция усиливает тягу. Контакт помогает восстановлению.',actions:[
+    {label:'Открыть контакты поддержки',click:"showScreen('sos')"}
+  ]},
+  {id:'anger',emoji:'😡',label:'Злость',text:'Не принимай решений в состоянии сильной эмоции.',actions:[
+    {label:'Сделать паузу и пройтись',click:'_helpBreathing()'},
+    {label:'Выпить воды',click:"_helpToast('Сделай несколько глотков воды. Медленно.')"},
+    {label:'Записать мысли',click:'_helpShowGrounding()'}
+  ]},
+  {id:'tired',emoji:'😴',label:'Усталость',text:'Усталость снижает твою способность сопротивляться тяге. Отдых — это тоже работа по программе.',actions:[
+    {label:'Прилечь на 15 минут',click:"_helpToast('Поставь таймер на 15 минут. Даже короткий отдых восстанавливает.')"},
+    {label:'Выпить воды',click:"_helpToast('Обезвоживание часто маскируется под усталость.')"}
+  ]},
+  {id:'relapse',emoji:'🍺',label:'Мысли о срыве',text:'Мысль о срыве — это не решение. Это сигнал, что нужна поддержка прямо сейчас. Ты не должен проходить через это один.',actions:[
+    {label:'Позвонить наставнику',click:"showScreen('sos')"},
+    {label:'Запустить дыхание',click:'_helpBreathing()'},
+    {label:'Перечитать «Почему я бросил»',click:'_helpToast("Закрой глаза. Вспомни самое дно. Ты уже знаешь, чем заканчивается срыв.")'}
+  ]}
+];
+function _helpCleanup(){
+  if(_helpTimer){clearInterval(_helpTimer);_helpTimer=null;}
+  if(_helpPhraseTimer){clearInterval(_helpPhraseTimer);_helpPhraseTimer=null;}
+  const ov = document.getElementById('_helpSosOverlay');
+  if(ov) ov.remove();
+}
+function _helpHtml(h){const c = document.getElementById('helpContent');if(c)c.innerHTML=h;}
+function _helpHdr(){return _helpHeader || '';}
+function _helpShowLanding(){
+  _helpSelState = null; _helpBefore = 0; _helpGroundDone = 0;
+  _helpHtml(`
+    <div class="help-landing">
+      <div class="help-landing-title">СТОП. Сначала переживи этот момент.</div>
+      <div class="help-landing-sub">Тяга сильная, но она проходит.<br>Тебе не нужно принимать решения прямо сейчас.</div>
+      <button class="help-btn-primary" onclick="_helpStartRecovery()">Начать восстановление — 10 минут</button>
+      <div class="help-divider">или</div>
+      <button class="help-btn-danger" onclick="_helpShowSos()">🆘 Я боюсь сорваться</button>
+      <div class="help-divider">другие инструменты</div>
+      <div class="help-quick-row">
+        <button class="help-btn-sm help-btn-outline" onclick="_helpBreathing()">🧘 Дышать</button>
+        <button class="help-btn-sm help-btn-outline" onclick="showScreen('sos')">📞 SOS</button>
+        <button class="help-btn-sm help-btn-outline" onclick="showScreen('diary')">📝 Дневник</button>
+      </div>
+      <div class="help-back-link"><button onclick="_helpShowStateSelect()">📋 Определить состояние →</button></div>
+      <div class="help-back-link"><button onclick="_helpShowGrounding()">🌿 Вернуться в настоящее</button></div>
+      <div class="help-back-link"><button onclick="_helpShowRescue()">📋 Мой план спасения</button></div>
+      <div class="help-back-link"><button onclick="_helpShowRating()">📊 Оценить тягу</button></div>
+      <div style="font-size:10px;color:var(--muted);margin-top:16px;text-align:center;line-height:1.5;">Это приложение — не медицинская помощь. Если тебе или кому-то рядом нужна срочная помощь — звони 112.</div>
+    </div>
+  `);
+  _helpShowStats();
+}
+function _helpShowStats(){
+  const d = JSON.parse(localStorage.getItem('help_ratings')||'[]');
+  if(d.length<2) return;
   const c = document.getElementById('helpContent');
   if(!c) return;
-  c.innerHTML = `
-    <div class="help-urgent">
-      <div class="help-urgent-title">🚨 Если сейчас опасно</div>
-      <div class="help-urgent-text">Если ты думаешь о самоповреждении или чувствуешь, что не можешь себя контролировать — немедленно звони:</div>
-      <div class="help-step-action" style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
-        <a href="tel:112">🚑 112</a>
-        <a href="tel:88001014212">📞 АН 8-800-101-42-12</a>
-        <a href="tel:88001004994">💬 8-800-100-49-94</a>
-      </div>
+  const div = document.createElement('div'); div.className='help-stats';
+  const m = d[d.length-1];
+  const total = d.length;
+  div.innerHTML = 'За всё время ты <strong style="color:var(--accent)">'+total+'</strong> раз обратился за помощью. Справился без срыва — каждый раз.';
+  c.appendChild(div);
+}
+function _helpStartRecovery(){
+  _helpCleanup(); _helpState = 'recovery'; _helpRecoveryStart = Date.now();
+  _helpHtml(`
+    <div class="help-recovery help-pulse">
+      <div class="help-section-title">Режим восстановления</div>
+      <div class="help-timer" id="_helpTimer">10:00</div>
+      <div class="help-phrase" id="_helpPhrase">${_helpPhrases[0]}</div>
+      <button class="help-btn-outline" onclick="_helpBreathing()" style="margin-bottom:8px;">🧘 Дышать</button>
+      <button class="help-btn-outline" onclick="showScreen('sos')" style="margin-bottom:8px;">📞 Позвонить</button>
+      <button class="help-btn-primary" onclick="_helpShowLanding()">✓ Я пережил этот момент</button>
     </div>
-    <div class="help-step">
-      <div class="help-step-title">🧘 Остановись и проверь HALT</div>
-      <div class="help-step-text">HALT — это сигнал тела. Остановись и проверь каждую букву.</div>
-      <div class="help-halt-grid">
-        <div class="help-halt-item"><div class="emoji">🍔</div><div class="label">Голоден</div><div class="desc">Съешь что-то</div></div>
-        <div class="help-halt-item"><div class="emoji">😤</div><div class="label">Зол</div><div class="desc">Выдохни, пройдись</div></div>
-        <div class="help-halt-item"><div class="emoji">😔</div><div class="label">Одинок</div><div class="desc">Позвони кому-то</div></div>
-        <div class="help-halt-item"><div class="emoji">😴</div><div class="label">Устал</div><div class="desc">Отдохни, поспи</div></div>
-      </div>
+  `);
+  let sec = 600, pi = 0;
+  _helpTimer = setInterval(() => {
+    sec--;
+    const t = document.getElementById('_helpTimer');
+    if(t) t.textContent = Math.floor(sec/60)+':'+(sec%60+'').padStart(2,'0');
+    if(sec<=0){_helpCleanup();_helpToast('10 минут прошли. Ты справился. Гордись собой.');_helpShowLanding();}
+  },1000);
+  _helpPhraseTimer = setInterval(() => {
+    pi = (pi+1) % _helpPhrases.length;
+    const p = document.getElementById('_helpPhrase');
+    if(p){p.classList.add('fade');setTimeout(()=>{p.textContent=_helpPhrases[pi];p.classList.remove('fade');},400);}
+  },5000);
+}
+function _helpShowSos(){
+  const ov = document.createElement('div'); ov.id='_helpSosOverlay'; ov.className='help-sos-overlay';
+  ov.innerHTML = '<button class="help-sos-close" onclick="this.parentElement.remove()">✕</button><div class="help-sos-title">🆘 Ты в безопасности</div><div style="color:var(--cream);font-size:14px;margin-bottom:20px;">Сейчас только три действия имеют значение.</div><div class="help-sos-actions"><button style="background:#3DDC84;color:#fff;" onclick="this.parentElement.parentElement.remove();_helpBreathing()">🌬️ Дышать</button><button style="background:var(--accent);color:#fff;" onclick="this.parentElement.parentElement.remove();showScreen(\'sos\')">📞 Позвонить</button><button style="background:var(--card);border:2px solid var(--accent);color:var(--na-blue);" onclick="this.parentElement.parentElement.remove();_helpStartRecovery()">⏳ Переждать волну</button></div>';
+  document.body.appendChild(ov);
+}
+function _helpBreathing(){
+  _helpCleanup();
+  _helpHtml(`
+    <div class="help-recovery" style="padding:20px 0;">
+      <div class="help-section-title">🧘 Дыхание 4-7-8</div>
+      <div class="help-section-sub">Дыши в ритме индикатора. Вдох носом — задержка — выдох ртом.</div>
+      <div style="width:120px;height:120px;border-radius:50%;background:var(--accent);margin:16px auto;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px;transition:transform 4s ease-in-out,background 7s ease-in-out;transform:scale(1);" id="_helpBreathCircle">Вдох</div>
+      <div style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:20px;" id="_helpBreathLabel">4 сек — вдох</div>
+      <button class="help-btn-outline" onclick="_helpBreathStop()" style="margin-bottom:6px;">⏹ Завершить дыхание</button>
+      <button class="help-btn-primary" onclick="_helpShowLanding()">← На главную помощь</button>
     </div>
-    <div class="help-step">
-      <div class="help-step-title">📞 Позвони наставнику или другу</div>
-      <div class="help-step-text">Ты не один. Один звонок может всё изменить. Не надо объяснять — просто набери.</div>
-      <div class="help-step-action"><button onclick="showScreen('sos')">📞 Открыть контакты SOS</button></div>
+  `);
+  let phase = 0, running = true;
+  const phases = [
+    {label:'Вдох',dur:4000,scale:1.3,bg:'#3DDC84',text:'4 сек — вдох носом'},
+    {label:'Задержка',dur:7000,scale:1.3,bg:'var(--accent)',text:'7 сек — задержка'},
+    {label:'Выдох',dur:8000,scale:1,bg:'#E88A7A',text:'8 сек — выдох ртом'}
+  ];
+  function step(){
+    if(!running) return;
+    const p = phases[phase];
+    const c = document.getElementById('_helpBreathCircle');
+    const l = document.getElementById('_helpBreathLabel');
+    if(c){c.textContent=p.label;c.style.transform='scale('+p.scale+')';c.style.background=p.bg;}
+    if(l) l.textContent=p.text;
+    phase = (phase+1) % 3;
+    setTimeout(step, p.dur);
+  }
+  step();
+  window._helpBreathStop = () => { running = false; _helpCleanup(); _helpShowLanding(); };
+}
+function _helpShowGrounding(){
+  _helpCleanup(); _helpGroundDone = 0;
+  const items = [
+    {n:'5',label:'вещей, которые я вижу',desc:'Оглянись. Назови про себя 5 вещей вокруг тебя.'},
+    {n:'4',label:'ощущения тела',desc:'Почувствуй 4 физических ощущения: ноги на полу, спина на стуле, воздух на коже.'},
+    {n:'3',label:'звука вокруг меня',desc:'Прислушайся. Что ты слышишь? Часы, шум, дыхание?'},
+    {n:'2',label:'запаха',desc:'Что ты чувствуешь носом? Воздух, кофе, еда?'},
+    {n:'1',label:'причина продолжать восстановление',desc:'Почему ты выбрал эту жизнь? Назови одну причину.'}
+  ];
+  _helpHtml(`
+    <div class="help-section-title">🌿 Вернись сюда и сейчас</div>
+    <div class="help-section-sub">Упражнение 5-4-3-2-1 помогает вернуть внимание в настоящее.</div>
+    <div id="_helpGroundList">${items.map((it,i) => `
+      <div class="help-grounding-item" onclick="_helpGroundToggle(${i})">
+        <div class="cb" id="_helpGc${i}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div><div class="label"><strong>${it.n}</strong> ${it.label}</div><div class="desc">${it.desc}</div></div>
+      </div>`).join('')}</div>
+    <button class="help-btn-primary" onclick="_helpGroundCheckDone()">✓ Готово</button>
+    <div class="help-back-link"><button onclick="_helpShowLanding()">← Назад</button></div>
+  `);
+}
+window._helpGroundToggle = function(i){
+  const el = document.getElementById('_helpGc'+i);
+  if(!el) return;
+  if(el.classList.contains('done')){el.classList.remove('done');_helpGroundDone--;}
+  else{el.classList.add('done');_helpGroundDone++;}
+  if(_helpGroundDone===5) _helpToast('✅ Все 5 чувств подключены. Ты в настоящем.');
+};
+function _helpGroundCheckDone(){if(_helpGroundDone>=5)_helpShowLanding();else _helpToast('Отметь все 5 пунктов');}
+function _helpShowStateSelect(){
+  _helpCleanup();
+  _helpHtml(`
+    <div class="help-section-title">Что происходит сейчас?</div>
+    <div class="help-section-sub">Выбери, что ты чувствуешь. Я покажу, что делать.</div>
+    <div class="help-state-grid">${_helpStates.map(s => `
+      <div class="help-state-card" onclick="_helpShowScenario('${s.id}')">
+        <span class="emoji">${s.emoji}</span>
+        <span class="label">${s.label}</span>
+      </div>`).join('')}</div>
+    <div class="help-back-link"><button onclick="_helpShowLanding()">← Назад</button></div>
+  `);
+}
+function _helpShowScenario(id){
+  _helpSelState = id;
+  const s = _helpStates.find(x => x.id === id);
+  if(!s) return;
+  _helpHtml(`
+    <div class="help-scenario">
+      <div class="help-section-title">${s.emoji} ${s.label}</div>
+      <div class="help-scenario-text">${s.text}</div>
+      <div class="help-scenario-actions">${s.actions.map(a => `
+        <button class="help-btn-outline" onclick="${a.click}">${a.label}</button>
+      `).join('')}</div>
+      <div class="help-back-link"><button onclick="_helpShowStateSelect()">← Другое состояние</button></div>
+      <div class="help-back-link"><button onclick="_helpShowLanding()">← На главную</button></div>
     </div>
-    <div class="help-step">
-      <div class="help-step-title">🙏 Сделай паузу и подыши</div>
-      <div class="help-step-text">Вдох на 4 счёта — задержка на 4 — выдох на 4. Повтори 5 раз. Это снижает уровень стресса за 30 секунд.</div>
+  `);
+}
+function _helpShowRescue(){
+  _helpCleanup();
+  const saved = JSON.parse(localStorage.getItem('help_rescue')||'{}');
+  _helpHtml(`
+    <div class="help-section-title">📋 Мой план спасения</div>
+    <div class="help-section-sub">Запиши, что тебе помогает. В момент тяги не надо вспоминать — всё уже здесь.</div>
+    <div class="help-rescue-form">
+      <label>Когда мне тяжело, я звоню:</label>
+      <input id="_helpR1" value="${escHtml(saved.c1||'')}" placeholder="Имя и телефон" onchange="_helpSaveRescue()">
+      <label>Место, куда я могу уйти:</label>
+      <input id="_helpR2" value="${escHtml(saved.c2||'')}" placeholder="Кафе, парк, комната, встреча АН" onchange="_helpSaveRescue()">
+      <label>Что мне помогает:</label>
+      <textarea id="_helpR3" rows="2" placeholder="Душ, музыка, прогулка, молитва..." onchange="_helpSaveRescue()">${escHtml(saved.c3||'')}</textarea>
+      <label>Почему я выбираю восстановление:</label>
+      <textarea id="_helpR4" rows="2" placeholder="Мои дети, семья, свобода, жизнь..." onchange="_helpSaveRescue()">${escHtml(saved.c4||'')}</textarea>
     </div>
-    <div class="help-step">
-      <div class="help-step-title">📝 Напиши, что чувствуешь</div>
-      <div class="help-step-text">Запиши свои мысли в дневник тяги. Это поможет увидеть ситуацию со стороны.</div>
-      <div class="help-step-action"><button onclick="showScreen('diary')">📝 Открыть дневник тяги</button></div>
+    <div class="help-back-link"><button onclick="_helpShowLanding()">← На главную</button></div>
+  `);
+}
+window._helpSaveRescue = function(){
+  const g = id => document.getElementById(id);
+  localStorage.setItem('help_rescue',JSON.stringify({c1:g('_helpR1')?.value||'',c2:g('_helpR2')?.value||'',c3:g('_helpR3')?.value||'',c4:g('_helpR4')?.value||''}));
+};
+function _helpShowRating(){
+  _helpCleanup(); _helpBefore = 0;
+  const saved = JSON.parse(localStorage.getItem('help_ratings')||'[]');
+  const streak = saved.filter(e => e.after < e.before).length;
+  _helpHtml(`
+    <div class="help-rating">
+      <div class="help-section-title">📊 Насколько сильная тяга?</div>
+      <div class="help-section-sub">Оцени от 1 до 10 прямо сейчас.</div>
+      <div class="help-rating-value" id="_helpRv">5</div>
+      <input type="range" class="help-rating-slider" min="1" max="10" value="5" oninput="document.getElementById('_helpRv').textContent=this.value">
+      <button class="help-btn-primary" style="margin-top:16px;" onclick="_helpBeforeRating()">Далее →</button>
+      <div class="help-back-link"><button onclick="_helpShowLanding()">← Назад</button></div>
+      ${saved.length>0?`<div class="help-stats" style="margin-top:14px;">За месяц ты <strong style="color:var(--accent)">${streak}</strong> раз справился с тягой без срыва.</div>`:''}
     </div>
-    <div class="help-step">
-      <div class="help-step-title">📖 Вспомни, зачем ты начал</div>
-      <div class="help-step-text">Открой «Базовый текст» или напоминание о твоей дате отсчёта. Ты уже прошёл долгий путь.</div>
-      <div class="help-step-action" style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button onclick="showScreen('home')">🏠 На главный экран</button>
-        <button onclick="showScreen('library')">📖 Открыть библиотеку</button>
-      </div>
+  `);
+  const sl = document.querySelector('#helpContent .help-rating-slider');
+  if(sl) sl.addEventListener('input',function(){document.getElementById('_helpRv').textContent=this.value;});
+}
+function _helpBeforeRating(){
+  const v = parseInt(document.getElementById('_helpRv')?.textContent||'5');
+  _helpBefore = v;
+  _helpHtml(`
+    <div class="help-rating">
+      <div class="help-section-title">📊 Как изменилась тяга?</div>
+      <div class="help-section-sub">Оцени снова после того, как использовал инструменты.</div>
+      <div class="help-rating-value" id="_helpRv2">${v}</div>
+      <input type="range" class="help-rating-slider" min="1" max="10" value="${v}" oninput="document.getElementById('_helpRv2').textContent=this.value">
+      <button class="help-btn-primary" style="margin-top:16px;" onclick="_helpSaveRating()">💾 Сохранить</button>
+      <div class="help-back-link"><button onclick="_helpShowLanding()">← Назад</button></div>
     </div>
-    <div style="font-size:11px;color:var(--muted);padding:12px;text-align:center;line-height:1.5;">
-      Это приложение — не медицинская помощь. Если тебе или кому-то рядом нужна срочная помощь — звони 112.
+  `);
+  const sl = document.querySelector('#helpContent .help-rating-slider');
+  if(sl) sl.addEventListener('input',function(){document.getElementById('_helpRv2').textContent=this.value;});
+}
+function _helpSaveRating(){
+  const after = parseInt(document.getElementById('_helpRv2')?.textContent||'0');
+  const saved = JSON.parse(localStorage.getItem('help_ratings')||'[]');
+  saved.push({date:Date.now(),time:new Date().toISOString(),before:_helpBefore,after,trigger:_helpSelState||'',toolUsed:''});
+  localStorage.setItem('help_ratings',JSON.stringify(saved));
+  const diff = _helpBefore - after;
+  _helpHtml(`
+    <div class="help-rating">
+      <div class="help-section-title">${diff>0?'✅ Справка отмечена':'📊 Данные сохранены'}</div>
+      <div class="help-section-sub" style="font-size:15px;font-weight:700;color:var(--na-blue);">Тяга снизилась с ${_helpBefore} до ${after} ${diff>0?'📉':''}</div>
+      <div class="help-stats" style="margin-top:14px;">Каждая запись помогает видеть прогресс. Ты не стоишь на месте.</div>
+      <button class="help-btn-primary" style="margin-top:16px;" onclick="_helpShowLanding()">← На главную</button>
     </div>
-  `;
+  `);
+}
+function _helpToast(msg){
+  const d = document.createElement('div');
+  d.style.cssText = 'position:fixed;bottom:80px;left:16px;right:16px;background:var(--na-blue);color:#fff;padding:14px 16px;border-radius:var(--radius-md);font-size:14px;font-weight:600;text-align:center;z-index:9999;opacity:0;transition:opacity .3s;max-width:400px;margin:0 auto;box-shadow:0 4px 12px rgba(0,0,0,.2);';
+  d.textContent = msg;
+  document.body.appendChild(d);
+  requestAnimationFrame(() => d.style.opacity = '1');
+  setTimeout(() => { d.style.opacity = '0'; setTimeout(() => d.remove(), 300); }, 3000);
 }
 function renderLibrary(){
   document.getElementById('libBookPanel').classList.remove('hide');
