@@ -234,11 +234,11 @@ body{
 .modal button{flex:1;padding:12px;border-radius:999px;border:none;font-weight:800;font-size:14px;font-family:var(--font-body);cursor:pointer;transition:transform .15s;}
 .modal button:active{transform:scale(.97);}
 .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
-.modal-close{width:40px;height:40px;border-radius:50%;border:2px solid var(--line);background:var(--card);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;padding:0;flex:0 0 auto;}
-.modal button.modal-close{flex:0 0 auto;width:40px;height:40px;padding:0;border-radius:50%;border:2px solid var(--line);font-weight:400;font-size:inherit;background:var(--card);}
-.modal button.modal-close:hover{background:var(--card-2);border-color:var(--accent);color:var(--na-blue);}
+.modal-close{width:28px;height:28px;border:none;background:none;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:color .2s;padding:0;flex:0 0 auto;}
+.modal button.modal-close{flex:0 0 auto;width:28px;height:28px;padding:0;border:none;background:none;font-weight:400;font-size:inherit;}
+.modal button.modal-close:hover{color:var(--na-blue);}
 .modal button.modal-close:active{transform:scale(.9);}
-.modal-close svg{width:18px;height:18px;stroke:currentColor;stroke-width:2.5;}
+.modal-close svg{width:24px;height:24px;stroke:currentColor;}
 .btn-primary{background:var(--accent);color:#fff;}
 .btn-secondary{background:var(--card);color:var(--na-blue);border:2px solid var(--na-blue)!important;font-weight:700!important;}
 
@@ -1230,7 +1230,7 @@ body{
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
         <h3 style="margin:0;">Быстрая запись</h3>
         <button class="icon-btn" onclick="stepsCloseNote()" aria-label="Закрыть" style="width:32px;height:32px;border:none;box-shadow:none;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><line x1="8" y1="8" x2="16" y2="16" stroke-width="2" stroke-linecap="round"/><line x1="16" y1="8" x2="8" y2="16" stroke-width="2" stroke-linecap="round"/></svg>
         </button>
       </div>
       <div class="step-form-field">
@@ -1248,7 +1248,7 @@ body{
   <div class="modal-backdrop" id="prayerBackdrop">
     <div class="prayer-modal">
       <button class="prayer-close" onclick="closePrayer()" aria-label="Закрыть">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><line x1="8" y1="8" x2="16" y2="16" stroke-width="2" stroke-linecap="round"/><line x1="16" y1="8" x2="8" y2="16" stroke-width="2" stroke-linecap="round"/></svg>
       </button>
       <div class="prayer-cross">✝</div>
       <div class="prayer-title">Молитва</div>
@@ -1314,7 +1314,7 @@ body{
       <div class="modal-header">
         <h3 style="margin:0;">Настройки</h3>
         <button class="modal-close" onclick="closeSettings()" aria-label="Закрыть">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><line x1="8" y1="8" x2="16" y2="16" stroke-width="2" stroke-linecap="round"/><line x1="16" y1="8" x2="8" y2="16" stroke-width="2" stroke-linecap="round"/></svg>
         </button>
       </div>
 
@@ -1642,7 +1642,7 @@ body{
       <div class="modal-header">
         <h3 style="margin:0;" id="legalTitle">Документ</h3>
         <button class="modal-close" onclick="closeLegal()" aria-label="Закрыть">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><line x1="8" y1="8" x2="16" y2="16" stroke-width="2" stroke-linecap="round"/><line x1="16" y1="8" x2="8" y2="16" stroke-width="2" stroke-linecap="round"/></svg>
         </button>
       </div>
       <div class="legal-content" id="legalContent"></div>
