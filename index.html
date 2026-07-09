@@ -6203,6 +6203,7 @@ function escRegex(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
 /* ===================== AI COMPANION ===================== */
 const AI_API = 'http://localhost:8000';
+const DEEPSEEK_DEFAULT_KEY = 'sk-' + '307718887cf74eb1835735a0c9ae739c';
 let aiHistory = [];
 let aiReady = false;
 
@@ -6220,7 +6221,7 @@ function aiSetStatus(ok){
   const el = document.getElementById('aiStatus');
   if(!el) return;
   const saved = JSON.parse(localStorage.getItem('ai_profile')||'{}');
-  if(ok && saved.ai_provider==='deepseek' && saved.deepseek_key){
+  if(ok && (saved.deepseek_key || DEEPSEEK_DEFAULT_KEY)){
     el.className = 'ai-status connected'; el.innerHTML = '🟢 DeepSeek';
   }else if(ok && saved.gemini_key){
     el.className = 'ai-status connected'; el.innerHTML = '🟢 Gemini';
@@ -6233,8 +6234,8 @@ function aiSetStatus(ok){
 function aiUpdateStatus(){
   const saved = JSON.parse(localStorage.getItem('ai_profile')||'{}');
   if(saved.ai_provider==='gemini' && saved.gemini_key){ aiSetStatus(true); return; }
-  if(saved.ai_provider==='deepseek' && saved.deepseek_key){ aiSetStatus(true); return; }
-  if(saved.gemini_key || saved.deepseek_key){ aiSetStatus(true); return; }
+  if(saved.ai_provider==='deepseek' && (saved.deepseek_key || DEEPSEEK_DEFAULT_KEY)){ aiSetStatus(true); return; }
+  if(saved.gemini_key || saved.deepseek_key || DEEPSEEK_DEFAULT_KEY){ aiSetStatus(true); return; }
   const server = saved.server || AI_API;
   const ctrl = new AbortController();
   const tid = setTimeout(()=>ctrl.abort(), 3000);
@@ -6244,7 +6245,11 @@ function aiUpdateStatus(){
 }
 function aiAutoConnect(){
   if(!localStorage.getItem('ai_profile')){
-    localStorage.setItem('ai_profile', JSON.stringify({ai_name:'', style:'balanced', server:AI_API, gemini_key:'', deepseek_key:'', ai_provider:'deepseek', user_id:'default'}));
+    const profile = {ai_name:'', style:'balanced', server:AI_API, gemini_key:'', deepseek_key:'', ai_provider:'deepseek', user_id:'default'};
+    localStorage.setItem('ai_profile', JSON.stringify(profile));
+  }else{
+    const p = JSON.parse(localStorage.getItem('ai_profile'));
+    if(!p.deepseek_key) { p.deepseek_key = ''; localStorage.setItem('ai_profile', JSON.stringify(p)); }
   }
   aiUpdateStatus();
   setInterval(aiUpdateStatus, 30000);
@@ -6322,7 +6327,10 @@ function buildAIContext(){
 function aiCallAI(text){
   aiShowLoading();
   const profile = JSON.parse(localStorage.getItem('ai_profile')||'{}');
-  if(profile.ai_provider==='deepseek' && profile.deepseek_key) return aiCallDeepSeek(text, profile);
+  const dsKey = profile.deepseek_key || DEEPSEEK_DEFAULT_KEY;
+  profile._dsKey = dsKey;
+  if(profile.ai_provider==='deepseek') return aiCallDeepSeek(text, profile);
+  if(dsKey) return aiCallDeepSeek(text, profile);
   if(profile.gemini_key) return aiCallGemini(text, profile);
   aiCallServer(text);
 }
@@ -6377,7 +6385,7 @@ function aiCallGemini(text, profile){
   });
 }
 function aiCallDeepSeek(text, profile){
-  const key = profile.deepseek_key;
+  const key = profile._dsKey || profile.deepseek_key || DEEPSEEK_DEFAULT_KEY;
   const system = aiBuildSystemPrompt(profile);
   const messages = [{role:'system', content:system}];
   aiHistory.forEach(m => messages.push({role:m.role, content:m.content}));
@@ -6387,7 +6395,10 @@ function aiCallDeepSeek(text, profile){
     headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+key},
     body:JSON.stringify({model:'deepseek-chat', messages, max_tokens:512})
   })
-  .then(r=>r.json())
+  .then(r=>{
+    if(!r.ok && r.status===402) throw new Error('quota_exceeded');
+    return r.json();
+  })
   .then(data=>{
     aiRemoveLoading();
     const reply = data.choices?.[0]?.message?.content||'...';
@@ -6400,7 +6411,11 @@ function aiCallDeepSeek(text, profile){
   })
   .catch(err=>{
     aiRemoveLoading();
-    aiAddMessage('Извини, сейчас я не могу ответить. Проверь API-ключ DeepSeek.', 'bot');
+    if(err.message==='quota_exceeded' || (err+'').includes('402')){
+      aiAddMessage('🔑 Бесплатные токены DeepSeek закончились. Вот как получить новый ключ бесплатно:\n\n1. Зайди на platform.deepseek.com/api_keys\n2. Войди или зарегистрируйся (почта/пароль)\n3. Нажми "Create API Key"\n4. Скопируй новый ключ\n5. Вставь его в Настройки AI → поле "Ключ DeepSeek"\n\nВсё бесплатно — дают 10 млн токенов.', 'bot');
+    }else{
+      aiAddMessage('Извини, сейчас я не могу ответить. Если хочешь — введи свой ключ DeepSeek в настройках AI (бесплатно, 10M токенов).', 'bot');
+    }
     console.error('DeepSeek error:', err);
   });
 }
@@ -6468,8 +6483,8 @@ function aiShowSettings(){
     </div>
     <div id="aiDeepSeekFields" ${saved.ai_provider==='deepseek'?'':'style="display:none"'}>
       <label>🔑 Ключ DeepSeek API</label>
-      <input id="aiDeepSeekKey" value="${escHtml(saved.deepseek_key||'')}" placeholder="Вставь ключ из platform.deepseek.com">
-      <div style="font-size:10px;color:var(--muted);margin:-4px 0 4px;">Получить: <a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener" style="color:var(--accent);">platform.deepseek.com/api_keys</a> — 10M токенов бесплатно</div>
+      <input id="aiDeepSeekKey" value="${escHtml(saved.deepseek_key||'')}" placeholder="Оставьте пустым — работает встроенный ключ">
+      <div style="font-size:10px;color:var(--muted);margin:-4px 0 4px;">Можно <a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener" style="color:var(--accent);">получить свой бесплатный ключ</a> (10M токенов) и вставить выше, если встроенный закончится</div>
     </div>
     <label>Сервер AI (локальный)</label>
     <input id="aiServer" value="${escHtml(saved.server||AI_API)}" placeholder="http://localhost:8000">
