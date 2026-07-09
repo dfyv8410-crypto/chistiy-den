@@ -6491,8 +6491,14 @@ function aiShowSettings(){
     </div>
     <div id="aiDeepSeekFields" ${saved.ai_provider==='deepseek'?'':'style="display:none"'}>
       <label>🔑 Ключ DeepSeek API</label>
-      <input id="aiDeepSeekKey" value="${escHtml(saved.deepseek_key||'')}" placeholder="Оставьте пустым — работает встроенный ключ">
-      <div style="font-size:10px;color:var(--muted);margin:-4px 0 4px;">Можно <a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener" style="color:var(--accent);">получить свой бесплатный ключ</a> (10M токенов) и вставить выше, если встроенный закончится</div>
+      <input id="aiDeepSeekKey" value="${escHtml(saved.deepseek_key||'')}" placeholder="Вставьте ваш ключ sk-...">
+      <div style="font-size:11px;color:var(--muted);margin:-4px 0 8px;line-height:1.5;">
+        <b>Как ввести ключ вручную:</b><br>
+        1. Откройте <a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener" style="color:var(--accent);">platform.deepseek.com/api_keys</a><br>
+        2. «Create API Key» → скопируйте <code style="color:var(--cream);">sk-...</code><br>
+        3. Вставьте сюда и нажмите «Сохранить»<br>
+        Бесплатно — 10 млн токенов. Без ключа бот не ответит.
+      </div>
     </div>
     <label>Сервер AI (локальный)</label>
     <input id="aiServer" value="${escHtml(saved.server||AI_API)}" placeholder="http://localhost:8000">
