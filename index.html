@@ -239,6 +239,20 @@ body{
 .modal button.modal-close:hover{color:var(--na-blue);}
 .modal button.modal-close:active{transform:scale(.9);}
 .modal-close svg{width:24px;height:24px;stroke:currentColor;}
+
+/* ---------- pin overlay ---------- */
+.pin-overlay{position:fixed;inset:0;z-index:9999;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;}
+.pin-overlay.active{display:flex;}
+.pin-overlay .pin-title{font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--na-blue);}
+.pin-overlay .pin-dots{display:flex;gap:12px;margin:8px 0 16px;}
+.pin-overlay .pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--line);background:var(--card);transition:background .15s;}
+.pin-overlay .pin-dot.filled{background:var(--accent);border-color:var(--accent);}
+.pin-overlay .pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:240px;width:100%;}
+.pin-overlay .pin-key{height:56px;border-radius:50%;border:none;background:var(--card);color:var(--cream);font-size:22px;font-weight:700;cursor:pointer;font-family:var(--font-body);display:flex;align-items:center;justify-content:center;transition:transform .1s,background .15s;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+.pin-overlay .pin-key:active{transform:scale(.92);background:var(--card-2);}
+.pin-overlay .pin-key.fn{font-size:14px;color:var(--muted);}
+.pin-overlay .pin-error{color:var(--accent);font-size:13px;min-height:20px;}
+
 .btn-primary{background:var(--accent);color:#fff;}
 .btn-secondary{background:var(--card);color:var(--na-blue);border:2px solid var(--na-blue)!important;font-weight:700!important;}
 
@@ -450,6 +464,8 @@ body{
 .help-rating-slider::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:var(--card);border:2px solid var(--accent);cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.15);}
 .help-sos-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;}
 .help-sos-title{font-family:var(--font-display);font-size:28px;font-weight:800;color:#E88A7A;margin-bottom:24px;}
+.help-sos-phrase{font-size:15px;line-height:1.6;color:var(--cream);font-style:italic;max-width:280px;margin-bottom:24px;min-height:48px;transition:opacity .4s;}
+.help-sos-phrase.fade{opacity:0;}
 .help-sos-actions{display:flex;flex-direction:column;gap:12px;width:100%;max-width:300px;}
 .help-sos-actions button{display:flex;align-items:center;justify-content:center;gap:8px;padding:16px;border-radius:var(--radius-md);border:none;font-weight:800;font-size:16px;font-family:var(--font-body);cursor:pointer;transition:transform .15s;}
 .help-sos-actions button:active{transform:scale(.96);}
@@ -1381,7 +1397,16 @@ body{
               <option value="double">Двойная</option>
             </select>
           </div>
-          <p style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;">На Android уведомления работают только когда приложение открыто (или свёрнуто в фоне). Для напоминаний после перезагрузки телефона требуется нативная версия приложения.</p>
+          <div style="margin-top:10px;border-top:1px solid var(--line);padding-top:10px;">
+            <p style="font-size:12px;font-weight:700;color:var(--cream);margin:0 0 6px;">⏰ Напоминания</p>
+            <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:2px;">Утро — отметить состояние</label>
+            <input type="time" id="remindMorning" onchange="saveRemindSettings()" style="width:100%;padding:8px;border-radius:var(--radius-sm);border:1px solid var(--line);font-size:13px;background:var(--card-2);color:var(--cream);margin-bottom:6px;">
+            <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:2px;">День — проверить себя</label>
+            <input type="time" id="remindDay" onchange="saveRemindSettings()" style="width:100%;padding:8px;border-radius:var(--radius-sm);border:1px solid var(--line);font-size:13px;background:var(--card-2);color:var(--cream);margin-bottom:6px;">
+            <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:2px;">Вечер — итог дня</label>
+            <input type="time" id="remindEvening" onchange="saveRemindSettings()" style="width:100%;padding:8px;border-radius:var(--radius-sm);border:1px solid var(--line);font-size:13px;background:var(--card-2);color:var(--cream);margin-bottom:6px;">
+            <p style="font-size:10px;color:var(--muted);margin:4px 0 0;line-height:1.4;">Уведомления приходят только когда приложение открыто. Чтобы получать их в любое время — установи нативное приложение.</p>
+          </div>
         </div>
       </div>
 
@@ -1422,6 +1447,24 @@ body{
           </div>
           <p style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.4;" id="backupAgeHint"></p>
           <p style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.4;">Данные хранятся в IndexedDB (основное хранилище) + localStorage (кэш). При привязанной папке — дублируются туда. Версия схемы: <span id="storageVersion">4.0</span>.</p>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h4>🔐 Блокировка приложения</h4>
+        <div class="settings-card">
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;margin-bottom:8px;">
+            <input type="checkbox" id="pinEnable" onchange="if(this.checked){document.getElementById('pinSetupBlock').style.display='block';}else{clearPin();}" style="accent-color:var(--accent);"> Включить пин-код
+          </label>
+          <div id="pinSetupBlock" style="display:none;">
+            <input type="password" id="pinInput" placeholder="Пин-код (4-6 цифр)" inputmode="numeric" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--line);font-size:16px;text-align:center;letter-spacing:6px;background:var(--card-2);color:var(--cream);margin-bottom:6px;">
+            <input type="password" id="pinConfirm" placeholder="Повторите пин-код" inputmode="numeric" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--line);font-size:16px;text-align:center;letter-spacing:6px;background:var(--card-2);color:var(--cream);margin-bottom:6px;">
+            <button onclick="setPin()" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:none;background:var(--accent);color:#fff;font-weight:700;font-size:13px;cursor:pointer;font-family:var(--font-body);">Установить пин-код</button>
+            <p id="pinStatus" style="font-size:11px;color:var(--muted);margin:6px 0 0;"></p>
+          </div>
+          <div id="pinSettingsBlock" style="display:none;">
+            <p style="font-size:12px;color:var(--muted);margin:0;">Пин-код активен. При каждом открытии приложения нужно будет ввести код.</p>
+          </div>
         </div>
       </div>
 
@@ -1636,6 +1679,31 @@ body{
     </div>
   </div>
 
+  <!-- PIN OVERLAY -->
+  <div class="pin-overlay" id="pinOverlay">
+    <div class="pin-title">Чистый день</div>
+    <div style="font-size:13px;color:var(--muted);">Введите пин-код</div>
+    <div class="pin-dots" id="pinDots">
+      <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+    </div>
+    <div class="pin-error" id="pinError"></div>
+    <input type="hidden" id="pinEntry" value="">
+    <div class="pin-pad">
+      <button class="pin-key" onclick="enterPinDigit('1')">1</button>
+      <button class="pin-key" onclick="enterPinDigit('2')">2</button>
+      <button class="pin-key" onclick="enterPinDigit('3')">3</button>
+      <button class="pin-key" onclick="enterPinDigit('4')">4</button>
+      <button class="pin-key" onclick="enterPinDigit('5')">5</button>
+      <button class="pin-key" onclick="enterPinDigit('6')">6</button>
+      <button class="pin-key" onclick="enterPinDigit('7')">7</button>
+      <button class="pin-key" onclick="enterPinDigit('8')">8</button>
+      <button class="pin-key" onclick="enterPinDigit('9')">9</button>
+      <button class="pin-key fn" onclick="removePinDigit()">⌫</button>
+      <button class="pin-key" onclick="enterPinDigit('0')">0</button>
+      <button class="pin-key fn" style="visibility:hidden"></button>
+    </div>
+  </div>
+
   <!-- LEGAL MODAL -->
   <div class="modal-backdrop" id="legalBackdrop">
     <div class="modal">
@@ -1781,6 +1849,87 @@ const storage = {
     BackupManager.scheduleBackup();
   }
 };
+
+// --- Event Bus (взаимодействие блоков) ---
+const AppEvents = {
+  _listeners: {},
+  on(event, fn){
+    if(!this._listeners[event]) this._listeners[event]=[];
+    this._listeners[event].push(fn);
+  },
+  off(event, fn){
+    const arr=this._listeners[event];
+    if(!arr) return;
+    this._listeners[event]=arr.filter(f=>f!==fn);
+  },
+  emit(event, data){
+    const arr=this._listeners[event];
+    if(!arr) return;
+    arr.forEach(fn=>{try{fn(data);}catch(e){console.error('EventBus:',e);}});
+  }
+};
+
+// --- PIN-защита ---
+let _pinTimer = null;
+function setPin(){
+  const p = document.getElementById('pinInput').value.trim();
+  const c = document.getElementById('pinConfirm').value.trim();
+  const s = document.getElementById('pinStatus');
+  if(!p || p.length<4 || p.length>6){if(s)s.textContent='Пин-код: 4-6 цифр'; return;}
+  if(p!==c){if(s)s.textContent='Пин-коды не совпадают'; return;}
+  storage.set('app_pin', p);
+  storage.set('app_pin_on', '1');
+  if(s)s.textContent='✓ Пин-код установлен';
+  document.getElementById('pinEnable').checked=true;
+  updatePinUI();
+}
+function clearPin(){
+  storage.remove('app_pin');
+  storage.set('app_pin_on', '0');
+  document.getElementById('pinEnable').checked=false;
+  updatePinUI();
+}
+function updatePinUI(){
+  const on = storage.get('app_pin_on')==='1';
+  const sec = document.getElementById('pinSettingsBlock');
+  if(!sec) return;
+  sec.style.display = on ? 'block' : 'none';
+}
+function checkPinNeeded(){
+  const on = storage.get('app_pin_on')==='1';
+  const pin = storage.get('app_pin');
+  const unlocked = sessionStorage.getItem('_pin_unlocked');
+  if(on && pin && !unlocked){
+    document.getElementById('pinOverlay').classList.add('active');
+  }
+}
+function _pinUpdateDots(){
+  const v = document.getElementById('pinEntry').value;
+  document.querySelectorAll('.pin-dot').forEach((d,i)=>{d.classList.toggle('filled',i<v.length);});
+}
+function enterPinDigit(d){
+  const inp = document.getElementById('pinEntry');
+  if(inp.value.length >= 6) return;
+  inp.value += d;
+  _pinUpdateDots();
+  if(inp.value.length >= 4){
+    const saved = storage.get('app_pin');
+    if(inp.value === saved){
+      sessionStorage.setItem('_pin_unlocked','1');
+      document.getElementById('pinOverlay').classList.remove('active');
+      inp.value='';
+      _pinUpdateDots();
+    } else if(inp.value.length >= saved.length){
+      document.getElementById('pinError').textContent='Неверный пин-код';
+      setTimeout(()=>{inp.value='';_pinUpdateDots();document.getElementById('pinError').textContent='';},1000);
+    }
+  }
+}
+function removePinDigit(){
+  const inp = document.getElementById('pinEntry');
+  inp.value = inp.value.slice(0,-1);
+  _pinUpdateDots();
+}
 
 // --- Утилиты ---
 
@@ -3230,6 +3379,38 @@ function loadNotifySettings(){
   if(vp) vp.value = storage.get('notify_vibrate_pattern') || 'default';
 }
 
+// --- Reminder scheduling ---
+let _remindTimers = {};
+function _scheduleRemind(key, timeStr, body){
+  if(_remindTimers[key]){ clearTimeout(_remindTimers[key]); delete _remindTimers[key]; }
+  if(!timeStr) return;
+  const [h,m]=timeStr.split(':');
+  const now=new Date();
+  const t=new Date(now.getFullYear(),now.getMonth(),now.getDate(),parseInt(h),parseInt(m),0);
+  let diff=t-now;
+  if(diff<0) diff+=86400000;
+  _remindTimers[key]=setTimeout(()=>{
+    notify(body);
+    _scheduleRemind(key, timeStr, body);
+  }, diff);
+}
+function saveRemindSettings(){
+  ['morning','day','evening'].forEach(k=>{
+    const el = document.getElementById('remind'+k.charAt(0).toUpperCase()+k.slice(1));
+    if(el) storage.set('remind_'+k, el.value);
+  });
+  loadRemindSettings();
+}
+function loadRemindSettings(){
+  const msgs = {morning:'☀️ Новый день восстановления. Отметь своё состояние.',day:'💭 Как ты сейчас? Проверь себя.',evening:'🌙 Подведи итог дня.'};
+  ['morning','day','evening'].forEach(k=>{
+    const el = document.getElementById('remind'+k.charAt(0).toUpperCase()+k.slice(1));
+    const val = storage.get('remind_'+k);
+    if(el) el.value = val || '';
+    _scheduleRemind(k, val, msgs[k]);
+  });
+}
+
 /* ===================== CRAVING DIARY ===================== */
 const EMOTIONS = ['Тревога','Злость','Одиночество','Скука','Страх','Усталость','Обида','Стресс','Другое'];
 const TRIGGERS = ['Конфликт','Воспоминание','Место','Человек','Усталость','Деньги','Стресс','Сон','Другое'];
@@ -4266,6 +4447,7 @@ const _helpStates = [
 function _helpCleanup(){
   if(_helpTimer){clearInterval(_helpTimer);_helpTimer=null;}
   if(_helpPhraseTimer){clearInterval(_helpPhraseTimer);_helpPhraseTimer=null;}
+  if(window._sosPt){clearInterval(window._sosPt);window._sosPt=null;}
   const ov = document.getElementById('_helpSosOverlay');
   if(ov) ov.remove();
 }
@@ -4297,17 +4479,33 @@ function _helpShowLanding(){
 }
 function _helpShowStats(){
   const d = JSON.parse(localStorage.getItem('help_ratings')||'[]');
-  if(d.length<2) return;
   const c = document.getElementById('helpContent');
   if(!c) return;
   const div = document.createElement('div'); div.className='help-stats';
-  const m = d[d.length-1];
   const total = d.length;
-  div.innerHTML = 'За всё время ты <strong style="color:var(--accent)">'+total+'</strong> раз обратился за помощью. Справился без срыва — каждый раз.';
-  c.appendChild(div);
+  if(total>=1){
+    const last7 = d.filter(e=>{try{return Date.now()-new Date(e.date).getTime() < 604800000;}catch(ex){return false;}}).length;
+    const hours = {};
+    d.forEach(e=>{
+      try{
+        const h = new Date(e.date).getHours();
+        const period = h<6?'🌙 Ночь':h<12?'☀️ Утро':h<18?'🌤 День':'🌆 Вечер';
+        hours[period] = (hours[period]||0)+1;
+      }catch(ex){}
+    });
+    const peak = Object.entries(hours).sort((a,b)=>b[1]-a[1])[0];
+    let html = '<div style="background:var(--card-2);border-radius:var(--radius-md);padding:12px 14px;margin:10px 0;font-size:12px;line-height:1.7;">';
+    html += 'За всё время <strong style="color:var(--accent)">'+total+'</strong> раз обратился за помощью. Справился без срыва — каждый раз.<br>';
+    html += 'За последние 7 дней: <strong>'+last7+'</strong> раз<br>';
+    if(peak) html += 'Самое частое время: '+peak[0]+' ('+peak[1]+' раз)';
+    html += '</div>';
+    div.innerHTML = html;
+    c.appendChild(div);
+  }
 }
 function _helpStartRecovery(){
   _helpCleanup(); _helpState = 'recovery'; _helpRecoveryStart = Date.now();
+  AppEvents.emit('craving:start',{time:Date.now()});
   _helpHtml(`
     <div class="help-recovery help-pulse">
       <div class="help-section-title">Режим восстановления</div>
@@ -4333,8 +4531,16 @@ function _helpStartRecovery(){
 }
 function _helpShowSos(){
   const ov = document.createElement('div'); ov.id='_helpSosOverlay'; ov.className='help-sos-overlay';
-  ov.innerHTML = '<button class="help-sos-close" onclick="this.parentElement.remove()">✕</button><div class="help-sos-title">🆘 Ты в безопасности</div><div style="color:var(--cream);font-size:14px;margin-bottom:20px;">Сейчас только три действия имеют значение.</div><div class="help-sos-actions"><button style="background:#3DDC84;color:#fff;" onclick="this.parentElement.parentElement.remove();_helpBreathing()">🌬️ Дышать</button><button style="background:var(--accent);color:#fff;" onclick="this.parentElement.parentElement.remove();showScreen(\'sos\')">📞 Позвонить</button><button style="background:var(--card);border:2px solid var(--accent);color:var(--na-blue);" onclick="this.parentElement.parentElement.remove();_helpStartRecovery()">⏳ Переждать волну</button></div>';
+  const _sosPhrases = ['Тяга — это волна. Она придёт и уйдёт.','Мне не нужно принимать решения сейчас.','Следующие 10 минут — моя задача.','Я уже справлялся раньше. Справлюсь и сейчас.','Это чувство временное. Оно пройдёт.'];
+  ov.innerHTML = '<button class="help-sos-close" onclick="if(window._sosPt)clearInterval(window._sosPt);this.parentElement.remove()">✕</button><div class="help-sos-title">🆘 Ты в безопасности</div><div class="help-sos-phrase" id="_sosPhrase">'+_sosPhrases[0]+'</div><div class="help-sos-actions"><button style="background:#3DDC84;color:#fff;" onclick="if(window._sosPt)clearInterval(window._sosPt);this.closest(\'.help-sos-overlay\').remove();_helpBreathing()">🌬️ Дышать</button><button style="background:var(--accent);color:#fff;" onclick="if(window._sosPt)clearInterval(window._sosPt);this.closest(\'.help-sos-overlay\').remove();showScreen(\'sos\')">📞 Позвонить</button><button style="background:var(--card);border:2px solid var(--accent);color:var(--na-blue);" onclick="if(window._sosPt)clearInterval(window._sosPt);this.closest(\'.help-sos-overlay\').remove();showScreen(\'diary\')">✍️ Написать</button><button style="background:var(--card);border:2px solid var(--accent);color:var(--na-blue);" onclick="if(window._sosPt)clearInterval(window._sosPt);this.closest(\'.help-sos-overlay\').remove();_helpStartRecovery()">⏳ Переждать волну</button></div>';
   document.body.appendChild(ov);
+  let spi = 0;
+  window._sosPt = setInterval(()=>{
+    spi = (spi+1) % _sosPhrases.length;
+    const el = document.getElementById('_sosPhrase');
+    if(el){el.classList.add('fade');setTimeout(()=>{el.textContent=_sosPhrases[spi];el.classList.remove('fade');},400);}
+  },5000);
+  AppEvents.emit('crisis:sos',{});
 }
 function _helpBreathing(){
   _helpCleanup();
@@ -5134,8 +5340,12 @@ function openSettings(){
   document.getElementById('modalBackdrop').classList.add('active');
   updateNotifyStatus();
   loadNotifySettings();
+  loadRemindSettings();
   initStorage();
   updateFolderUI();
+  const pinOn = storage.get('app_pin_on')==='1';
+  document.getElementById('pinEnable').checked = pinOn;
+  updatePinUI();
 }
 function closeSettings(){ document.getElementById('modalBackdrop').classList.remove('active'); }
 
@@ -5271,6 +5481,35 @@ document.getElementById('legalBackdrop').addEventListener('click', e=>{ if(e.tar
 initTheme();
 // requestNotifyPerm(); // убрано — разрешение запрашивается вручную в настройках
 loadNotifySettings();
+loadRemindSettings();
+updatePinUI();
+checkPinNeeded();
+// "Давно не виделись" — проверка отсутствия
+(function(){
+  const last = storage.get('_last_visit');
+  if(last){
+    const hours = (Date.now() - parseInt(last)) / 3600000;
+    if(hours > 48) notify('Мы давно не виделись. Вернись к своему восстановлению.');
+  }
+  storage.set('_last_visit', Date.now().toString());
+})();
+// Авто-логирование событий помощи
+AppEvents.on('craving:start', function(data){
+  try{
+    const log = JSON.parse(localStorage.getItem('_craving_log')||'[]');
+    log.push({time:data.time, date:new Date().toISOString()});
+    if(log.length>500) log.splice(0,log.length-500);
+    localStorage.setItem('_craving_log', JSON.stringify(log));
+  }catch(e){}
+});
+AppEvents.on('crisis:sos', function(){
+  try{
+    const log = JSON.parse(localStorage.getItem('_crisis_log')||'[]');
+    log.push({date:new Date().toISOString()});
+    if(log.length>200) log.splice(0,log.length-200);
+    localStorage.setItem('_crisis_log', JSON.stringify(log));
+  }catch(e){}
+});
 
 /* ===================== 12 STEPS WORKBOOK ===================== */
 const STEPS_DATA = [
