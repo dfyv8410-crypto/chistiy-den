@@ -1,0 +1,7 @@
+name = "chistiy-den-ai"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+# Бесплатный тариф. Workers AI доступен на всех планах.
+[ai]
+binding = "AI"

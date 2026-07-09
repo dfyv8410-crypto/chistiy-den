@@ -6204,6 +6204,7 @@ function escRegex(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 /* ===================== AI COMPANION ===================== */
 const AI_API = 'http://localhost:8000';
 const DEEPSEEK_DEFAULT_KEY = 'sk-' + '307718887cf74eb1835735a0c9ae739c';
+const AI_WORKER_URL = ''; // заполните в Настройках AI → «URL Worker», либо здесь
 let aiHistory = [];
 let aiReady = false;
 
@@ -6222,7 +6223,9 @@ function aiSetStatus(ok){
   const el = document.getElementById('aiStatus');
   if(!el) return;
   const saved = JSON.parse(localStorage.getItem('ai_profile')||'{}');
-  if(ok && (saved.deepseek_key || DEEPSEEK_DEFAULT_KEY)){
+  if(ok && (saved.ai_provider==='worker')){
+    el.className = 'ai-status connected'; el.innerHTML = '🟢 Worker AI';
+  }else if(ok && (saved.deepseek_key || DEEPSEEK_DEFAULT_KEY)){
     el.className = 'ai-status connected'; el.innerHTML = '🟢 DeepSeek';
   }else if(ok && saved.gemini_key){
     el.className = 'ai-status connected'; el.innerHTML = '🟢 Gemini';
@@ -6234,6 +6237,7 @@ function aiSetStatus(ok){
 }
 function aiUpdateStatus(){
   const saved = JSON.parse(localStorage.getItem('ai_profile')||'{}');
+  if(saved.ai_provider==='worker' && (saved.worker_url || AI_WORKER_URL)){ aiSetStatus(true); return; }
   if(saved.ai_provider==='gemini' && saved.gemini_key){ aiSetStatus(true); return; }
   if(saved.ai_provider==='deepseek' && (saved.deepseek_key || DEEPSEEK_DEFAULT_KEY)){ aiSetStatus(true); return; }
   if(saved.gemini_key || saved.deepseek_key || DEEPSEEK_DEFAULT_KEY){ aiSetStatus(true); return; }
@@ -6246,12 +6250,13 @@ function aiUpdateStatus(){
 }
 function aiAutoConnect(){
   if(!localStorage.getItem('ai_profile')){
-    const profile = {ai_name:'Антон', style:'balanced', server:AI_API, gemini_key:'', deepseek_key:'', ai_provider:'deepseek', user_id:'default'};
+    const profile = {ai_name:'Антон', style:'balanced', server:AI_API, gemini_key:'', deepseek_key:'', worker_url:'', ai_provider:'worker', user_id:'default'};
     localStorage.setItem('ai_profile', JSON.stringify(profile));
   }else{
     const p = JSON.parse(localStorage.getItem('ai_profile'));
     if(!p.deepseek_key) { p.deepseek_key = ''; }
-    if(!p.ai_provider) { p.ai_provider = 'deepseek'; }
+    if(!p.worker_url) { p.worker_url = ''; }
+    if(!p.ai_provider) { p.ai_provider = 'worker'; }
     localStorage.setItem('ai_profile', JSON.stringify(p));
   }
   aiUpdateStatus();
@@ -6332,10 +6337,47 @@ function aiCallAI(text){
   const profile = JSON.parse(localStorage.getItem('ai_profile')||'{}');
   const dsKey = profile.deepseek_key || DEEPSEEK_DEFAULT_KEY;
   profile._dsKey = dsKey;
+  if(profile.ai_provider==='worker') return aiCallWorker(text, profile);
   if(profile.ai_provider==='deepseek') return aiCallDeepSeek(text, profile);
   if(dsKey) return aiCallDeepSeek(text, profile);
   if(profile.gemini_key) return aiCallGemini(text, profile);
   aiCallServer(text);
+}
+function aiCallWorker(text, profile){
+  const base = profile.worker_url || AI_WORKER_URL;
+  if(!base){
+    aiRemoveLoading();
+    aiAddMessage('Бот не настроен. Открой Настройки AI и укажи «URL Worker» (бесплатный Cloudflare Worker) — либо введи свой ключ DeepSeek.', 'bot');
+    return;
+  }
+  const system = aiBuildSystemPrompt(profile);
+  const messages = [{role:'system', content:system}];
+  aiHistory.forEach(m => messages.push({role:m.role, content:m.content}));
+  messages.push({role:'user', content:text});
+  fetch(base.replace(/\/$/,'')+'/chat', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:'worker', messages, max_tokens:512})
+  })
+  .then(r=>{
+    if(!r.ok) throw new Error('http_'+r.status);
+    return r.json();
+  })
+  .then(data=>{
+    aiRemoveLoading();
+    const reply = data.choices?.[0]?.message?.content||'...';
+    aiAddMessage(reply, 'bot');
+    aiHistory.push({role:'assistant', content:reply});
+    const crisisWords = ['кризис','срыв','употребить','плохо','страшно','одиночество','безнадёжно'];
+    if(crisisWords.some(w=>text.toLowerCase().includes(w)||(reply||'').toLowerCase().includes(w))){
+      setTimeout(()=>notify('AI заметил кризис. Открой помощь.', null, true), 1000);
+    }
+  })
+  .catch(err=>{
+    aiRemoveLoading();
+    aiAddMessage('Не удалось связаться с Worker AI. Проверь «URL Worker» в Настройках AI (должен заканчиваться на .workers.dev) и доступ в интернет.', 'bot');
+    console.error('Worker error:', err);
+  });
 }
 function aiBuildSystemPrompt(profile){
   const ctx = buildAIContext();
@@ -6479,12 +6521,24 @@ function aiShowSettings(){
       <option value="coach" ${saved.style==='coach'?'selected':''}>Наставник</option>
     </select>
     <label style="margin-top:8px;">Провайдер AI</label>
-    <select id="aiProvider" onchange="var v=this.value;document.getElementById('aiGeminiFields').style.display=v==='gemini'?'':'none';document.getElementById('aiDeepSeekFields').style.display=v==='deepseek'?'':'none';">
-      <option value="gemini" ${saved.ai_provider==='gemini'||(!saved.ai_provider&&saved.gemini_key)?'selected':''}>Google Gemini (бесплатно)</option>
+    <select id="aiProvider" onchange="var v=this.value;document.getElementById('aiWorkerFields').style.display=v==='worker'?'':'none';document.getElementById('aiGeminiFields').style.display=v==='gemini'?'':'none';document.getElementById('aiDeepSeekFields').style.display=v==='deepseek'?'':'none';">
+      <option value="worker" ${saved.ai_provider==='worker'||!saved.ai_provider?'selected':''}>Cloudflare Worker (бесплатно, без ключа)</option>
       <option value="deepseek" ${saved.ai_provider==='deepseek'?'selected':''}>DeepSeek (работает в РФ, бесплатно)</option>
-      <option value="server" ${saved.ai_provider==='server'||(!saved.ai_provider&&!saved.gemini_key)?'selected':''}>Локальный сервер</option>
+      <option value="gemini" ${saved.ai_provider==='gemini'?'selected':''}>Google Gemini (бесплатно)</option>
+      <option value="server" ${saved.ai_provider==='server'?'selected':''}>Локальный сервер</option>
     </select>
-    <div id="aiGeminiFields" ${(!saved.ai_provider||saved.ai_provider==='gemini')?'':'style="display:none"'}>
+    <div id="aiWorkerFields" ${saved.ai_provider==='worker'||!saved.ai_provider?'':'style="display:none"'}>
+      <label>🌐 URL Worker (Cloudflare)</label>
+      <input id="aiWorkerUrl" value="${escHtml(saved.worker_url||'')}" placeholder="https://chistiy-den-ai.ваш-аккаунт.workers.dev">
+      <div style="font-size:11px;color:var(--muted);margin:-4px 0 8px;line-height:1.5;">
+        <b>Как подключить бесплатно:</b><br>
+        1. Создайте Cloudflare Worker из файла <code style="color:var(--cream);">cloudflare/worker.js</code> (инструкция в том же файле/README)<br>
+        2. Скопируйте адрес вида <code style="color:var(--cream);">*.workers.dev</code><br>
+        3. Вставьте сюда и нажмите «Сохранить»<br>
+        Работает без API-ключей, ключ не в приложении.
+      </div>
+    </div>
+    <div id="aiGeminiFields" ${saved.ai_provider==='gemini'?'':'style="display:none"'}>
       <label>🔑 Ключ Gemini API</label>
       <input id="aiGeminiKey" value="${escHtml(saved.gemini_key||'')}" placeholder="Вставь ключ из aistudio.google.com">
       <div style="font-size:10px;color:var(--muted);margin:-4px 0 4px;">Получить: <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" style="color:var(--accent);">aistudio.google.com/apikey</a></div>
@@ -6514,7 +6568,8 @@ function aiSaveSettings(){
   const ai_provider = document.getElementById('aiProvider').value;
   const gemini_key = document.getElementById('aiGeminiKey').value.trim();
   const deepseek_key = document.getElementById('aiDeepSeekKey').value.trim();
-  const profile = {ai_name:name, style:style, server:server||AI_API, ai_provider:ai_provider, gemini_key:gemini_key, deepseek_key:deepseek_key, user_id:'default'};
+  const worker_url = document.getElementById('aiWorkerUrl').value.trim();
+  const profile = {ai_name:name, style:style, server:server||AI_API, ai_provider:ai_provider, gemini_key:gemini_key, deepseek_key:deepseek_key, worker_url:worker_url, user_id:'default'};
   localStorage.setItem('ai_profile', JSON.stringify(profile));
   const panel = document.getElementById('aiSettingsPanel');
   if(panel) panel.remove();
