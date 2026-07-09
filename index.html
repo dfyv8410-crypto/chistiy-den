@@ -1545,7 +1545,7 @@ body{
             <input type="checkbox" id="pinEnable" onchange="if(this.checked){document.getElementById('pinSetupBlock').style.display='block';}else{clearPin();}" style="accent-color:var(--accent);"> Включить пин-код
           </label>
           <div id="pinSetupBlock" style="display:none;">
-            <input type="password" id="pinInput" placeholder="Пин-код (4-6 цифр)" inputmode="numeric" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--line);font-size:16px;text-align:center;letter-spacing:6px;background:var(--card-2);color:var(--cream);margin-bottom:6px;">
+            <input type="password" id="pinInput" placeholder="Пин-код (4 цифры)" inputmode="numeric" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--line);font-size:16px;text-align:center;letter-spacing:6px;background:var(--card-2);color:var(--cream);margin-bottom:6px;">
             <input type="password" id="pinConfirm" placeholder="Повторите пин-код" inputmode="numeric" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--line);font-size:16px;text-align:center;letter-spacing:6px;background:var(--card-2);color:var(--cream);margin-bottom:6px;">
             <button onclick="setPin()" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:none;background:var(--accent);color:var(--accent-text);font-weight:700;font-size:13px;cursor:pointer;font-family:var(--font-body);">Установить пин-код</button>
             <p id="pinStatus" style="font-size:11px;color:var(--muted);margin:6px 0 0;"></p>
@@ -1772,7 +1772,7 @@ body{
     <div class="pin-title">Чистый день</div>
     <div style="font-size:13px;color:var(--muted);">Введите пин-код</div>
     <div class="pin-dots" id="pinDots">
-      <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+      <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
     </div>
     <div class="pin-error" id="pinError"></div>
     <input type="hidden" id="pinEntry" value="">
@@ -1963,7 +1963,7 @@ function setPin(){
   const p = document.getElementById('pinInput').value.trim();
   const c = document.getElementById('pinConfirm').value.trim();
   const s = document.getElementById('pinStatus');
-  if(!p || p.length<4 || p.length>6){if(s)s.textContent='Пин-код: 4-6 цифр'; return;}
+  if(!p || p.length!==4){if(s)s.textContent='Пин-код: 4 цифры'; return;}
   if(p!==c){if(s)s.textContent='Пин-коды не совпадают'; return;}
   storage.set('app_pin', p);
   storage.set('app_pin_on', '1');
@@ -1997,7 +1997,7 @@ function _pinUpdateDots(){
 }
 function enterPinDigit(d){
   const inp = document.getElementById('pinEntry');
-  if(inp.value.length >= 6) return;
+  if(inp.value.length >= 4) return;
   inp.value += d;
   _pinUpdateDots();
   if(inp.value.length >= 4){
@@ -2007,7 +2007,7 @@ function enterPinDigit(d){
       document.getElementById('pinOverlay').classList.remove('active');
       inp.value='';
       _pinUpdateDots();
-    } else if(inp.value.length >= saved.length){
+    } else {
       document.getElementById('pinError').textContent='Неверный пин-код';
       setTimeout(()=>{inp.value='';_pinUpdateDots();document.getElementById('pinError').textContent='';},1000);
     }
