@@ -353,6 +353,9 @@ body{
 /* ---------- craving diary ---------- */
 .home-diary-card{display:flex;align-items:center;gap:12px;background:var(--card);border:2px solid var(--accent);border-radius:var(--radius-lg);padding:14px;margin:14px 0 6px;cursor:pointer;transition:transform .15s,box-shadow .15s;}
 .home-diary-card:active{transform:scale(.98);}
+.home-diary-quick{width:32px;height:32px;border-radius:50%;border:1.5px solid var(--accent);background:var(--card);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:transform .15s,background .15s;color:var(--accent);}
+.home-diary-quick:active{transform:scale(.85);background:var(--accent);color:#fff;}
+.home-diary-quick svg{width:16px;height:16px;}
 .home-diary-icon{width:40px;height:40px;border-radius:12px;background:var(--accent);color:var(--accent-text);display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
 .home-diary-icon svg{width:22px;height:22px;}
 .home-diary-text{flex:1;min-width:0;}
@@ -820,22 +823,28 @@ body{
       <div class="stat-card"><div class="v" id="statWeeks">0</div><div class="l">Недель</div></div>
       <div class="stat-card"><div class="v" id="statMonths">0</div><div class="l">Месяцев</div></div>
       <div class="stat-card"><div class="v" id="statHours">0</div><div class="l">Часов</div></div>
+      <div class="stat-card"><div class="v" id="statStreak">0</div><div class="l">Дней<br>подряд</div></div>
     </div>
 
-    <div class="home-diary-card" onclick="showScreen('diary')">
-      <div class="home-diary-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-          <polyline points="14 2 14 8 20 8"/>
-          <line x1="16" y1="13" x2="8" y2="13"/>
-          <line x1="16" y1="17" x2="8" y2="17"/>
-          <polyline points="10 9 9 9 8 9"/>
-        </svg>
+    <div class="home-diary-card">
+      <div onclick="showScreen('diary')" style="display:flex;align-items:center;gap:12px;flex:1;cursor:pointer;">
+        <div class="home-diary-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+        </div>
+        <div class="home-diary-text">
+          <div class="home-diary-title">Дневник тяги</div>
+          <div class="home-diary-desc">Отслеживай состояния, триггеры и инструменты</div>
+        </div>
       </div>
-      <div class="home-diary-text">
-        <div class="home-diary-title">Дневник тяги</div>
-        <div class="home-diary-desc">Отслеживай состояния, триггеры и инструменты</div>
-      </div>
+      <button class="home-diary-quick" onclick="showScreen('diary');setTimeout(diaryNew,100)" aria-label="Быстрая запись">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
       <div class="home-diary-arrow">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
@@ -2992,6 +3001,28 @@ function pluralDays(n){
   if(mod10>=2 && mod10<=4 && (mod100<10||mod100>=20)) return 'дня';
   return 'дней';
 }
+function calcDiaryStreak(){
+  const all = JSON.parse(storage.get('diary_entries')||'[]');
+  if(!all.length) return 0;
+  const dateSet = new Set();
+  all.forEach(e=>{
+    const d=new Date(e.createdAt);
+    dateSet.add(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'));
+  });
+  const dates = [...dateSet].sort().reverse();
+  const t=new Date();
+  const todayKey=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+  const y=new Date(t); y.setDate(y.getDate()-1);
+  const yKey=y.getFullYear()+'-'+String(y.getMonth()+1).padStart(2,'0')+'-'+String(y.getDate()).padStart(2,'0');
+  if(dates[0]!==todayKey&&dates[0]!==yKey) return 0;
+  let streak=1;
+  for(let i=1;i<dates.length;i++){
+    const c=new Date(dates[i]), p=new Date(dates[i-1]);
+    c.setHours(0,0,0,0); p.setHours(0,0,0,0);
+    if((p-c)/86400000===1) streak++; else break;
+  }
+  return streak;
+}
 
 function renderHome(){
   const startStr = storage.get('startDate');
@@ -3044,6 +3075,7 @@ function renderHome(){
   document.getElementById('statWeeks').textContent = Math.floor(days/7);
   document.getElementById('statMonths').textContent = Math.floor(days/30);
   document.getElementById('statHours').textContent = hours;
+  document.getElementById('statStreak').textContent = calcDiaryStreak();
 
   renderMedals(days);
 }
@@ -3873,7 +3905,7 @@ function renderStatsOverview(all, container){
   const freqChange = lmCount ? Math.round((cmCount-lmCount)/lmCount*100) : 0;
   const intChange = lmAvgInt ? Math.round((cmAvgInt-lmAvgInt)/lmAvgInt*100) : 0;
   const durChange = lmAvgDur ? Math.round((cmAvgDur-lmAvgDur)/lmAvgDur*100) : 0;
-  let html = '<div class="diary-stats-grid"><div class="diary-stat-card"><div class="v">'+all.length+'</div><div class="l">Всего</div></div><div class="diary-stat-card"><div class="v">'+today.length+'</div><div class="l">Сегодня</div></div><div class="diary-stat-card"><div class="v">'+thisWeek.length+'</div><div class="l">Неделя</div></div><div class="diary-stat-card"><div class="v">'+cmCount+'</div><div class="l">Месяц</div></div></div>';
+  let html = '<div class="diary-stats-grid"><div class="diary-stat-card"><div class="v">'+all.length+'</div><div class="l">Всего</div></div><div class="diary-stat-card"><div class="v">'+today.length+'</div><div class="l">Сегодня</div></div><div class="diary-stat-card"><div class="v">'+thisWeek.length+'</div><div class="l">Неделя</div></div><div class="diary-stat-card"><div class="v">'+cmCount+'</div><div class="l">Месяц</div></div><div class="diary-stat-card"><div class="v">'+calcDiaryStreak()+'</div><div class="l">Стрик</div></div></div>';
   if(lmCount){
     const isPos = freqChange < 0;
     html += '<div style="background:var(--card);border:1px solid var(--line);border-radius:var(--radius-md);padding:12px;margin:10px 0;font-size:13px;line-height:1.7;color:var(--cream);"><div style="font-weight:700;color:var(--na-blue);margin-bottom:4px;">📊 Сравнение периодов</div><div style="font-size:12px;">В этом месяце: <strong>'+cmCount+'</strong> эпизодов</div><div style="font-size:12px;">В прошлом месяце: <strong>'+lmCount+'</strong> эпизодов</div><div style="font-size:13px;font-weight:700;margin-top:4px;color:'+(isPos?'#3DDC84':'#E88A7A')+';">'+(isPos?'↓ ':'↑ ')+' '+Math.abs(freqChange)+'% '+(isPos?'улучшение':'ухудшение')+'</div>';
@@ -4573,11 +4605,14 @@ function _helpShowLanding(){
         <button class="help-btn-sm help-btn-outline" onclick="_helpBreathing()">🧘 Дышать</button>
         <button class="help-btn-sm help-btn-outline" onclick="showScreen('sos')">📞 SOS</button>
         <button class="help-btn-sm help-btn-outline" onclick="showScreen('diary')">📝 Дневник</button>
+        <button class="help-btn-sm help-btn-outline" onclick="showScreen('ai')">🤖 ИИ</button>
       </div>
       <div class="help-back-link"><button onclick="_helpShowStateSelect()">📋 Определить состояние →</button></div>
       <div class="help-back-link"><button onclick="_helpShowGrounding()">🌿 Вернуться в настоящее</button></div>
       <div class="help-back-link"><button onclick="_helpShowRescue()">📋 Мой план спасения</button></div>
       <div class="help-back-link"><button onclick="_helpShowRating()">📊 Оценить тягу</button></div>
+      <div class="help-back-link" style="border-top:1px solid var(--line);padding-top:10px;margin-top:6px;"><button onclick="showScreen('ai')">🤖 ИИ-помощник восстановления — поговорить</button></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5;padding:0 4px;">ИИ-помощник понимает твоё состояние, помнит историю и предлагает поддержку. Работает через нейросеть (Groq, Gemini, DeepSeek или свой сервер). Настройка — в чате.</div>
       <div style="font-size:10px;color:var(--muted);margin-top:16px;text-align:center;line-height:1.5;">Это приложение — не медицинская помощь. Если тебе или кому-то рядом нужна срочная помощь — звони 112.</div>
     </div>
   `);
@@ -6209,16 +6244,90 @@ function hl(text, q){
 }
 function escRegex(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
+/* ===================== AI FETCH UTILITY (CORS bypass via Android bridge) ===================== */
+function aiFetch(url, options){
+  const isAndroid = window.Android && window.Android.getPlatform;
+  if(isAndroid){
+    return new Promise((resolve, reject) => {
+      const id = '_f' + Date.now() + '_' + Math.random().toString(36).slice(2);
+      window._fetchCallbacks = window._fetchCallbacks || {};
+      window._fetchCallbacks[id] = function(res){
+        if(res && res.status >= 200 && res.status < 300) resolve({status:res.status, ok:true, body:res.body});
+        else reject(new Error(res ? ('http_'+(res.status||0)) : 'bridge_error'));
+      };
+      try{
+        Android.fetchApi(url, JSON.stringify({method:options.method||'POST', headers:options.headers, body:options.body}), id);
+      }catch(e){
+        delete window._fetchCallbacks[id];
+        reject(e);
+      }
+    });
+  }
+  return fetch(url, options).then(async r => {
+    const body = await r.text();
+    if(!r.ok) throw new Error('http_'+r.status);
+    return {status:r.status, ok:r.ok, body};
+  });
+}
+
+/* ===================== AI HISTORY PERSISTENCE ===================== */
+function aiSaveHistory(){
+  try{ localStorage.setItem('_ai_history', JSON.stringify(aiHistory.slice(-100))); }catch(e){}
+}
+function aiLoadHistory(){
+  try{
+    const saved = localStorage.getItem('_ai_history');
+    if(saved){ aiHistory = JSON.parse(saved); }
+  }catch(e){}
+}
+function aiClearHistory(){
+  aiHistory = [];
+  try{ localStorage.removeItem('_ai_history'); }catch(e){}
+}
+
+/* ===================== AI CHECK-IN NOTIFICATIONS ===================== */
+function aiStartCheckins(){
+  const saved = JSON.parse(localStorage.getItem('ai_profile')||'{}');
+  if(saved.ai_checkins === 'off') return;
+  const interval = parseInt(saved.ai_checkin_interval) || 120; // minutes
+  if(window._aiCheckinTimer) clearInterval(window._aiCheckinTimer);
+  window._aiCheckinTimer = setInterval(() => {
+    const now = new Date();
+    const hour = now.getHours();
+    if(hour < 8 || hour > 23) return;
+    const profile = JSON.parse(localStorage.getItem('ai_profile')||'{}');
+    if(!profile.ai_name) return;
+    const msgs = [
+      profile.ai_name+': Как ты сейчас? Расскажи, что чувствуешь.',
+      profile.ai_name+': Напомни себе — ты сильнее тяги. Всё хорошо?',
+      profile.ai_name+': Важно быть честным с собой. Что происходит?',
+      profile.ai_name+': Пришло время проверить своё состояние.',
+      profile.ai_name+': Как проходит день? Есть что обсудить?'
+    ];
+    const msg = msgs[Math.floor(Math.random() * msgs.length)];
+    if(window.Android && window.Android.showNotification){
+      try{ Android.showNotification('Чистый день', msg); }catch(e){}
+    }else if(Notification.permission === 'granted'){
+      try{ new Notification('Чистый день', {body:msg, icon:'icons/icon-192.svg'}); }catch(e){}
+    }
+  }, interval * 60000);
+}
+
 /* ===================== AI COMPANION ===================== */
 function aiInit(){
   const chat = document.getElementById('aiChat');
   if(chat && chat.querySelector('.ai-msg')) return;
   if(!localStorage.getItem('ai_profile')) aiAutoConnect();
+  aiLoadHistory();
   if(aiHistory.length === 0){
     aiWelcome();
   }
   document.getElementById('aiInput').focus();
   aiUpdateStatus();
+  aiStartCheckins();
+  if('Notification' in window && Notification.permission === 'default'){
+    Notification.requestPermission();
+  }
 }
 function aiSetStatus(ok){
   aiReady = ok;
@@ -6257,7 +6366,7 @@ function aiUpdateStatus(){
 }
 function aiAutoConnect(){
   if(!localStorage.getItem('ai_profile')){
-    const profile = {ai_name:'Антон', style:'balanced', server:AI_API, gemini_key:'', deepseek_key:'', groq_key:GROQ_DEFAULT_KEY, worker_url:AI_WORKER_URL, ai_provider:'groq', user_id:'default'};
+    const profile = {ai_name:'Антон', style:'balanced', server:AI_API, gemini_key:'', deepseek_key:'', groq_key:GROQ_DEFAULT_KEY, worker_url:AI_WORKER_URL, ai_provider:'groq', user_id:'default', ai_checkins:'on', ai_checkin_interval:'120'};
     localStorage.setItem('ai_profile', JSON.stringify(profile));
   }else{
     let p;
@@ -6271,6 +6380,8 @@ function aiAutoConnect(){
     if(!p.ai_provider) p.ai_provider = 'groq';
     if(!p.worker_url) p.worker_url = AI_WORKER_URL;
     if(!p.user_id) p.user_id = 'default';
+    if(p.ai_checkins === undefined) p.ai_checkins = 'on';
+    if(!p.ai_checkin_interval) p.ai_checkin_interval = '120';
     localStorage.setItem('ai_profile', JSON.stringify(p));
   }
   aiUpdateStatus();
@@ -6305,6 +6416,7 @@ function aiAddMessage(text, role){
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
   if(role === 'user') aiHistory.push({role:'user', content:text});
+  aiSaveHistory();
 }
 function aiShowLoading(){
   const chat = document.getElementById('aiChat');
@@ -6320,7 +6432,7 @@ function aiRemoveLoading(){
   if(el) el.remove();
 }
 function buildAIContext(){
-  const ctx = {diary:[], progress:{}, steps:0, recentEvents:[]};
+  const ctx = {diary:[], progress:{}, steps:0, recentEvents:[], frequentTriggers:[], usedTools:[], totalCravings:0};
   try{
     const all = JSON.parse(storage.get('diary_entries')||'[]');
     all.sort((a,b)=>b.createdAt - a.createdAt);
@@ -6329,6 +6441,13 @@ function buildAIContext(){
       emotions:e.emotions, tools:e.tools?.filter(t=>t.worked).map(t=>t.name),
       summary:e.summary, date:new Date(e.createdAt).toLocaleDateString('ru-RU')
     }));
+    ctx.totalCravings = all.length;
+    const triggerCount = {};
+    all.forEach(e => { if(e.trigger){ triggerCount[e.trigger] = (triggerCount[e.trigger]||0)+1; } });
+    ctx.frequentTriggers = Object.entries(triggerCount).sort((a,b)=>b[1]-a[1]).slice(0,3).map(e=>e[0]);
+    const toolCount = {};
+    all.forEach(e => { (e.tools||[]).forEach(t => { if(t.worked){ toolCount[t.name] = (toolCount[t.name]||0)+1; } }); });
+    ctx.usedTools = Object.entries(toolCount).sort((a,b)=>b[1]-a[1]).slice(0,3).map(e=>e[0]);
   }catch(e){}
   const startStr = storage.get('startDate');
   if(startStr){
@@ -6371,20 +6490,18 @@ function aiCallWorker(text, profile){
   const messages = [{role:'system', content:system}];
   aiHistory.forEach(m => messages.push({role:m.role, content:m.content}));
   messages.push({role:'user', content:text});
-  fetch(base.replace(/\/$/,'')+'/chat', {
+  const body = JSON.stringify({model:'worker', messages, max_tokens:512});
+  aiFetch(base.replace(/\/$/,'')+'/chat', {
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({model:'worker', messages, max_tokens:512})
+    body
   })
   .then(r=>{
-    if(!r.ok) throw new Error('http_'+r.status);
-    return r.json();
-  })
-  .then(data=>{
+    const data = JSON.parse(r.body);
     aiRemoveLoading();
     const reply = data.choices?.[0]?.message?.content||'...';
     aiAddMessage(reply, 'bot');
-    aiHistory.push({role:'assistant', content:reply});
+    aiHistory.push({role:'assistant', content:reply}); aiSaveHistory();
     const crisisWords = ['кризис','срыв','употребить','плохо','страшно','одиночество','безнадёжно'];
     if(crisisWords.some(w=>text.toLowerCase().includes(w)||(reply||'').toLowerCase().includes(w))){
       setTimeout(()=>notify('AI заметил кризис. Открой помощь.', null, true), 1000);
@@ -6418,6 +6535,13 @@ function aiBuildSystemPrompt(profile){
     });
   }
   if(ctx.steps) p += 'Проработано шагов: '+ctx.steps+'\n';
+  if(ctx.totalCravings) p += 'Всего записей о тяге: '+ctx.totalCravings+'\n';
+  if(ctx.frequentTriggers && ctx.frequentTriggers.length){
+    p += 'Частые триггеры: '+ctx.frequentTriggers.join(', ')+'\n';
+  }
+  if(ctx.usedTools && ctx.usedTools.length){
+    p += 'Помогающие инструменты: '+ctx.usedTools.join(', ')+'\n';
+  }
   p += '\nБудь рядом. Ты — поддержка, а не замена профессиональной помощи.';
   return p;
 }
@@ -6426,16 +6550,16 @@ function aiCallGemini(text, profile){
   const system = aiBuildSystemPrompt(profile);
   const contents = aiHistory.map(m=>({role:m.role==='assistant'?'model':'user', parts:[{text:m.content}]}));
   contents.push({role:'user', parts:[{text}]});
-  fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+key, {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({contents, systemInstruction:{parts:[{text:system}]}})
+  const body = JSON.stringify({contents, systemInstruction:{parts:[{text:system}]}});
+  aiFetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+key, {
+    method:'POST', headers:{'Content-Type':'application/json'}, body
   })
-  .then(r=>r.json())
-  .then(data=>{
+  .then(r=>{
+    const data = JSON.parse(r.body);
     aiRemoveLoading();
     const reply = data.candidates?.[0]?.content?.parts?.[0]?.text||'...';
     aiAddMessage(reply, 'bot');
-    aiHistory.push({role:'assistant', content:reply});
+    aiHistory.push({role:'assistant', content:reply}); aiSaveHistory();
     const crisisWords = ['кризис','срыв','употребить','плохо','страшно','одиночество','безнадёжно'];
     if(crisisWords.some(w=>text.toLowerCase().includes(w)||(reply||'').toLowerCase().includes(w))){
       setTimeout(()=>notify('AI заметил кризис. Открой помощь.', null, true), 1000);
@@ -6453,22 +6577,18 @@ function aiCallDeepSeek(text, profile){
   const messages = [{role:'system', content:system}];
   aiHistory.forEach(m => messages.push({role:m.role, content:m.content}));
   messages.push({role:'user', content:text});
-  fetch('https://api.deepseek.com/v1/chat/completions', {
+  const body = JSON.stringify({model:'deepseek-v4-flash', messages, max_tokens:512});
+  aiFetch('https://api.deepseek.com/v1/chat/completions', {
     method:'POST',
     headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+key},
-    body:JSON.stringify({model:'deepseek-v4-flash', messages, max_tokens:512})
+    body
   })
   .then(r=>{
-    if(!r.ok && r.status===402) throw new Error('quota_exceeded');
-    if(!r.ok && (r.status===401||r.status===403)) throw new Error('invalid_key');
-    if(!r.ok) throw new Error('http_'+r.status);
-    return r.json();
-  })
-  .then(data=>{
+    const data = JSON.parse(r.body);
     aiRemoveLoading();
     const reply = data.choices?.[0]?.message?.content||'...';
     aiAddMessage(reply, 'bot');
-    aiHistory.push({role:'assistant', content:reply});
+    aiHistory.push({role:'assistant', content:reply}); aiSaveHistory();
     const crisisWords = ['кризис','срыв','употребить','плохо','страшно','одиночество','безнадёжно'];
     if(crisisWords.some(w=>text.toLowerCase().includes(w)||(reply||'').toLowerCase().includes(w))){
       setTimeout(()=>notify('AI заметил кризис. Открой помощь.', null, true), 1000);
@@ -6476,9 +6596,10 @@ function aiCallDeepSeek(text, profile){
   })
   .catch(err=>{
     aiRemoveLoading();
-    if(err.message==='quota_exceeded' || (err+'').includes('402')){
+    const msg = (err+'').toLowerCase();
+    if(msg.includes('402')||msg.includes('quota')){
       aiAddMessage('🔑 Бесплатные токены DeepSeek закончились. Вот как получить новый ключ бесплатно:\n\n1. Зайди на platform.deepseek.com/api_keys\n2. Войди или зарегистрируйся (почта/пароль)\n3. Нажми "Create API Key"\n4. Скопируй новый ключ\n5. Вставь его в Настройки AI → поле "Ключ DeepSeek"\n\nВсё бесплатно — дают 10 млн токенов.', 'bot');
-    }else if(err.message==='invalid_key'){
+    }else if(msg.includes('invalid_key')||msg.includes('401')||msg.includes('403')){
       aiAddMessage('Ключ DeepSeek недействителен. Введи новый ключ в Настройки AI. Получить бесплатный ключ: platform.deepseek.com/api_keys', 'bot');
     }else{
       aiAddMessage('Извини, сейчас я не могу ответить. Проверь подключение к интернету. Если хочешь — введи свой ключ DeepSeek в настройках AI (бесплатно, 10M токенов).', 'bot');
@@ -6493,20 +6614,19 @@ function aiCallServer(text){
   if(profile){
     try{ payload.user_id = JSON.parse(profile).user_id || 'default'; }catch(e){}
   }
-  fetch(AI_API+'/chat', {
+  const body = JSON.stringify(payload);
+  aiFetch(AI_API+'/chat', {
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify(payload)
+    body
   })
-  .then(r=>r.json())
-  .then(data=>{
+  .then(r=>{
+    const data = JSON.parse(r.body);
     aiRemoveLoading();
     aiAddMessage(data.reply, 'bot');
-    aiHistory.push({role:'assistant', content:data.reply});
+    aiHistory.push({role:'assistant', content:data.reply}); aiSaveHistory();
     if(data.crisis){
-      setTimeout(()=>{
-        notify('AI заметил кризис. Открой помощь.', null, true);
-      }, 1000);
+      setTimeout(()=>notify('AI заметил кризис. Открой помощь.', null, true), 1000);
     }
   })
   .catch(err=>{
@@ -6526,21 +6646,18 @@ function aiCallGroq(text, profile){
   const messages = [{role:'system', content:system}];
   aiHistory.forEach(m => messages.push({role:m.role, content:m.content}));
   messages.push({role:'user', content:text});
-  fetch('https://api.groq.com/openai/v1/chat/completions', {
+  const body = JSON.stringify({model:'llama-3.3-70b-versatile', messages, max_tokens:512});
+  aiFetch('https://api.groq.com/openai/v1/chat/completions', {
     method:'POST',
     headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+key},
-    body:JSON.stringify({model:'llama-3.3-70b-versatile', messages, max_tokens:512})
+    body
   })
   .then(r=>{
-    if(!r.ok && r.status===401) throw new Error('invalid_key');
-    if(!r.ok) throw new Error('http_'+r.status);
-    return r.json();
-  })
-  .then(data=>{
+    const data = JSON.parse(r.body);
     aiRemoveLoading();
     const reply = data.choices?.[0]?.message?.content||'...';
     aiAddMessage(reply, 'bot');
-    aiHistory.push({role:'assistant', content:reply});
+    aiHistory.push({role:'assistant', content:reply}); aiSaveHistory();
     const crisisWords = ['кризис','срыв','употребить','плохо','страшно','одиночество','безнадёжно'];
     if(crisisWords.some(w=>text.toLowerCase().includes(w)||(reply||'').toLowerCase().includes(w))){
       setTimeout(()=>notify('AI заметил кризис. Открой помощь.', null, true), 1000);
@@ -6548,12 +6665,12 @@ function aiCallGroq(text, profile){
   })
   .catch(err=>{
     aiRemoveLoading();
-    if(err.message==='invalid_key'){
+    if((err+'').includes('invalid_key')||err.message==='invalid_key'||err.message==='http_401'||err.message==='http_403'){
       aiAddMessage('Groq API ключ недействителен. Введи новый ключ в Настройки AI. Получить: console.groq.com/keys', 'bot');
-    }else if(err.message==='Failed to fetch' || err.name==='TypeError'){
-      aiAddMessage('Браузер блокирует запрос к Groq (CORS). Решение: открой Настройки AI → поставь «Провайдер: Worker» (нужен Cloudflare Worker) или введи свой ключ вручную.', 'bot');
+    }else if(err.message==='Failed to fetch'||err.name==='TypeError'||(err+'').includes('bridge_error')){
+      aiAddMessage('Не удалось соединиться с Groq. Если ты в приложении — проверь интернет. Если в браузере — открой Настройки AI → поставь «Провайдер: Worker» (нужен Cloudflare Worker).', 'bot');
     }else{
-      aiAddMessage('Ошибка соединения с Groq. Проверь интернет или попробуй другой провайдер в Настройках AI.', 'bot');
+      aiAddMessage('Ошибка соединения с Groq. Код: '+(err.message||err)+'. Проверь интернет или попробуй другой провайдер.', 'bot');
     }
     console.error('Groq error:', err);
   });
@@ -6623,6 +6740,15 @@ function aiShowSettings(){
         — бесплатно. Используется модель Llama 3.3 70B.
       </div>
     </div>
+    <div style="margin-top:8px;border-top:1px solid rgba(255,255,255,0.1);padding-top:8px;">
+      <label>Напоминания AI</label>
+      <select id="aiCheckins">
+        <option value="on" ${saved.ai_checkins!=='off'?'selected':''}>Вкл — каждые 2 часа</option>
+        <option value="off" ${saved.ai_checkins==='off'?'selected':''}>Выкл</option>
+      </select>
+      <label style="font-size:11px;color:var(--muted);">Интервал (минут)</label>
+      <input id="aiCheckinInterval" type="number" value="${saved.ai_checkin_interval||'120'}" min="30" max="480" style="padding:8px;">
+    </div>
     <label>Сервер AI (локальный)</label>
     <input id="aiServer" value="${escHtml(saved.server||AI_API)}" placeholder="http://localhost:8000">
     <button class="btn-primary" onclick="aiSaveSettings()" style="padding:10px;border:none;border-radius:999px;font-weight:700;font-size:14px;width:100%;">Сохранить</button>
@@ -6639,19 +6765,22 @@ function aiSaveSettings(){
   const deepseek_key = document.getElementById('aiDeepSeekKey').value.trim();
   const groq_key = document.getElementById('aiGroqKey').value.trim();
   const worker_url = document.getElementById('aiWorkerUrl').value.trim();
-  const profile = {ai_name:name, style:style, server:server||AI_API, ai_provider:ai_provider, gemini_key:gemini_key, deepseek_key:deepseek_key, groq_key:groq_key, worker_url:worker_url, user_id:'default'};
+  const checkins = document.getElementById('aiCheckins');
+  const checkinInterval = document.getElementById('aiCheckinInterval');
+  const profile = {ai_name:name, style:style, server:server||AI_API, ai_provider:ai_provider, gemini_key:gemini_key, deepseek_key:deepseek_key, groq_key:groq_key, worker_url:worker_url, user_id:'default', ai_checkins:checkins?checkins.value:'on', ai_checkin_interval:checkinInterval?checkinInterval.value:'120'};
   localStorage.setItem('ai_profile', JSON.stringify(profile));
   const panel = document.getElementById('aiSettingsPanel');
   if(panel) panel.remove();
   aiWelcome();
   aiSendProfile();
   aiUpdateStatus();
+  aiStartCheckins();
 }
 function aiSendProfile(){
   const saved = JSON.parse(localStorage.getItem('ai_profile')||'{}');
   if(!saved.ai_name && !saved.style) return;
   const server = saved.server || AI_API;
-  fetch(server+'/profile', {
+  aiFetch(server+'/profile', {
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({ai_name:saved.ai_name, style:saved.style, user_id:'default'})
@@ -6659,7 +6788,7 @@ function aiSendProfile(){
 }
 function aiClearChat(){
   document.getElementById('aiChat').innerHTML = '<div class="ai-welcome" id="aiWelcome"><div class="ai-welcome-icon">🤖</div><div class="ai-welcome-text" id="aiWelcomeText">История очищена. С чего начнём?</div></div>';
-  aiHistory = [];
+  aiClearHistory();
   const panel = document.getElementById('aiSettingsPanel');
   if(panel) panel.remove();
   aiWelcome();

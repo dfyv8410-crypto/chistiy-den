@@ -15,6 +15,11 @@ import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import com.google.gson.Gson
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.io.OutputStreamWriter
+import java.net.HttpURLConnection
+import java.net.URL
 import java.util.concurrent.Executors
 
 class WebAppInterface(private val activity: Activity) {
@@ -164,5 +169,57 @@ class WebAppInterface(private val activity: Activity) {
     @JavascriptInterface
     fun logEvent(event: String, data: String) {
         Log.d(TAG, "Event: $event - $data")
+    }
+
+    @JavascriptInterface
+    fun fetchApi(url: String, optionsJson: String, callbackId: String) {
+        Executors.newSingleThreadExecutor().execute {
+            try {
+                val gson = Gson()
+                val options = gson.fromJson(optionsJson, Map::class.java) as Map<String, Any>
+                val method = (options["method"] as? String)?.uppercase() ?: "GET"
+                val headers = options["headers"] as? Map<String, String> ?: emptyMap()
+                val body = options["body"] as? String
+
+                val conn = URL(url).openConnection() as HttpURLConnection
+                conn.requestMethod = method
+                conn.connectTimeout = 15000
+                conn.readTimeout = 15000
+
+                headers.forEach { (key, value) -> conn.setRequestProperty(key, value) }
+
+                if (body != null && (method == "POST" || method == "PUT" || method == "PATCH")) {
+                    conn.doOutput = true
+                    OutputStreamWriter(conn.outputStream).use { it.write(body) }
+                }
+
+                val responseCode = conn.responseCode
+                val stream = if (responseCode in 200..299) conn.inputStream else conn.errorStream
+                val responseBody = BufferedReader(InputStreamReader(stream)).readText()
+
+                val result = gson.toJson(mapOf(
+                    "status" to responseCode,
+                    "body" to responseBody
+                ))
+
+                activity.runOnUiThread {
+                    val webView = (activity as MainActivity).webView
+                    webView.evaluateJavascript(
+                        "javascript:(function(){var cb=window._fetchCallbacks&&window._fetchCallbacks['$callbackId'];if(cb){cb($result);delete window._fetchCallbacks['$callbackId'];}})();",
+                        null
+                    )
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "fetchApi error", e)
+                val errorJson = Gson().toJson(mapOf("status" to 0, "error" to (e.message ?: "Unknown error")))
+                activity.runOnUiThread {
+                    val webView = (activity as MainActivity).webView
+                    webView.evaluateJavascript(
+                        "javascript:(function(){var cb=window._fetchCallbacks&&window._fetchCallbacks['$callbackId'];if(cb){cb($errorJson);delete window._fetchCallbacks['$callbackId'];}})();",
+                        null
+                    )
+                }
+            }
+        }
     }
 }

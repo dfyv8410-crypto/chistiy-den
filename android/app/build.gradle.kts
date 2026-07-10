@@ -12,14 +12,27 @@ android {
         applicationId = "com.chestny.den"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 3
+        versionName = "1.1.2.2.0"
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile = file("chestny.keystore")
+            storePassword = "chistiy123"
+            keyAlias = "chistiy-den"
+            keyPassword = "chistiy123"
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.getByName("release")
+        }
+        debug {
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 
