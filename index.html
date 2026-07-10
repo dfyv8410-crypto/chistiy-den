@@ -6126,7 +6126,7 @@ setTimeout(()=>{
 
 /* ===================== AI CONFIG ===================== */
 const DEEPSEEK_DEFAULT_KEY = 'sk-' + '307718887cf74eb1835735a0c9ae739c';
-const GROQ_DEFAULT_KEY = 'gsk_' + '3c9gJmqPNnBwM4mwMfinWGdyb3FYyAvQ4m427mMn3CCwLZEZHEQe';
+const GROQ_DEFAULT_KEY = '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';
 const AI_WORKER_URL = 'https://rough-mud-49a8.dfyv8410.workers.dev';
 const AI_API = 'http://localhost:8000';
 let aiHistory = [];
@@ -6257,7 +6257,7 @@ function aiUpdateStatus(){
 }
 function aiAutoConnect(){
   if(!localStorage.getItem('ai_profile')){
-    const profile = {ai_name:'Антон', style:'balanced', server:AI_API, gemini_key:'', deepseek_key:'', groq_key:'', worker_url:AI_WORKER_URL, ai_provider:'worker', user_id:'default'};
+    const profile = {ai_name:'Антон', style:'balanced', server:AI_API, gemini_key:'', deepseek_key:'', groq_key:GROQ_DEFAULT_KEY, worker_url:AI_WORKER_URL, ai_provider:'groq', user_id:'default'};
     localStorage.setItem('ai_profile', JSON.stringify(profile));
   }else{
     let p;
@@ -6267,8 +6267,8 @@ function aiAutoConnect(){
     if(!p.server) p.server = AI_API;
     if(!p.gemini_key) p.gemini_key = '';
     if(!p.deepseek_key) p.deepseek_key = '';
-    if(p.groq_key === undefined) p.groq_key = '';
-    if(!p.ai_provider) p.ai_provider = 'worker';
+    if(p.groq_key === undefined) p.groq_key = GROQ_DEFAULT_KEY;
+    if(!p.ai_provider) p.ai_provider = 'groq';
     if(!p.worker_url) p.worker_url = AI_WORKER_URL;
     if(!p.user_id) p.user_id = 'default';
     localStorage.setItem('ai_profile', JSON.stringify(p));
@@ -6550,8 +6550,10 @@ function aiCallGroq(text, profile){
     aiRemoveLoading();
     if(err.message==='invalid_key'){
       aiAddMessage('Groq API ключ недействителен. Введи новый ключ в Настройки AI. Получить: console.groq.com/keys', 'bot');
+    }else if(err.message==='Failed to fetch' || err.name==='TypeError'){
+      aiAddMessage('Браузер блокирует запрос к Groq (CORS). Решение: открой Настройки AI → поставь «Провайдер: Worker» (нужен Cloudflare Worker) или введи свой ключ вручную.', 'bot');
     }else{
-      aiAddMessage('Извини, сейчас я не могу ответить. Проверь подключение к интернету. Если хочешь — введи свой Groq ключ в настройках AI (бесплатно).', 'bot');
+      aiAddMessage('Ошибка соединения с Groq. Проверь интернет или попробуй другой провайдер в Настройках AI.', 'bot');
     }
     console.error('Groq error:', err);
   });
