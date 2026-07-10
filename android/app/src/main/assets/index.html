@@ -6258,14 +6258,20 @@ function aiUpdateStatus(){
 }
 function aiAutoConnect(){
   if(!localStorage.getItem('ai_profile')){
-    const profile = {ai_name:'Антон', style:'balanced', server:AI_API, gemini_key:'', deepseek_key:'', groq_key:GROQ_DEFAULT_KEY, worker_url:'', ai_provider:'groq', user_id:'default'};
+    const profile = {ai_name:'Антон', style:'balanced', server:AI_API, gemini_key:'', deepseek_key:'', groq_key:'', worker_url:'', ai_provider:'groq', user_id:'default'};
     localStorage.setItem('ai_profile', JSON.stringify(profile));
   }else{
-    const p = JSON.parse(localStorage.getItem('ai_profile'));
+    let p;
+    try { p = JSON.parse(localStorage.getItem('ai_profile')); } catch(e) { p = {}; }
+    if(!p.ai_name) p.ai_name = 'Антон';
+    if(!p.style) p.style = 'balanced';
+    if(!p.server) p.server = AI_API;
+    if(!p.gemini_key) p.gemini_key = '';
     if(!p.deepseek_key) p.deepseek_key = '';
-    if(!p.groq_key) p.groq_key = GROQ_DEFAULT_KEY;
+    if(p.groq_key === undefined) p.groq_key = '';
     if(!p.worker_url) p.worker_url = '';
     if(!p.ai_provider) p.ai_provider = 'groq';
+    if(!p.user_id) p.user_id = 'default';
     localStorage.setItem('ai_profile', JSON.stringify(p));
   }
   aiUpdateStatus();
