@@ -6128,6 +6128,9 @@ setTimeout(()=>{
 const DEEPSEEK_DEFAULT_KEY = 'sk-' + '307718887cf74eb1835735a0c9ae739c';
 const GROQ_DEFAULT_KEY = 'gsk_' + '3c9gJmqPNnBwM4mwMfinWGdyb3FYyAvQ4m427mMn3CCwLZEZHEQe';
 const AI_WORKER_URL = 'https://rough-mud-49a8.dfyv8410.workers.dev';
+const AI_API = 'http://localhost:8000';
+let aiHistory = [];
+let aiReady = false;
 
 aiAutoConnect();
 
@@ -6258,7 +6261,7 @@ function aiUpdateStatus(){
 }
 function aiAutoConnect(){
   if(!localStorage.getItem('ai_profile')){
-    const profile = {ai_name:'Антон', style:'balanced', server:AI_API, gemini_key:'', deepseek_key:'', groq_key:'', worker_url:'', ai_provider:'groq', user_id:'default'};
+    const profile = {ai_name:'Антон', style:'balanced', server:AI_API, gemini_key:'', deepseek_key:'', groq_key:'', worker_url:AI_WORKER_URL, ai_provider:'worker', user_id:'default'};
     localStorage.setItem('ai_profile', JSON.stringify(profile));
   }else{
     let p;
@@ -6269,8 +6272,8 @@ function aiAutoConnect(){
     if(!p.gemini_key) p.gemini_key = '';
     if(!p.deepseek_key) p.deepseek_key = '';
     if(p.groq_key === undefined) p.groq_key = '';
-    if(!p.worker_url) p.worker_url = '';
-    if(!p.ai_provider) p.ai_provider = 'groq';
+    if(!p.ai_provider) p.ai_provider = 'worker';
+    if(!p.worker_url) p.worker_url = AI_WORKER_URL;
     if(!p.user_id) p.user_id = 'default';
     localStorage.setItem('ai_profile', JSON.stringify(p));
   }
