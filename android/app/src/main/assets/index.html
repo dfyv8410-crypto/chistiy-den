@@ -6124,6 +6124,11 @@ setTimeout(()=>{
   if(s) s.classList.add('hide');
 }, 1500);
 
+/* ===================== AI CONFIG ===================== */
+const DEEPSEEK_DEFAULT_KEY = 'sk-' + '307718887cf74eb1835735a0c9ae739c';
+const GROQ_DEFAULT_KEY = 'gsk_' + '3c9gJmqPNnBwM4mwMfinWGdyb3FYyAvQ4m427mMn3CCwLZEZHEQe';
+const AI_WORKER_URL = 'https://rough-mud-49a8.dfyv8410.workers.dev';
+
 aiAutoConnect();
 
 /* ===================== GLOBAL SEARCH ===================== */
@@ -6203,9 +6208,6 @@ function escRegex(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
 /* ===================== AI COMPANION ===================== */
 const AI_API = 'http://localhost:8000';
-const DEEPSEEK_DEFAULT_KEY = 'sk-' + '307718887cf74eb1835735a0c9ae739c';
-const GROQ_DEFAULT_KEY = 'gsk_' + '3c9gJmqPNnBwM4mwMfinWGdyb3FYyAvQ4m427mMn3CCwLZEZHEQe';
-const AI_WORKER_URL = 'https://rough-mud-49a8.dfyv8410.workers.dev'; // Cloudflare Worker (бесплатно, без ключа)
 let aiHistory = [];
 let aiReady = false;
 
