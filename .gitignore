@@ -8,3 +8,10 @@ package.json
 app/keystore.jks
 __pycache__/
 *.pyc
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
