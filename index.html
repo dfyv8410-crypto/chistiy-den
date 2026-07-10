@@ -6204,6 +6204,7 @@ function escRegex(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 /* ===================== AI COMPANION ===================== */
 const AI_API = 'http://localhost:8000';
 const DEEPSEEK_DEFAULT_KEY = 'sk-' + '307718887cf74eb1835735a0c9ae739c';
+const GROQ_DEFAULT_KEY = 'gsk_' + '3c9gJmqPNnBwM4mwMfinWGdyb3FYyAvQ4m427mMn3CCwLZEZHEQe';
 const AI_WORKER_URL = 'https://rough-mud-49a8.dfyv8410.workers.dev'; // Cloudflare Worker (бесплатно, без ключа)
 let aiHistory = [];
 let aiReady = false;
@@ -6225,10 +6226,14 @@ function aiSetStatus(ok){
   const saved = JSON.parse(localStorage.getItem('ai_profile')||'{}');
   if(ok && (saved.ai_provider==='worker')){
     el.className = 'ai-status connected'; el.innerHTML = '🟢 Worker AI';
+  }else if(ok && (saved.ai_provider==='groq')){
+    el.className = 'ai-status connected'; el.innerHTML = '🟢 Groq AI';
   }else if(ok && (saved.deepseek_key || DEEPSEEK_DEFAULT_KEY)){
     el.className = 'ai-status connected'; el.innerHTML = '🟢 DeepSeek';
   }else if(ok && saved.gemini_key){
     el.className = 'ai-status connected'; el.innerHTML = '🟢 Gemini';
+  }else if(ok && (saved.groq_key || GROQ_DEFAULT_KEY)){
+    el.className = 'ai-status connected'; el.innerHTML = '🟢 Groq AI';
   }else if(ok){
     el.className = 'ai-status connected'; el.innerHTML = '🟢 Подключено';
   }else{
@@ -6240,7 +6245,8 @@ function aiUpdateStatus(){
   if(saved.ai_provider==='worker' && (saved.worker_url || AI_WORKER_URL)){ aiSetStatus(true); return; }
   if(saved.ai_provider==='gemini' && saved.gemini_key){ aiSetStatus(true); return; }
   if(saved.ai_provider==='deepseek' && (saved.deepseek_key || DEEPSEEK_DEFAULT_KEY)){ aiSetStatus(true); return; }
-  if(saved.gemini_key || saved.deepseek_key || DEEPSEEK_DEFAULT_KEY){ aiSetStatus(true); return; }
+  if(saved.ai_provider==='groq'){ aiSetStatus(true); return; }
+  if(saved.gemini_key || saved.deepseek_key || DEEPSEEK_DEFAULT_KEY || saved.groq_key || GROQ_DEFAULT_KEY){ aiSetStatus(true); return; }
   const server = saved.server || AI_API;
   const ctrl = new AbortController();
   const tid = setTimeout(()=>ctrl.abort(), 3000);
@@ -6250,13 +6256,14 @@ function aiUpdateStatus(){
 }
 function aiAutoConnect(){
   if(!localStorage.getItem('ai_profile')){
-    const profile = {ai_name:'Антон', style:'balanced', server:AI_API, gemini_key:'', deepseek_key:'', worker_url:'', ai_provider:'worker', user_id:'default'};
+    const profile = {ai_name:'Антон', style:'balanced', server:AI_API, gemini_key:'', deepseek_key:'', groq_key:GROQ_DEFAULT_KEY, worker_url:'', ai_provider:'groq', user_id:'default'};
     localStorage.setItem('ai_profile', JSON.stringify(profile));
   }else{
     const p = JSON.parse(localStorage.getItem('ai_profile'));
-    if(!p.deepseek_key) { p.deepseek_key = ''; }
-    if(!p.worker_url) { p.worker_url = ''; }
-    if(!p.ai_provider) { p.ai_provider = 'worker'; }
+    if(!p.deepseek_key) p.deepseek_key = '';
+    if(!p.groq_key) p.groq_key = GROQ_DEFAULT_KEY;
+    if(!p.worker_url) p.worker_url = '';
+    if(!p.ai_provider) p.ai_provider = 'groq';
     localStorage.setItem('ai_profile', JSON.stringify(p));
   }
   aiUpdateStatus();
@@ -6336,10 +6343,13 @@ function aiCallAI(text){
   aiShowLoading();
   const profile = JSON.parse(localStorage.getItem('ai_profile')||'{}');
   const dsKey = profile.deepseek_key || DEEPSEEK_DEFAULT_KEY;
+  const groqKey = profile.groq_key || GROQ_DEFAULT_KEY;
   profile._dsKey = dsKey;
   if(profile.ai_provider==='worker') return aiCallWorker(text, profile);
   if(profile.ai_provider==='deepseek') return aiCallDeepSeek(text, profile);
+  if(profile.ai_provider==='groq') return aiCallGroq(text, profile);
   if(dsKey) return aiCallDeepSeek(text, profile);
+  if(groqKey) return aiCallGroq(text, profile);
   if(profile.gemini_key) return aiCallGemini(text, profile);
   aiCallServer(text);
 }
@@ -6498,6 +6508,47 @@ function aiCallServer(text){
     console.error('AI error:', err);
   });
 }
+function aiCallGroq(text, profile){
+  const key = profile.groq_key || GROQ_DEFAULT_KEY;
+  if(!key){
+    aiRemoveLoading();
+    aiAddMessage('Вставь Groq API ключ в Настройки AI. Получить: console.groq.com/keys', 'bot');
+    return;
+  }
+  const system = aiBuildSystemPrompt(profile);
+  const messages = [{role:'system', content:system}];
+  aiHistory.forEach(m => messages.push({role:m.role, content:m.content}));
+  messages.push({role:'user', content:text});
+  fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method:'POST',
+    headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+key},
+    body:JSON.stringify({model:'llama-3.3-70b-versatile', messages, max_tokens:512})
+  })
+  .then(r=>{
+    if(!r.ok && r.status===401) throw new Error('invalid_key');
+    if(!r.ok) throw new Error('http_'+r.status);
+    return r.json();
+  })
+  .then(data=>{
+    aiRemoveLoading();
+    const reply = data.choices?.[0]?.message?.content||'...';
+    aiAddMessage(reply, 'bot');
+    aiHistory.push({role:'assistant', content:reply});
+    const crisisWords = ['кризис','срыв','употребить','плохо','страшно','одиночество','безнадёжно'];
+    if(crisisWords.some(w=>text.toLowerCase().includes(w)||(reply||'').toLowerCase().includes(w))){
+      setTimeout(()=>notify('AI заметил кризис. Открой помощь.', null, true), 1000);
+    }
+  })
+  .catch(err=>{
+    aiRemoveLoading();
+    if(err.message==='invalid_key'){
+      aiAddMessage('Groq API ключ недействителен. Введи новый ключ в Настройки AI. Получить: console.groq.com/keys', 'bot');
+    }else{
+      aiAddMessage('Извини, сейчас я не могу ответить. Проверь подключение к интернету. Если хочешь — введи свой Groq ключ в настройках AI (бесплатно).', 'bot');
+    }
+    console.error('Groq error:', err);
+  });
+}
 
 function aiShowSettings(){
   const existing = document.getElementById('aiSettingsPanel');
@@ -6521,10 +6572,11 @@ function aiShowSettings(){
       <option value="coach" ${saved.style==='coach'?'selected':''}>Наставник</option>
     </select>
     <label style="margin-top:8px;">Провайдер AI</label>
-    <select id="aiProvider" onchange="var v=this.value;document.getElementById('aiWorkerFields').style.display=v==='worker'?'':'none';document.getElementById('aiGeminiFields').style.display=v==='gemini'?'':'none';document.getElementById('aiDeepSeekFields').style.display=v==='deepseek'?'':'none';">
+    <select id="aiProvider" onchange="var v=this.value;document.getElementById('aiWorkerFields').style.display=v==='worker'?'':'none';document.getElementById('aiGeminiFields').style.display=v==='gemini'?'':'none';document.getElementById('aiDeepSeekFields').style.display=v==='deepseek'?'':'none';document.getElementById('aiGroqFields').style.display=v==='groq'?'':'none';">
       <option value="worker" ${saved.ai_provider==='worker'||!saved.ai_provider?'selected':''}>Cloudflare Worker (бесплатно, без ключа)</option>
       <option value="deepseek" ${saved.ai_provider==='deepseek'?'selected':''}>DeepSeek (работает в РФ, бесплатно)</option>
       <option value="gemini" ${saved.ai_provider==='gemini'?'selected':''}>Google Gemini (бесплатно)</option>
+      <option value="groq" ${saved.ai_provider==='groq'?'selected':''}>Groq (бесплатно, Llama 70B)</option>
       <option value="server" ${saved.ai_provider==='server'?'selected':''}>Локальный сервер</option>
     </select>
     <div id="aiWorkerFields" ${saved.ai_provider==='worker'||!saved.ai_provider?'':'style="display:none"'}>
@@ -6554,6 +6606,14 @@ function aiShowSettings(){
         Бесплатно — 10 млн токенов. Без ключа бот не ответит.
       </div>
     </div>
+    <div id="aiGroqFields" ${saved.ai_provider==='groq'?'':'style="display:none"'}>
+      <label>🔑 Ключ Groq API</label>
+      <input id="aiGroqKey" value="${escHtml(saved.groq_key||'')}" placeholder="Вставьте ключ gsk-...">
+      <div style="font-size:11px;color:var(--muted);margin:-4px 0 8px;line-height:1.5;">
+        Получить: <a href="https://console.groq.com/keys" target="_blank" rel="noopener" style="color:var(--accent);">console.groq.com/keys</a>
+        — бесплатно. Используется модель Llama 3.3 70B.
+      </div>
+    </div>
     <label>Сервер AI (локальный)</label>
     <input id="aiServer" value="${escHtml(saved.server||AI_API)}" placeholder="http://localhost:8000">
     <button class="btn-primary" onclick="aiSaveSettings()" style="padding:10px;border:none;border-radius:999px;font-weight:700;font-size:14px;width:100%;">Сохранить</button>
@@ -6568,8 +6628,9 @@ function aiSaveSettings(){
   const ai_provider = document.getElementById('aiProvider').value;
   const gemini_key = document.getElementById('aiGeminiKey').value.trim();
   const deepseek_key = document.getElementById('aiDeepSeekKey').value.trim();
+  const groq_key = document.getElementById('aiGroqKey').value.trim();
   const worker_url = document.getElementById('aiWorkerUrl').value.trim();
-  const profile = {ai_name:name, style:style, server:server||AI_API, ai_provider:ai_provider, gemini_key:gemini_key, deepseek_key:deepseek_key, worker_url:worker_url, user_id:'default'};
+  const profile = {ai_name:name, style:style, server:server||AI_API, ai_provider:ai_provider, gemini_key:gemini_key, deepseek_key:deepseek_key, groq_key:groq_key, worker_url:worker_url, user_id:'default'};
   localStorage.setItem('ai_profile', JSON.stringify(profile));
   const panel = document.getElementById('aiSettingsPanel');
   if(panel) panel.remove();
